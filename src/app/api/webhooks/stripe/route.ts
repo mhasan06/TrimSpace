@@ -38,9 +38,3 @@ export async function POST(req: Request) {
   return NextResponse.json({ received: true });
 }
 
-// Ensure the raw body is preserved for Stripe signature verification
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
