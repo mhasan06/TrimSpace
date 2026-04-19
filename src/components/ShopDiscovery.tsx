@@ -10,9 +10,9 @@ type Tenant = {
   slug: string;
   category: string | null;
   address: string | null;
-  phone: string | null;
+  phone?: string | null;
   isActive: boolean;
-  shopImage: string | null;
+  shopImage?: string | null;
   rating?: string;
   isLive?: boolean;
 };
