@@ -23,7 +23,7 @@ export default function CancelButton({ appointmentId, amountPaidStripe, amountPa
     if (!confirm(confirmMsg)) return;
 
     setLoading(true);
-    const result = await handleRefundAndCancel(appointmentId);
+    const result = (await handleRefundAndCancel(appointmentId)) as any;
     setLoading(false);
 
     if (result.success) {
