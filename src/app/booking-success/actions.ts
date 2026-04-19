@@ -10,5 +10,5 @@ export async function finalizeStripeBooking(sessionId: string) {
           selectedTime: (result as any).selectedTime 
       };
   }
-  return result;
+  return { success: false, error: (result as any).error || "Unknown Error" };
 }
