@@ -95,7 +95,7 @@ function StaffCard({ member, tenantId, staffLabel }: { member: StaffMember; tena
                 style={{ width: '100%', height: '80px', padding: '0.6rem', background: '#000', border: '1px solid var(--border)', borderRadius: '8px', color: 'white', fontSize: '0.8rem', resize: 'none' }}
               />
           ) : (
-              <p style={{ fontSize: '0.8rem', opacity: 0.7, lineHeight: 1.5, italic: true }}>
+              <p style={{ fontSize: '0.8rem', opacity: 0.7, lineHeight: 1.5, fontStyle: 'italic' }}>
                   {member.bio || `Senior ${staffLabel} with a focus on excellence.`}
               </p>
           )}
@@ -257,7 +257,7 @@ export default function RosterManager({ staff, tenantId, currentUserId, staffLab
                 
                 <div style={{ marginTop: '0.5rem' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.6, display: 'block', marginBottom: '0.3rem' }}>Profile Picture Upload (Optional)</label>
-                  <ImageUpload tenantId={tenantId} label="Upload Avatar" onUploadSuccess={(url) => setCreateData({...createData, avatarUrl: url})} height="60px" />
+                  <ImageUpload tenantId={tenantId} currentImage={createData.avatarUrl || ""} label="Upload Avatar" onUploadSuccess={(url) => setCreateData({...createData, avatarUrl: url})} height="60px" />
                   {createData.avatarUrl && <p style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '0.3rem' }}>Image uploaded successfully!</p>}
                 </div>
 
