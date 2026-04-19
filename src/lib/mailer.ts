@@ -23,7 +23,7 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
     if ((appointment as any).bookingGroupId) {
         appointments = await prisma.appointment.findMany({
             where: { bookingGroupId: (appointment as any).bookingGroupId },
-            include: { service: true }
+            include: { service: true, customer: true, tenant: true }
         });
     }
 
