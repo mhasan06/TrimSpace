@@ -1,28 +1,30 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { generateTaxInvoice } from "@/lib/invoiceGenerator";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { generateTaxInvoice } from '@/lib/invoiceGenerator';
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { id } = await params;
 
-    const { id: appointmentId } = await params;
-
-    // 1. Fetch the primary appointment to get context
+    // 1. Fetch main appointment
     const appointment = await prisma.appointment.findUnique({
-      where: { id: appointmentId },
-      include: { customer: true, tenant: true, service: true }
+      where: { id },
+      include: {
+        customer: true,
+        tenant: true,
+        service: true,
+      },
     });
 
     if (!appointment) {
-      return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    // 2. Fetch all related appointments in the same group (if any)
-    let groupAppointments = [appointment];
+    // 2. Fetch entire group if applicable (High-Fidelity)
+    let groupAppointments: any[] = [appointment];
     if ((appointment as any).bookingGroupId) {
         groupAppointments = await prisma.appointment.findMany({
             where: { bookingGroupId: (appointment as any).bookingGroupId },
@@ -30,40 +32,32 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         });
     }
 
-    // Authorization check (using primary appointment)
-    const isCustomer = (session.user as any).id === appointment.customerId;
-    const isMerchant = (session.user as any).tenantId === appointment.tenantId;
-    const isAdmin = (session.user as any).role === "ADMIN";
-
-    if (!isCustomer && !isMerchant && !isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Map Group data to Invoice format
+    // 3. Prepare data for PDF generator
     const invoiceData = {
       bookingId: (appointment as any).bookingGroupId || appointment.id.substring(appointment.id.length - 8).toUpperCase(),
-      customerName: appointment.customer.name || "Valued Customer",
+      customerName: appointment.customer.name || 'Valued Customer',
       tenantName: appointment.tenant.name,
-      tenantAddress: appointment.tenant.address || "Main St, Australia",
-      tenantPhone: appointment.tenant.phone || "",
-      tenantABN: (appointment.tenant as any).abn || "00 000 000 000",
-      date: appointment.startTime.toLocaleDateString("en-AU", { weekday: "short", year: "numeric", month: "short", day: "numeric" }),
-      time: appointment.startTime.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit", hour12: true }),
+      tenantAddress: appointment.tenant.address || 'Main St, Australia',
+      tenantPhone: appointment.tenant.phone || '',
+      tenantABN: (appointment.tenant as any).abn || '00 000 000 000',
+      date: appointment.startTime.toLocaleDateString('en-AU', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
+      time: appointment.startTime.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true }),
       services: groupAppointments.map(a => ({ name: a.service.name, price: a.service.price })),
       totalPrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0)
     };
 
+    // 4. Generate PDF
     const pdfBlob = await generateTaxInvoice(invoiceData);
-    const pdfBuffer = Buffer.from(await pdfBlob.arrayBuffer());
 
-    return new Response(pdfBuffer, {
+    // 5. Return PDF Stream
+    return new NextResponse(pdfBlob, {
       headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="Invoice-${invoiceData.bookingId}.pdf"`,
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="invoice-${invoiceData.bookingId}.pdf"`,
       },
     });
   } catch (error: any) {
-    console.error("Invoice Generation Error:", error);
-    return NextResponse.json({ error: "Server Error" }, { status: 500 });
+    console.error('Invoice Generation Error:', error);
+    return NextResponse.json({ error: 'Failed to generate invoice' }, { status: 500 });
   }
 }
