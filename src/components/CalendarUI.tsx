@@ -250,7 +250,7 @@ export default function CalendarUI({ barbers, appointments, currentDateStr, high
                   </div>
               </div>
               <div style={{ padding: '1.5rem 2rem', borderTop: '1px solid #edf2f7', display: 'flex', gap: '1rem' }}>
-                  <button style={{ flex: 1, padding: '0.8rem', background: '#3182ce', color: '#white', borderRadius: '8px', border: 'none', fontWeight: 800, cursor: 'pointer', color: 'white' }}>Checkout</button>
+                  <button style={{ flex: 1, padding: '0.8rem', background: '#3182ce', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Checkout</button>
                   <button onClick={() => setSelectedBooking(null)} style={{ padding: '0.8rem 1.5rem', background: '#f7fafc', color: '#4a5568', borderRadius: '8px', border: '1px solid #e2e8f0', fontWeight: 700, cursor: 'pointer' }}>Close</button>
               </div>
           </div>
