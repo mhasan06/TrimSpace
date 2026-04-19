@@ -18,7 +18,12 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const tenantId = context?.tenantId;
 
   if (!tenantId) {
-    return <div style={{ color: 'white', padding: '2rem' }}>Unauthorized Access: Redirecting...</div>;
+    // If they are a Portal Admin, they shouldn't be here, they should be in /admin
+    const session = await getServerSession(authOptions);
+    if ((session?.user as any)?.role === "ADMIN") {
+      redirect("/admin");
+    }
+    return <div style={{ color: 'white', padding: '2rem' }}>Unauthorized Access: Your account is not linked to a specific shop.</div>;
   }
 
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });

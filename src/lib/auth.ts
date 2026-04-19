@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
         // ROLE ENFORCEMENT: Strictly gate based on the portal context
         const context = credentials.loginType;
         if (context === "CUSTOMER" && user.role !== "CUSTOMER") return null;
-        if (context === "PARTNER" && user.role !== "BARBER") return null;
+        if (context === "PARTNER" && user.role !== "BARBER" && user.role !== "ADMIN") return null;
         if (context === "ADMIN" && user.role !== "ADMIN") return null;
 
         // Password verification (Legacy Mock bypassing + Hashed support)
