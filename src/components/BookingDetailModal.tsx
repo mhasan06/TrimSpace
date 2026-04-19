@@ -18,6 +18,7 @@ export type BookingDetail = {
   servicePrice: number;
   barberName?: string | null;
   invoiceUrl?: string | null;
+  hasReview?: boolean;
 };
 
 interface Props {
