@@ -19,7 +19,7 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
     if (!appointment) throw new Error("Appointment not found for notification.");
 
     // 1. Fetch group context if applicable
-    let appointments = [appointment];
+    let appointments: any[] = [appointment];
     if ((appointment as any).bookingGroupId) {
         appointments = await prisma.appointment.findMany({
             where: { bookingGroupId: (appointment as any).bookingGroupId },
