@@ -7,7 +7,8 @@ export async function finalizeStripeBooking(sessionId: string) {
           success: true, 
           tenantSlug: (result as any).tenantSlug, 
           targetDate: (result as any).targetDate, 
-          selectedTime: (result as any).selectedTime 
+          selectedTime: (result as any).selectedTime,
+          error: undefined
       };
   }
   return { success: false, error: (result as any).error || "Unknown Error" };
