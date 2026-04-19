@@ -130,7 +130,7 @@ export default function CalendarUI({ barbers, appointments, currentDateStr, high
 
         {/* Month Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: 'minmax(120px, auto)' }}>
-            {monthData.map((cell, idx) => {
+            {monthData.map((cell: any, idx: number) => {
                 const dayStr = cell.date.toISOString().split('T')[0];
                 const dayApps = appointments.filter(a => {
                     const aStart = new Date(a.startTime).toISOString().split('T')[0];

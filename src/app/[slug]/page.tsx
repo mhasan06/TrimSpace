@@ -158,7 +158,7 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
                   <section className={styles.section}>
                       <h2 className={styles.sectionTitle}>Recent Customer Photos</h2>
                       <div className={styles.customerPhotosGrid}>
-                          {customerGallery.slice(0, 3).map((url, i) => (
+                          {customerGallery.slice(0, 3).map((url: string, i: number) => (
                               <div key={i} style={{ backgroundImage: `url("${url}")` }}></div>
                           ))}
                       </div>
@@ -185,7 +185,7 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
                       <p style={{ fontWeight: 700, marginBottom: '1.5rem', fontSize: '0.95rem' }}>{tenant.address}</p>
                       
                       <div className={styles.hoursList}>
-                          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day, idx) => {
+                          {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day: string, idx: number) => {
                               const hr = tenant.businessHours.find((h: any) => h.dayOfWeek === idx);
                               return (
                                   <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.6rem', opacity: hr ? 1 : 0.4 }}>

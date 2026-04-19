@@ -47,9 +47,9 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   const xFor = (i: number) => PAD_L + (i / Math.max(data.length - 1, 1)) * chartW;
   const yFor = (v: number) => PAD_T + chartH - (v / maxVal) * chartH;
 
-  const stripePoints = data.map((d, i) => ({ x: xFor(i), y: yFor(d.stripe) }));
-  const giftPoints   = data.map((d, i) => ({ x: xFor(i), y: yFor(d.gift) }));
-  const totalPoints  = data.map((d, i) => ({ x: xFor(i), y: yFor(d.stripe + d.gift) }));
+  const stripePoints = data.map((d: any, i: number) => ({ x: xFor(i), y: yFor(d.stripe) }));
+  const giftPoints   = data.map((d: any, i: number) => ({ x: xFor(i), y: yFor(d.gift) }));
+  const totalPoints  = data.map((d: any, i: number) => ({ x: xFor(i), y: yFor(d.stripe + d.gift) }));
 
   const stripePath = buildSVGPath(stripePoints);
   const giftPath   = buildSVGPath(giftPoints);

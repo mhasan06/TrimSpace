@@ -178,7 +178,7 @@ export default function BookingFlow({
       
       {/* Visual Progress Steps */}
       <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {["Select", "Schedule", "Payment"].map((s, i) => (
+          {["Select", "Schedule", "Payment"].map((s: string, i: number) => (
              <div key={s} style={{ 
                 fontWeight: 800, 
                 fontSize: '0.85rem', 

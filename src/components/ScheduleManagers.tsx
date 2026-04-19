@@ -87,7 +87,7 @@ export function HoursManager({ tenantId, initialHours }: { tenantId: string, ini
                 <span title="Number of Barbers scheduled to work">Staff</span>
             </div>
 
-            {hours.map((hr, idx) => (
+            {hours.map((hr: any, idx: number) => (
                 <div key={idx} className="hours-grid">
                     <span className="day-label" style={{ fontWeight: 600 }}>{days[hr.dayOfWeek]}</span>
                     <input type="time" value={hr.openTime} onChange={(e) => handleUpdate(idx, 'openTime', e.target.value)} style={{ padding: '0.5rem', borderRadius: '4px', background: 'var(--background)', color: 'var(--foreground)', border: '1px solid var(--border)' }} />

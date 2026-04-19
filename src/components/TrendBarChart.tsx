@@ -64,7 +64,7 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
             </defs>
 
             {/* Y-Axis Grid */}
-            {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
+            {[0, 0.25, 0.5, 0.75, 1].map((p: number, i: number) => {
                 const val = maxVal * p;
                 const y = yFor(val);
                 return (
@@ -78,7 +78,7 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
             })}
 
             {/* Bars Mapping */}
-            {data.map((d, i) => {
+            {data.map((d: any, i: number) => {
                 const x = xFor(i);
                 const stripeHeight = (d.stripe / maxVal) * chartH;
                 const giftHeight = (d.gift / maxVal) * chartH;
