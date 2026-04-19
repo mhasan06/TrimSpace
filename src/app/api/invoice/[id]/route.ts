@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if ((appointment as any).bookingGroupId) {
         groupAppointments = await prisma.appointment.findMany({
             where: { bookingGroupId: (appointment as any).bookingGroupId },
-            include: { service: true }
+            include: { service: true, customer: true, tenant: true }
         });
     }
 
