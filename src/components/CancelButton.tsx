@@ -30,7 +30,7 @@ export default function CancelButton({ appointmentId, amountPaidStripe, amountPa
       const parts: string[] = ["✅ Appointment cancelled."];
       if (result.refunded) {
         if (result.stripeRefundAmount && result.stripeRefundAmount > 0) {
-          parts.push(`$${result.stripeRefundAmount.toFixed(2)} Stripe refund initiated (ID: ${result.stripeRefundId || 'N/A'}).`);
+          parts.push(`$${result.stripeRefundAmount.toFixed(2)} Stripe refund initiated.`);
         }
         if (result.giftRefundAmount && result.giftRefundAmount > 0) {
           parts.push(`$${result.giftRefundAmount.toFixed(2)} restored to gift card.`);
