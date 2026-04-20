@@ -136,7 +136,7 @@ export default function BookingFlow({
         if (checkoutData.error) throw new Error(checkoutData.error);
         if (checkoutData.bypassStripe) {
           const result = await createBookingTransaction(cart.map(i => ({ serviceId: i.service.id, quantity: i.quantity })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, undefined, checkoutData.giftCardId, checkoutData.giftDiscount);
-          if (result.success) window.location.href = "/booking-success?bypass=true";
+          if (result.success) window.location.href = "/booking-confirmation?bypass=true";
           else throw new Error(result.error || "Failed to finalize booking.");
           return;
         }
