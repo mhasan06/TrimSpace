@@ -50,17 +50,18 @@ export async function GET(
     };
 
     // 4. Generate PDF
-    const pdfBlob = await generateTaxInvoice(invoiceData);
+    console.log(`Generating invoice for ${id}, status: ${invoiceData.status}`);
+    const pdfBuffer = await generateTaxInvoice(invoiceData);
 
-    // 5. Return PDF Stream
-    return new NextResponse(pdfBlob, {
+    // 5. Return PDF Response
+    return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="invoice-${invoiceData.bookingId}.pdf"`,
+        'Content-Disposition': `attachment; filename="Invoice-${invoiceData.bookingId}.pdf"`,
       },
     });
   } catch (error: any) {
-    console.error('Invoice Generation Error:', error);
-    return NextResponse.json({ error: 'Failed to generate invoice' }, { status: 500 });
+    console.error('CRITICAL: Invoice Generation Error:', error.message, error.stack);
+    return NextResponse.json({ error: `Invoice Error: ${error.message}` }, { status: 500 });
   }
 }
