@@ -1,9 +1,27 @@
-"use client";
+
 
 import Link from "next/link";
 import styles from "./page.module.css";
 
-export default function LoginGateway() {
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+
+export default async function LoginGateway() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    const role = (session.user as any).role;
+    const tenantId = (session.user as any).tenantId;
+
+    if (role === "ADMIN" && !tenantId) {
+      redirect("/admin");
+    } else if (tenantId) {
+      redirect("/dashboard");
+    } else if (role === "CUSTOMER") {
+      redirect("/my-bookings");
+    }
+  }
   return (
     <main className={styles.main}>
       <div style={{ maxWidth: '800px', width: '100%', textAlign: 'center' }}>
@@ -29,16 +47,6 @@ export default function LoginGateway() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: '1.5rem'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-10px)';
-              e.currentTarget.style.borderColor = 'var(--primary)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(var(--primary-rgb), 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.borderColor = 'var(--border)';
-              e.currentTarget.style.boxShadow = 'none';
             }}>
               <div style={{ width: '80px', height: '80px', background: 'rgba(var(--primary-rgb), 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -69,16 +77,6 @@ export default function LoginGateway() {
               flexDirection: 'column',
               alignItems: 'center',
               gap: '1.5rem'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-10px)';
-              e.currentTarget.style.borderColor = 'var(--secondary)';
-              e.currentTarget.style.boxShadow = '0 20px 40px rgba(var(--secondary-rgb), 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.borderColor = 'var(--border)';
-              e.currentTarget.style.boxShadow = 'none';
             }}>
               <div style={{ width: '80px', height: '80px', background: 'rgba(var(--secondary-rgb), 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary)' }}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
