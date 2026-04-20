@@ -40,64 +40,44 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   }
 
-  try {
-    // Safety Timeout: If DB doesn't respond in 5s, throw error instead of hanging white screen
-    const tenant = await Promise.race([
-      prisma.tenant.findUnique({ where: { id: context.tenantId } }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Database Request Timed Out (5s)")), 5000))
-    ]) as any;
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: context.tenantId }
+  });
+  const terminology = getTerminology(tenant?.category);
 
-    const terminology = getTerminology(tenant?.category);
-
-    return (
-      <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
-        {/* PRODUCTION DEBUGGER: Remove after fixing session issues */}
-        <div style={{ background: '#002244', color: '#00ccff', padding: '0.5rem 1rem', fontSize: '0.7rem', borderBottom: '1px solid #00ccff', fontFamily: 'monospace' }}>
-          DEBUG: UserID={context.realAdminId} | Role={(session?.user as any)?.role} | TenantID={context.tenantId} | AuthStatus={session ? 'AUTHENTICATED' : 'ANONYMOUS'}
+  return (
+    <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
+      {context.isSupportMode && (
+        <SupportSessionBanner 
+          tenantName={context.tenantName!} 
+          adminName={context.realAdminName!} 
+        />
+      )}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <aside className={`${styles.sidebar} glass`}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', color: 'var(--foreground)' }}>Business Dashboard</h2>
+          <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>{terminology.industryIcon} {tenant?.category || 'BARBER'}</p>
         </div>
-        
-        {context.isSupportMode && (
-          <SupportSessionBanner 
-            tenantName={context.tenantName!} 
-            adminName={context.realAdminName!} 
-          />
-        )}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <aside className={`${styles.sidebar} glass`}>
-          <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.2rem', color: 'var(--foreground)' }}>Business Dashboard</h2>
-            <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>{terminology.industryIcon} {tenant?.category || 'BARBER'}</p>
-          </div>
-          <nav className={styles.nav}>
-            <Link href="/dashboard" className={styles.navLink}>Overview</Link>
-            <Link href="/dashboard/appointments" className={styles.navLink} style={{ color: 'var(--foreground)', fontWeight: 600 }}>Master Ledger</Link>
-            <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>
-            <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>
-            <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>
-            <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>
-            <Link href="/dashboard/customers" className={styles.navLink}>Customer Directory</Link>
-            <Link href="/dashboard/settings" className={styles.navLink}>Shop Settings</Link>
-            <Link href="/dashboard/support" className={styles.navLink} style={{ marginTop: 'auto', color: 'var(--accent)' }}>Contact Support</Link>
-          </nav>
-        </aside>
+        <nav className={styles.nav}>
+          <Link href="/dashboard" className={styles.navLink}>Overview</Link>
+          <Link href="/dashboard/appointments" className={styles.navLink} style={{ color: 'var(--foreground)', fontWeight: 600 }}>Master Ledger</Link>
+          <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>
+          <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>
+          <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>
+          <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>
+          <Link href="/dashboard/customers" className={styles.navLink}>Customer Directory</Link>
+          <Link href="/dashboard/settings" className={styles.navLink}>Shop Settings</Link>
+          <Link href="/dashboard/support" className={styles.navLink} style={{ marginTop: 'auto', color: 'var(--accent)' }}>Contact Support</Link>
+        </nav>
+      </aside>
 
-        <main className={styles.mainContent}>
-          {children}
-        </main>
+      <main className={styles.mainContent}>
+        {children}
+      </main>
 
-        </div>
-        <MobileBottomNav />
       </div>
-    );
-  } catch (error: any) {
-    return (
-      <div style={{ color: 'white', padding: '4rem', textAlign: 'center', background: '#111' }}>
-        <h2 style={{ color: '#ff4444', marginBottom: '1rem' }}>Dashboard Sync Error</h2>
-        <p style={{ opacity: 0.7 }}>We encountered a problem fetching your shop data.</p>
-        <pre style={{ background: '#000', padding: '1rem', marginTop: '1rem', fontSize: '0.7rem', color: '#ff4444' }}>
-          {error.message}
-        </pre>
-      </div>
-    );
-  }
+      <MobileBottomNav />
+    </div>
+  );
 }
