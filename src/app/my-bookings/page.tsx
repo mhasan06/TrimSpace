@@ -62,7 +62,7 @@ export default async function MyBookings() {
   const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now && app.status !== 'CANCELLED'));
   const past = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
 
-  const userReviewIds: string[] = [];
+  let userReviewIds: string[] = [];
   try {
     const rawReviews = await prisma.$queryRaw<any[]>`SELECT "appointmentId" FROM "Review" WHERE "customerId" = ${userId}`;
     userReviewIds = rawReviews.map(r => r.appointmentId);
