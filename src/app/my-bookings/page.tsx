@@ -195,9 +195,18 @@ export default async function MyBookings() {
                       <SessionHistoryTable rows={past.map(g => ({
                         id: g.id,
                         startTime: g.startTime.toISOString(),
+                        endTime: g.endTime.toISOString(),
                         tenantName: g.tenant.name,
+                        tenantSlug: g.tenant.slug,
+                        tenantAddress: g.tenant.address,
                         serviceName: g.services.map((s: any) => s.name).join(", "),
+                        servicePrice: g.totalPrice,
                         status: g.status,
+                        paymentStatus: g.paymentStatus,
+                        paymentMethod: g.paymentMethod,
+                        amountPaidStripe: g.totalStripe,
+                        amountPaidGift: g.totalGift,
+                        barberName: g.barber?.name,
                         invoiceUrl: g.invoiceUrl,
                         hasReview: userReviewIds.includes(g.id)
                       }))} />
