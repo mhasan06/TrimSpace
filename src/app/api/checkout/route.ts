@@ -88,13 +88,16 @@ export async function POST(req: Request) {
       }));
     }
 
+    // Dynamic Origin Detection: Ensures Stripe always redirects back to the current site (Prod or Local)
+    const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+
     // Create Stripe Checkout Session
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
       mode: "payment",
-      success_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/booking-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/${tenantSlug}`,
+      success_url: `${origin}/booking-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/${tenantSlug}`,
       metadata: {
         tenantSlug,
         targetDate,
