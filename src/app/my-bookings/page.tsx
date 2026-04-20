@@ -81,45 +81,6 @@ export default async function MyBookings() {
         fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       
-      {/* ─── SLICK ICON SIDEBAR ─── */}
-      <aside style={{ 
-          width: '90px', 
-          background: 'white', 
-          borderRadius: '40px', 
-          boxShadow: '0 20px 40px rgba(0,0,0,0.05)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '2rem 0',
-          gap: '2.5rem',
-          height: 'calc(100vh - 4rem)',
-          position: 'sticky',
-          top: '2rem'
-      }}>
-          <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900 }}>S</div>
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {[
-                { icon: '📊', color: '#f3f4f6' },
-                { icon: '📅', color: '#f3f4f6' },
-                { icon: '👤', color: '#6366f1', active: true },
-                { icon: '⚙️', color: '#f3f4f6' }
-              ].map((item, i) => (
-                  <div key={i} style={{ 
-                      width: '50px', height: '50px', 
-                      borderRadius: '18px', 
-                      background: item.active ? '#6366f1' : 'transparent',
-                      color: item.active ? 'white' : '#94a3b8',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '1.2rem', cursor: 'pointer',
-                      boxShadow: item.active ? '0 10px 20px rgba(99, 102, 241, 0.3)' : 'none'
-                  }}>{item.icon}</div>
-              ))}
-          </nav>
-          <div style={{ marginTop: 'auto' }}>
-              <CustomerLogoutButton />
-          </div>
-      </aside>
-
       {/* ─── PROFILE COMMAND CARD ─── */}
       <section style={{ 
           width: '380px', 
@@ -130,29 +91,42 @@ export default async function MyBookings() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          height: 'fit-content'
+          height: 'fit-content',
+          position: 'sticky',
+          top: '2rem'
       }}>
-          <div style={{ position: 'relative', marginBottom: '2rem' }}>
+          <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
               <div style={{ width: '130px', height: '130px', borderRadius: '50%', overflow: 'hidden', border: '5px solid #F5F3FF' }}>
                   <img src={`https://ui-avatars.com/api/?name=${session.user?.name}&background=6366f1&color=fff&size=200`} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <div style={{ position: 'absolute', bottom: 0, right: 0, width: '32px', height: '32px', background: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', cursor: 'pointer' }}>✏️</div>
           </div>
 
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.5rem' }}>{session.user?.name}</h2>
-          <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '0.3rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '2.5rem' }}>NEW CLIENT</span>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>{session.user?.name}</h2>
+          <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '0.3rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem' }}>NEW CLIENT</span>
+          
+          <button style={{ 
+              background: 'transparent', 
+              border: '1px solid #e2e8f0', 
+              color: '#64748b', 
+              padding: '0.5rem 1.2rem', 
+              borderRadius: '12px', 
+              fontSize: '0.8rem', 
+              fontWeight: 700, 
+              cursor: 'pointer',
+              marginBottom: '2rem'
+          }}>Edit Profile</button>
 
-          <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '3rem' }}>Add New Appointment</Link>
+          <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '2rem' }}>Add New Appointment</Link>
 
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
               <div style={{ background: '#f8fafc', padding: '1rem 1.5rem', borderRadius: '18px' }}>
                   <p style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Email</p>
                   <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', wordBreak: 'break-all' }}>{session.user?.email}</p>
               </div>
-              <div style={{ background: '#f8fafc', padding: '1rem 1.5rem', borderRadius: '18px' }}>
-                  <p style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Status</p>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155' }}>Active Account</p>
-              </div>
+          </div>
+
+          <div style={{ width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+              <CustomerLogoutButton />
           </div>
       </section>
 
