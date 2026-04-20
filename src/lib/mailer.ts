@@ -9,23 +9,37 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
  * High-fidelity Simulated Mailer.
  * Generates invoice -> Uploads to Cloud -> Logs simulated email delivery -> Updates DB.
  */
-export async function sendNotificationEmail(appointmentId: string, type: 'CONFIRMED' | 'CANCELLED') {
+export async function sendNotificationEmail(id: string, type: 'CONFIRMED' | 'CANCELLED') {
   try {
-    const appointment = await prisma.appointment.findUnique({
-      where: { id: appointmentId },
-      include: { customer: true, tenant: true, service: true }
-    });
-
-    if (!appointment) throw new Error("Appointment not found for notification.");
-
-    // 1. Fetch group context if applicable
-    let appointments: any[] = [appointment];
-    if ((appointment as any).bookingGroupId) {
+    console.log(`[Mailer] Starting notification for ID: ${id}, Key present: ${!!process.env.RESEND_API_KEY}`);
+    
+    // 1. Fetch appointments (could be a single ID or a bookingGroupId)
+    let appointments: any[] = [];
+    
+    if (id.startsWith('grp_')) {
         appointments = await prisma.appointment.findMany({
-            where: { bookingGroupId: (appointment as any).bookingGroupId },
+            where: { bookingGroupId: id },
             include: { service: true, customer: true, tenant: true }
         });
+    } else {
+        const single = await prisma.appointment.findUnique({
+            where: { id },
+            include: { service: true, customer: true, tenant: true }
+        });
+        if (single) {
+            if ((single as any).bookingGroupId) {
+                appointments = await prisma.appointment.findMany({
+                    where: { bookingGroupId: (single as any).bookingGroupId },
+                    include: { service: true, customer: true, tenant: true }
+                });
+            } else {
+                appointments = [single];
+            }
+        }
     }
+
+    if (appointments.length === 0) throw new Error(`No appointments found for ID: ${id}`);
+    const appointment = appointments[0];
 
     const totalServicePrice = appointments.reduce((sum, a) => sum + a.service.price, 0);
 
@@ -44,8 +58,10 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
     };
 
     // 2. Archive to Cloud Storage
-    const pdfBlob = await generateTaxInvoice(invoiceData);
-    const invoiceUrl = await uploadInvoice(appointmentId, pdfBlob);
+    const pdfData = await generateTaxInvoice(invoiceData);
+    // Convert ArrayBuffer to Buffer for Supabase/Node compatibility
+    const pdfBuffer = Buffer.from(pdfData);
+    const invoiceUrl = await uploadInvoice(appointment.id, pdfBuffer as any);
 
     // 3. Real Email Delivery via Resend (or fall back to simulated)
     const subject = type === 'CONFIRMED' 

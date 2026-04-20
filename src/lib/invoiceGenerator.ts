@@ -68,18 +68,16 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   const cancellationFee = isCancelled ? subtotal * 0.5 : 0;
   const netAmount = isCancelled ? cancellationFee : subtotal;
 
-  const tableData = [
-    [
-      data.serviceName || "Booking Services", 
-      `$${subtotal.toFixed(2)}`, 
-      isCancelled ? "50%" : "0%", 
-      `$${netAmount.toFixed(2)}`
-    ]
-  ];
+  const tableData = data.services.map(s => [
+      s.name,
+      `$${s.price.toFixed(2)}`,
+      isCancelled ? "50%" : "0%",
+      `$${(isCancelled ? s.price * 0.5 : s.price).toFixed(2)}`
+  ]);
 
   if (isCancelled) {
     tableData.push([
-      "Cancellation Fee (50%)",
+      "Cancellation Fee Total (50%)",
       "-",
       "-",
       `$${cancellationFee.toFixed(2)}`

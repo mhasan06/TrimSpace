@@ -40,6 +40,7 @@ export default async function MyBookings() {
     const groups: any[] = [];
     const map = new Map();
     list.forEach(app => {
+      // Use bookingGroupId if it exists, otherwise fallback to id
       const gid = app.bookingGroupId || app.id;
       if (!map.has(gid)) {
         map.set(gid, { 
@@ -63,6 +64,11 @@ export default async function MyBookings() {
     });
     return groups;
   };
+
+  const favorites = await prisma.favorite.findMany({
+    where: { userId },
+    include: { tenant: true }
+  });
 
   const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now && app.status !== 'CANCELLED'));
   const past = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
@@ -90,6 +96,7 @@ export default async function MyBookings() {
         }}
         upcoming={upcoming}
         past={past}
+        favorites={favorites.map(f => f.tenant)}
         userReviewIds={userReviewIds}
         completedCount={completedCount}
         cancelledCount={cancelledCount}

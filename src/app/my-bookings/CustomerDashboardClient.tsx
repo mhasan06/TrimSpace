@@ -14,7 +14,8 @@ export default function CustomerDashboardClient({
     past, 
     userReviewIds,
     completedCount,
-    cancelledCount
+    cancelledCount,
+    favorites = []
 }: any) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("appointments");
@@ -129,6 +130,38 @@ export default function CustomerDashboardClient({
                         </div>
                     ))}
                 </div>
+
+                {/* Favorites Quick Booking */}
+                {favorites.length > 0 && (
+                    <div style={{ marginBottom: '2rem' }}>
+                        <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ color: '#ef4444' }}>❤️</span> Favorite Shops
+                        </h3>
+                        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
+                            {favorites.map((shop: any) => (
+                                <Link 
+                                    key={shop.id}
+                                    href={`/shop/${shop.slug}`}
+                                    style={{ 
+                                        minWidth: '150px', background: 'white', padding: '1.2rem', 
+                                        borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.02)',
+                                        textDecoration: 'none', display: 'flex', flexDirection: 'column', 
+                                        alignItems: 'center', gap: '0.8rem', border: '1px solid #f1f5f9',
+                                        transition: 'transform 0.2s'
+                                    }}
+                                    onMouseEnter={(e: any) => e.currentTarget.style.transform = 'translateY(-5px)'}
+                                    onMouseLeave={(e: any) => e.currentTarget.style.transform = 'translateY(0)'}
+                                >
+                                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#F5F3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
+                                        {shop.name.charAt(0)}
+                                    </div>
+                                    <p style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b', margin: 0, textAlign: 'center' }}>{shop.name}</p>
+                                    <span style={{ fontSize: '0.7rem', background: '#6366f115', color: '#6366f1', padding: '0.3rem 0.8rem', borderRadius: '10px', fontWeight: 800 }}>Book Now</span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Content Area */}
                 <div style={{ background: 'white', borderRadius: '40px', padding: '2.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.02)', flex: 1 }}>
