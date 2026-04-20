@@ -4,12 +4,13 @@ import { signOut, useSession } from "next-auth/react";
 export default function NavHeader() {
   const { data: session } = useSession();
   const role = (session?.user as any)?.role;
-  const displayName = role === "BARBER" ? `Shop: ${(session?.user as any)?.tenantName}` : `Customer: ${session?.user?.name}`;
+  const displayName = (session?.user as any)?.tenantId 
+    ? `Shop: ${(session?.user as any)?.tenantName || 'Business'}` 
+    : `User: ${session?.user?.name || 'Account'}`;
 
   return (
     <header className="glass" style={{ padding: '1rem 2rem', position: 'sticky', top: 0, zIndex: 50, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-        {/* ... Logo SVG ... */}
         <div style={{ background: 'var(--primary)', color: 'white', borderRadius: '8px', padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="6" cy="6" r="3"></circle>
@@ -36,11 +37,6 @@ export default function NavHeader() {
              style={{ background: 'none', border: 'none', color: 'var(--foreground)', opacity: 0.7, fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
              🎁 Send Gift
            </button>
-           <button 
-             onClick={() => window.location.href = '/download'}
-             style={{ background: 'none', border: 'none', color: 'var(--foreground)', opacity: 0.7, fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-             📱 Apps Download
-           </button>
         </div>
 
         <a href="/pricing" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--foreground)', textDecoration: 'none' }}>Pricing</a>
@@ -50,13 +46,16 @@ export default function NavHeader() {
             <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--foreground)', opacity: 0.8 }}>
               {displayName}
             </span>
-            {role === "BARBER" && (
+            
+            {(role === "BARBER" || (role === "ADMIN" && (session?.user as any)?.tenantId)) && (
               <a href="/dashboard" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary)', textDecoration: 'none' }}>Dashboard</a>
             )}
+            
             {role === "CUSTOMER" && (
               <a href="/my-bookings" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary)', textDecoration: 'none' }}>My Bookings</a>
             )}
-            {role === "ADMIN" && (
+            
+            {role === "ADMIN" && !(session?.user as any)?.tenantId && (
                <a href="/admin" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--accent)', textDecoration: 'none' }}>Platform Admin</a>
             )}
             <button onClick={() => signOut({ callbackUrl: '/' })} style={{ fontWeight: 600, background: 'transparent', border: 'none', cursor: 'pointer', transition: 'color 0.2s', color: '#ff4444' }}>

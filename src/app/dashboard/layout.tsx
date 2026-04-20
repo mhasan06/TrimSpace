@@ -10,9 +10,10 @@ import { getActiveTenantContext } from "@/lib/support";
 import SupportSessionBanner from "@/components/SupportSessionBanner";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
   const context = await getActiveTenantContext();
+  
   if (!context || !context.tenantId) {
-    const session = await getServerSession(authOptions);
     if ((session?.user as any)?.role === "ADMIN") {
       redirect("/admin");
     }
@@ -26,6 +27,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* PRODUCTION DEBUGGER: Remove after fixing session issues */}
+      <div style={{ background: '#002244', color: '#00ccff', padding: '0.5rem 1rem', fontSize: '0.7rem', borderBottom: '1px solid #00ccff', fontFamily: 'monospace' }}>
+        DEBUG: UserID={context.realAdminId} | Role={(session?.user as any)?.role} | TenantID={context.tenantId} | AuthStatus={session ? 'AUTHENTICATED' : 'ANONYMOUS'}
+      </div>
+      
       {context.isSupportMode && (
         <SupportSessionBanner 
           tenantName={context.tenantName!} 
