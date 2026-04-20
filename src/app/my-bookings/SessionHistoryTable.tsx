@@ -85,7 +85,6 @@ export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] })
           </tbody>
         </table>
       </div>
-</div>
     </>
   );
 }
