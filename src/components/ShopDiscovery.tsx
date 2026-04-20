@@ -145,7 +145,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2.5rem' }}>
             {filteredTenants.map((tenant) => {
-                const targetHref = tenant.isLive 
+                const targetHref = (tenant.isLive && tenant.slug) 
                     ? `/${tenant.slug}` 
                     : `/coming-soon?name=${encodeURIComponent(tenant.name)}`;
                 
