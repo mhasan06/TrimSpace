@@ -11,13 +11,12 @@ export default function FulfillmentClient({ sessionId }: { sessionId: string }) 
 
   useEffect(() => {
     async function execute() {
-      const result = await finalizeStripeBooking(sessionId);
+      const result = await finalizeStripeBooking(sessionId) as { success: boolean; error?: string; tenantSlug?: string; targetDate?: string; selectedTime?: string };
       if (result.success) {
         setData(result);
         setStatus("SUCCESS");
       } else {
-        const error = (result as { error?: string }).error;
-        setErrorMsg(error || "Unknown error");
+        setErrorMsg(result.error || "Unknown error");
         setStatus("ERROR");
       }
     }
