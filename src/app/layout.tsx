@@ -8,21 +8,22 @@ import Providers from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0a0a",
+};
+
 export const metadata: Metadata = {
   title: "TrimSpace | Modern Barbering SaaS",
   description: "Identity-first barbershop booking platform.",
   manifest: "/manifest.json",
-  themeColor: "#0a0a0a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "TrimSpace",
-  },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    viewportFit: "cover",
   },
 };
 

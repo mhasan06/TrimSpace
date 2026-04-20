@@ -21,9 +21,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   try {
-    const tenant = await prisma.tenant.findUnique({
-      where: { id: context.tenantId }
-    });
+    // Safety Timeout: If DB doesn't respond in 5s, throw error instead of hanging white screen
+    const tenant = await Promise.race([
+      prisma.tenant.findUnique({ where: { id: context.tenantId } }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Database Request Timed Out (5s)")), 5000))
+    ]) as any;
+
     const terminology = getTerminology(tenant?.category);
 
     return (
