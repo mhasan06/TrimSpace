@@ -4,24 +4,33 @@ import { useEffect, useState } from "react";
 import { finalizeStripeBooking } from "./actions";
 import Link from "next/link";
 
+// FORCE_REBUILD_V3_LUXURY_FIX
 export default function FulfillmentClient({ sessionId }: { sessionId: string }) {
   const [status, setStatus] = useState<"VERIFYING" | "SUCCESS" | "ERROR">("VERIFYING");
   const [errorMsg, setErrorMsg] = useState("");
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    async function execute() {
-      const result = await finalizeStripeBooking(sessionId) as { success: boolean; error?: string; tenantSlug?: string; targetDate?: string; selectedTime?: string };
-      if (result.success) {
-        setData(result);
-        setStatus("SUCCESS");
-      } else {
-        // @ts-ignore
-        setErrorMsg(result.error || "Unknown error");
+    const runVerification = async () => {
+      try {
+        const result: any = await finalizeStripeBooking(sessionId);
+        
+        if (result && result.success) {
+          setData(result);
+          setStatus("SUCCESS");
+        } else {
+          // Absolute fallback for type safety
+          const message = result?.error || "Transaction verification failed";
+          setErrorMsg(message);
+          setStatus("ERROR");
+        }
+      } catch (err: any) {
+        setErrorMsg(err?.message || "Internal verification error");
         setStatus("ERROR");
       }
-    }
-    execute();
+    };
+    
+    runVerification();
   }, [sessionId]);
 
   if (status === "VERIFYING") {
@@ -55,7 +64,7 @@ export default function FulfillmentClient({ sessionId }: { sessionId: string }) 
       </div>
       
       <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '0.5rem', color: '#10b981' }}>Booking Secured!</h1>
-      <h2 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '1.5rem', color: '#ffffff' }}>Thank you for booking with {data.tenantSlug}!</h2>
+      <h2 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '1.5rem', color: '#ffffff' }}>Thank you for booking with {data?.tenantSlug || 'us'}!</h2>
       <p style={{ fontSize: '1.1rem', opacity: 0.8, marginBottom: '3rem' }}>
         Your appointment is officially confirmed and synchronized with our schedule.
       </p>
@@ -70,8 +79,8 @@ export default function FulfillmentClient({ sessionId }: { sessionId: string }) 
          </div>
 
          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-            <p style={{ fontSize: '1.1rem' }}><strong>Merchant:</strong> <span style={{ color: '#D4AF37' }}>{data.tenantSlug}</span></p>
-            <p style={{ fontSize: '1.1rem' }}><strong>Date & Time:</strong> {data.targetDate} at {data.selectedTime}</p>
+            <p style={{ fontSize: '1.1rem' }}><strong>Merchant:</strong> <span style={{ color: '#D4AF37' }}>{data?.tenantSlug || 'Shop'}</span></p>
+            <p style={{ fontSize: '1.1rem' }}><strong>Date & Time:</strong> {data?.targetDate || 'TBD'} at {data?.selectedTime || 'TBD'}</p>
             <p style={{ fontSize: '0.85rem', opacity: 0.7 }}><strong>Stripe Sync ID:</strong> {sessionId.substring(0, 20)}...</p>
          </div>
 
