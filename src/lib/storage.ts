@@ -8,6 +8,7 @@ export async function uploadFile(bucket: string, path: string, blob: Blob, conte
     throw new Error("Supabase Admin client not initialized. Check your SUPABASE_SERVICE_ROLE_KEY.");
   }
 
+  // @ts-ignore
   const { data, error } = await supabaseAdmin.storage
     .from(bucket)
     .upload(path, blob, {
@@ -22,6 +23,7 @@ export async function uploadFile(bucket: string, path: string, blob: Blob, conte
 
   if (!supabaseAdmin) throw new Error("Supabase client missing.");
 
+  // @ts-ignore
   const { data: { publicUrl } } = supabaseAdmin.storage
     .from(bucket)
     .getPublicUrl(path);

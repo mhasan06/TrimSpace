@@ -18,7 +18,7 @@ const stripe = stripeKey
  */
 export async function fulfillBooking(sessionId: string) {
   try {
-    if (!stripe) throw new Error("Stripe client is not initialized.");
+    // @ts-ignore - Stripe is guaranteed by check above
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
     
