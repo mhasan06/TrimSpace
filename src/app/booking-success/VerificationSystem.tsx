@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { finalizeStripeBooking } from "./actions";
 import Link from "next/link";
 
-// FORCE_REBUILD_V3_LUXURY_FIX
 export default function VerificationSystem({ sessionId }: { sessionId: string }) {
   const [status, setStatus] = useState<"VERIFYING" | "SUCCESS" | "ERROR">("VERIFYING");
   const [errorMsg, setErrorMsg] = useState("");
@@ -19,7 +18,6 @@ export default function VerificationSystem({ sessionId }: { sessionId: string })
           setData(result);
           setStatus("SUCCESS");
         } else {
-          // Absolute fallback for type safety
           const message = result?.error || "Transaction verification failed";
           setErrorMsg(message);
           setStatus("ERROR");
