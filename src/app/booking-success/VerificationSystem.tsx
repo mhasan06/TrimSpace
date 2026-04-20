@@ -5,7 +5,7 @@ import { finalizeStripeBooking } from "./actions";
 import Link from "next/link";
 
 // FORCE_REBUILD_V3_LUXURY_FIX
-export default function FulfillmentClient({ sessionId }: { sessionId: string }) {
+export default function VerificationSystem({ sessionId }: { sessionId: string }) {
   const [status, setStatus] = useState<"VERIFYING" | "SUCCESS" | "ERROR">("VERIFYING");
   const [errorMsg, setErrorMsg] = useState("");
   const [data, setData] = useState<any>(null);
