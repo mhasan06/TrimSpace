@@ -65,7 +65,7 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<Blob> {
 
   // ─── TABLE ───
   const isCancelled = data.status === "CANCELLED";
-  const subtotal = data.servicePrice || data.totalPrice;
+  const subtotal = (data.servicePrice || data.totalPrice || 0);
   const cancellationFee = isCancelled ? subtotal * 0.5 : 0;
   const netAmount = isCancelled ? cancellationFee : subtotal;
 
@@ -113,6 +113,9 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<Blob> {
      doc.setTextColor(150, 0, 0);
      doc.text("* This booking was cancelled. A 50% cancellation fee was applied.", 20, finalY + 10);
   }
+  
+  // Reset color for footer
+  doc.setTextColor(100);
 
   // ─── FOOTER ───
   doc.setDrawColor(240);

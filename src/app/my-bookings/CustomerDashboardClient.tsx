@@ -19,11 +19,14 @@ export default function CustomerDashboardClient({
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("appointments");
 
-    const filteredPast = past.filter((g: any) => {
-        if (activeTab === "appointments") return g.status !== "CANCELLED";
-        if (activeTab === "cancelled") return g.status === "CANCELLED";
-        return true;
-    });
+    const filteredRows = (() => {
+        if (activeTab === "appointments") return upcoming;
+        if (activeTab === "completed") return past.filter((g: any) => g.status !== "CANCELLED");
+        if (activeTab === "cancelled") return past.filter((g: any) => g.status === "CANCELLED");
+        return [];
+    })();
+
+    const nextBooking = upcoming[0];
 
     return (
         <div style={{ 
@@ -89,22 +92,22 @@ export default function CustomerDashboardClient({
                     </div>
                 </div>
 
-                <div style={{ width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
-                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 700, textAlign: 'center' }}>Member since {new Date().getFullYear()}</p>
-                </div>
-            </section>
+          <div style={{ width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <CustomerLogoutButton />
+          </div>
+      </section>
 
             {/* ─── MAIN ANALYTICS & LIST ─── */}
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b' }}>Welcome, {user.name.split(' ')[0]}!</h1>
-                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <div style={{ background: 'white', padding: '0.8rem 1.5rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span style={{ fontSize: '1.2rem' }}>🔍</span>
-                            <input type="text" placeholder="Search..." style={{ border: 'none', outline: 'none', fontSize: '0.9rem', width: '150px' }} />
-                        </div>
-                        <CustomerLogoutButton />
+                    <div>
+                        <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>Welcome, {user.name.split(' ')[0]}!</h1>
+                        {nextBooking && (
+                            <p style={{ fontSize: '0.9rem', color: '#6366f1', fontWeight: 700 }}>
+                                📅 Next visit: {new Date(nextBooking.startTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' })} at {new Date(nextBooking.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        )}
                     </div>
                 </header>
 
@@ -139,7 +142,18 @@ export default function CustomerDashboardClient({
                                 fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
                             }}
                         >
-                            Appointments
+                            Active
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab("completed")}
+                            style={{ 
+                                background: 'none', border: 'none', padding: '1rem 0', 
+                                borderBottom: activeTab === "completed" ? '3px solid #6366f1' : '3px solid transparent', 
+                                color: activeTab === "completed" ? '#1e293b' : '#94a3b8', 
+                                fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
+                            }}
+                        >
+                            Completed
                         </button>
                         <button 
                             onClick={() => setActiveTab("cancelled")}
@@ -155,54 +169,63 @@ export default function CustomerDashboardClient({
                     </nav>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        {activeTab === "appointments" && upcoming.length > 0 ? upcoming.map((group: any) => (
-                            <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', borderRadius: '24px', transition: 'all 0.2s' }}>
-                                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                                    <div style={{ textAlign: 'center', minWidth: '50px' }}>
-                                        <p style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Date(group.startTime).getUTCDate()}</p>
-                                        <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
+                        {activeTab === "appointments" ? (
+                            upcoming.length > 0 ? upcoming.map((group: any) => (
+                                <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', borderRadius: '24px', transition: 'all 0.2s' }}>
+                                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                                        <div style={{ textAlign: 'center', minWidth: '50px' }}>
+                                            <p style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Date(group.startTime).getUTCDate()}</p>
+                                            <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
+                                        </div>
+                                        <div>
+                                            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{group.services.map((s: any) => s.name).join(' + ')}</h4>
+                                            <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(group.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })} • {group.tenant.name}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{group.services.map((s: any) => s.name).join(' + ')}</h4>
-                                        <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(group.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })} • {group.tenant.name}</p>
+                                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                                        <span style={{ background: '#eef2ff', color: '#6366f1', padding: '0.4rem 1rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900 }}>BOOKED</span>
+                                        <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
+                                            <p style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
+                                        </div>
+                                        <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
+                                        <CancelButton appointmentId={group.id} amountPaidStripe={group.totalStripe} amountPaidGift={group.totalGift} />
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                                    <span style={{ background: '#eef2ff', color: '#6366f1', padding: '0.4rem 1rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900 }}>BOOKED</span>
-                                    <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
-                                        <p style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
-                                    </div>
-                                    <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
-                                    <CancelButton appointmentId={group.id} amountPaidStripe={group.totalStripe} amountPaidGift={group.totalGift} />
+                            )) : (
+                                <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
+                                    <p style={{ color: '#94a3b8', fontWeight: 700 }}>No active appointments found.</p>
                                 </div>
-                            </div>
-                        )) : activeTab === "appointments" && upcoming.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
-                                <p style={{ color: '#94a3b8', fontWeight: 700 }}>No active appointments found.</p>
-                            </div>
+                            )
+                        ) : (
+                            <>
+                                {filteredRows.length > 0 ? (
+                                    <SessionHistoryTable rows={filteredRows.slice(0, 10).map((g: any) => ({
+                                            id: g.id,
+                                            startTime: g.startTime.toISOString ? g.startTime.toISOString() : g.startTime,
+                                            endTime: g.endTime.toISOString ? g.endTime.toISOString() : g.endTime,
+                                            tenantName: g.tenant.name,
+                                            tenantSlug: g.tenant.slug,
+                                            tenantAddress: g.tenant.address,
+                                            serviceName: g.services.map((s: any) => s.name).join(", "),
+                                            servicePrice: g.totalPrice,
+                                            status: g.status,
+                                            paymentStatus: g.paymentStatus,
+                                            paymentMethod: g.paymentMethod,
+                                            amountPaidStripe: g.totalStripe,
+                                            amountPaidGift: g.totalGift,
+                                            barberName: g.barber?.name,
+                                            invoiceUrl: g.invoiceUrl,
+                                            hasReview: userReviewIds.includes(g.id)
+                                    }))} />
+                                ) : (
+                                    <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+                                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>No bookings found in this category.</p>
+                                    </div>
+                                )}
+                            </>
                         )}
-
-                        {filteredPast.length > 0 && <div style={{ height: '1px', background: '#f1f5f9', margin: '2rem 0' }}></div>}
-                        
-                        <SessionHistoryTable rows={filteredPast.slice(0, 10).map((g: any) => ({
-                                id: g.id,
-                                startTime: g.startTime.toISOString ? g.startTime.toISOString() : g.startTime,
-                                endTime: g.endTime.toISOString ? g.endTime.toISOString() : g.endTime,
-                                tenantName: g.tenant.name,
-                                tenantSlug: g.tenant.slug,
-                                tenantAddress: g.tenant.address,
-                                serviceName: g.services.map((s: any) => s.name).join(", "),
-                                servicePrice: g.totalPrice,
-                                status: g.status,
-                                paymentStatus: g.paymentStatus,
-                                paymentMethod: g.paymentMethod,
-                                amountPaidStripe: g.totalStripe,
-                                amountPaidGift: g.totalGift,
-                                barberName: g.barber?.name,
-                                invoiceUrl: g.invoiceUrl,
-                                hasReview: userReviewIds.includes(g.id)
-                        }))} />
                     </div>
                 </div>
             </main>
