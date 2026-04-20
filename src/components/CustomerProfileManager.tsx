@@ -139,6 +139,3 @@ export default function CustomerProfileManager({
     </div>
   );
 }
-
-  );
-}
