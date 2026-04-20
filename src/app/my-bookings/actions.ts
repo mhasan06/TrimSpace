@@ -105,6 +105,33 @@ export async function handleRefundAndCancel(id: string) {
   }
 }
 
+export async function updateCustomerAvatar(formData: FormData) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error("Unauthorized");
+    
+    const userId = (session.user as any).id;
+    const file = formData.get("file") as File;
+    
+    if (!file) throw new Error("No file uploaded.");
+    if (file.size > 2 * 1024 * 1024) throw new Error("File too large (Max 2MB).");
+    if (!file.type.startsWith("image/")) throw new Error("Only images are allowed.");
+
+    const { uploadFile } = require("@/lib/storage");
+    const avatarUrl = await uploadFile('avatars', `user-${userId}-${Date.now()}.png`, file, file.type);
+    
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl }
+    });
+    
+    revalidatePath("/my-bookings");
+    return { success: true, avatarUrl };
+  } catch(error: any) {
+    return { error: error.message };
+  }
+}
+
 export async function updateCustomerProfile(data: { name?: string, phone?: string, password?: string }) {
   try {
     const session = await getServerSession(authOptions);

@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { updateCustomerProfile } from "@/app/my-bookings/actions";
+import { updateCustomerProfile, updateCustomerAvatar } from "@/app/my-bookings/actions";
 
 export default function CustomerProfileManager({ 
   user 
 }: { 
-  user: { name: string; email: string; phone?: string | null; initial: string } 
+  user: { name: string; email: string; phone?: string | null; initial: string; avatarUrl?: string | null } 
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const [name, setName] = useState(user.name || "");
   const [phone, setPhone] = useState(user.phone || "");
@@ -45,12 +46,37 @@ export default function CustomerProfileManager({
         setIsEditing(false);
         setPassword("");
         setConfirmPassword("");
+        setTimeout(() => setSuccess(false), 3000);
       }
     } catch(err: any) {
       setError(err.message);
     }
     
     setLoading(false);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError("");
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await updateCustomerAvatar(formData);
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setIsUploading(false);
   };
 
   if (isEditing) {
@@ -97,11 +123,60 @@ export default function CustomerProfileManager({
 
   return (
     <div className="glass" style={{ textAlign: 'center', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '2rem', position: 'relative' }}>
-      {success && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>Profile Updated</div>}
+      {success && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>Update Successful</div>}
       
-      <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--primary)', margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 900 }}>
-         {user.initial}
+      <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 1.5rem' }}>
+        <div style={{ 
+          width: '80px', 
+          height: '80px', 
+          borderRadius: '50%', 
+          background: 'var(--primary)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          fontSize: '2rem', 
+          fontWeight: 900,
+          overflow: 'hidden',
+          border: '2px solid rgba(255,255,255,0.1)'
+        }}>
+           {user.avatarUrl ? (
+             <img src={user.avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+           ) : user.initial}
+        </div>
+        <label style={{ 
+          position: 'absolute', 
+          bottom: 0, 
+          right: 0, 
+          background: 'var(--foreground)', 
+          color: 'var(--background)', 
+          width: '28px', 
+          height: '28px', 
+          borderRadius: '50%', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          cursor: 'pointer',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
+          opacity: isUploading ? 0.5 : 1
+        }}>
+          {isUploading ? '...' : '📸'}
+          <input type="file" onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} disabled={isUploading} />
+        </label>
       </div>
+
+      <h3 style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>{user.name}</h3>
+      <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{user.email}</p>
+      {user.phone && <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.2rem' }}>{user.phone}</p>}
+      
+      <button 
+        onClick={() => setIsEditing(true)}
+        style={{ marginTop: '1.5rem', background: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '20px', color: 'var(--background)', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
+      >
+        Manage Profile
+      </button>
+    </div>
+  );
+}
       <h3 style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>{user.name}</h3>
       <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{user.email}</p>
       {user.phone && <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.2rem' }}>{user.phone}</p>}

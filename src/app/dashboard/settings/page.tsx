@@ -42,6 +42,7 @@ export default async function ShopSettings() {
                   initialGallery={tenant?.galleryImages || []}
                   initialCustomerPhotos={tenant?.customerPhotos || []}
                   initialDescription={tenant?.description || ""}
+                  initialPhone={tenant?.phone || ""}
                />
             </div>
 

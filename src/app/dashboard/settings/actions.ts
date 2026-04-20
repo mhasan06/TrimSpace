@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export async function updateTenantBranding(tenantId: string, name: string, slug: string, address?: string, category?: string, templateId?: string, abn?: string, shopImage?: string, galleryImages?: string[], customerPhotos?: string[], description?: string) {
+export async function updateTenantBranding(tenantId: string, name: string, slug: string, address?: string, category?: string, templateId?: string, abn?: string, shopImage?: string, galleryImages?: string[], customerPhotos?: string[], description?: string, phone?: string) {
    const session = await getServerSession(authOptions);
    const user = session?.user as any;
    if (!session) return { error: "Unauthorized" };
@@ -17,7 +17,7 @@ export async function updateTenantBranding(tenantId: string, name: string, slug:
        // 1. Attempt High-Fidelity Update
        await (prisma.tenant as any).update({ 
          where: { id: tenantId }, 
-         data: { name, slug, address, category, templateId, abn, shopImage, galleryImages, customerPhotos, description } 
+         data: { name, slug, address, category, templateId, abn, shopImage, galleryImages, customerPhotos, description, phone } 
        });
        
        revalidatePath("/dashboard/settings");

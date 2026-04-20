@@ -224,6 +224,7 @@ export default async function MyBookings() {
               name: dbUser?.name || session.user?.name || "User", 
               email: dbUser?.email || session.user?.email || "", 
               phone: dbUser?.phone,
+              avatarUrl: dbUser?.avatarUrl,
               initial: dbUser?.name?.[0] || session.user?.name?.[0] || 'U'
             }} 
           />

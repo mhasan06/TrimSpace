@@ -73,15 +73,40 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
       </div>
     `;
 
+    // 3. Identify Shop Owner(s) to notify
+    const shopAdmins = await prisma.user.findMany({
+      where: { tenantId: appointment.tenantId, role: "ADMIN" },
+      select: { email: true }
+    });
+    const adminEmails = shopAdmins.map(a => a.email).filter(Boolean);
+
     if (resend) {
+      // Send to Customer
       await resend.emails.send({
-        from: 'TrimSpace <onboarding@resend.dev>', // Update with verified domain in production
+        from: 'TrimSpace <onboarding@resend.dev>',
         to: appointment.customer.email!,
         subject: subject,
         html: emailHtml,
       });
+
+      // Send to Shop Owner
+      if (adminEmails.length > 0) {
+        await resend.emails.send({
+          from: 'TrimSpace <onboarding@resend.dev>',
+          to: adminEmails,
+          subject: `[BUSINESS ALERT] ${subject}`,
+          html: `
+            <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+              <h2 style="color: #10b981;">New Business Notification</h2>
+              <p>A booking at your shop has been <strong>${type.toLowerCase()}</strong>.</p>
+              ${emailHtml}
+              <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">This is an automated business alert from your TrimSpace Dashboard.</p>
+            </div>
+          `,
+        });
+      }
     } else {
-      console.log(`[SIMULATED EMAIL] To: ${appointment.customer.email}\nSubject: ${subject}\nLink: ${invoiceUrl}`);
+      console.log(`[SIMULATED EMAIL] To: ${appointment.customer.email} & Admins: ${adminEmails.join(', ')}\nSubject: ${subject}`);
     }
 
     // 4. Update Database

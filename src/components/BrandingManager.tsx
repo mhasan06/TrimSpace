@@ -47,7 +47,7 @@ function PersonaPreview({ category }: { category: string }) {
 }
 
 export default function BrandingManager({ 
-    tenantId, initialName, initialSlug, initialAddress, initialCategory, initialTemplate, initialABN, initialShopImage, initialGallery = [], initialCustomerPhotos = [], initialDescription = ""
+    tenantId, initialName, initialSlug, initialAddress, initialCategory, initialTemplate, initialABN, initialShopImage, initialGallery = [], initialCustomerPhotos = [], initialDescription = "", initialPhone = ""
 }: { 
     tenantId: string, 
     initialName: string, 
@@ -59,11 +59,13 @@ export default function BrandingManager({
     initialShopImage?: string,
     initialGallery?: string[],
     initialCustomerPhotos?: string[],
-    initialDescription?: string
+    initialDescription?: string,
+    initialPhone?: string
 }) {
     const [name, setName] = useState(initialName || "");
     const [slug, setSlug] = useState(initialSlug || "");
     const [address, setAddress] = useState(initialAddress || "");
+    const [phone, setPhone] = useState(initialPhone || "");
     const [category, setCategory] = useState(initialCategory || "BARBER");
     const [templateId, setTemplateId] = useState(initialTemplate || "LUXURY");
     const [abn, setAbn] = useState(initialABN || "00 000 000 000");
@@ -89,7 +91,7 @@ export default function BrandingManager({
 
     const handleSave = async () => {
         setSaving(true);
-        const res = await updateTenantBranding(tenantId, name, slug, address, category, templateId, abn, shopImage, gallery, customerPhotos, description);
+        const res = await updateTenantBranding(tenantId, name, slug, address, category, templateId, abn, shopImage, gallery, customerPhotos, description, phone);
         if (res?.error) {
             alert(res.error);
         } else {
@@ -102,14 +104,49 @@ export default function BrandingManager({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Shop Name</label>
-                        <input 
-                            type="text" 
-                            value={name} 
-                            onChange={(e) => setName(e.target.value)} 
-                            style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
-                        />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Shop Name</label>
+                            <input 
+                                type="text" 
+                                value={name} 
+                                onChange={(e) => setName(e.target.value)} 
+                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Industry Category</label>
+                            <select 
+                                value={category} 
+                                onChange={(e) => setCategory(e.target.value)} 
+                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }}
+                            >
+                                <option value="BARBER">Barbershop</option>
+                                <option value="SALON">Hair Salon</option>
+                                <option value="SPA">Beauty & Spa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Contact Phone</label>
+                            <input 
+                                type="tel" 
+                                value={phone} 
+                                onChange={(e) => setPhone(e.target.value)} 
+                                placeholder="+1 234 567 8900"
+                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Tax ID / ABN</label>
+                            <input 
+                                type="text" 
+                                value={abn} 
+                                onChange={(e) => setAbn(e.target.value)} 
+                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
+                            />
+                        </div>
                     </div>
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Physical Address</label>
@@ -126,7 +163,7 @@ export default function BrandingManager({
                             value={description} 
                             onChange={(e) => setDescription(e.target.value)} 
                             placeholder="Share your story, specialty, and values..."
-                            style={{ width: '100%', height: '120px', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)', resize: 'none' }} 
+                            style={{ width: '100%', height: '100px', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)', resize: 'none' }} 
                         />
                     </div>
                 </div>
