@@ -1,11 +1,10 @@
-import styles from "../dashboard/page.module.css";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import CancelButton from "@/components/CancelButton";
 import InvoiceButton from "@/components/InvoiceButton";
+import CancelButton from "@/components/CancelButton";
 import SessionHistoryTable from "./SessionHistoryTable";
 import CustomerProfileManager from "@/components/CustomerProfileManager";
 
@@ -39,25 +38,6 @@ export default async function MyBookings() {
     barber: { name: app.barberName }
   }));
 
-  let userReviewIds: string[] = [];
-  try {
-    const rawReviews = await prisma.$queryRaw<any[]>`SELECT "appointmentId" FROM "Review" WHERE "customerId" = ${userId}`;
-    userReviewIds = rawReviews.map(r => r.appointmentId);
-  } catch(e) {}
-
-  const myGiftCards = await prisma.giftCard.findMany({
-    where: {
-      appointments: { some: { customerId: userId } }
-    },
-    include: {
-      appointments: {
-        where: { customerId: userId },
-        include: { service: true, tenant: true },
-        orderBy: { startTime: 'desc' }
-      }
-    }
-  });
-
   const now = new Date();
   
   const groupList = (list: any[]) => {
@@ -82,251 +62,178 @@ export default async function MyBookings() {
   const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now && app.status !== 'CANCELLED'));
   const past = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
 
-  const nextApp = upcoming[0];
-  const timeToNext = nextApp ? Math.ceil((new Date(nextApp.startTime).getTime() - now.getTime()) / (1000 * 60 * 60)) : null;
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 17) return "Good Afternoon";
-    return "Good Evening";
-  };
+  const userReviewIds: string[] = [];
+  try {
+    const rawReviews = await prisma.$queryRaw<any[]>`SELECT "appointmentId" FROM "Review" WHERE "customerId" = ${userId}`;
+    userReviewIds = rawReviews.map(r => r.appointmentId);
+  } catch(e) {}
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f8fafc', color: '#1e293b' }}>
-      {/* ─── HEADER ─── */}
-      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <div>
-           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#6366f1', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Member Portal</span>
-           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1.5px', margin: 0, color: '#0f172a' }}>
-              {getGreeting()}, <span style={{ color: '#6366f1' }}>{session.user?.name?.split(' ')[0]}</span>
-           </h1>
-        </div>
-        
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <div style={{ textAlign: 'right', marginRight: '1rem' }}>
-               <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700, margin: 0 }}>{new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-            </div>
-            <Link href="/" style={{ 
-                background: '#6366f1', 
-                color: 'white', 
-                padding: '0.9rem 1.8rem', 
-                borderRadius: '16px', 
-                textDecoration: 'none', 
-                fontWeight: 800, 
-                fontSize: '0.9rem',
-                boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-                transition: 'transform 0.2s ease'
-            }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Book Visit
-            </Link>
-        </div>
-      </header>
-
-      {/* ─── NEXT APPOINTMENT TICKET ─── */}
-      {nextApp && timeToNext !== null && (
-        <div style={{ 
-          padding: '2.5rem', 
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f7fe', color: '#1B2559' }}>
+      
+      {/* ─── LEFT SIDEBAR ─── */}
+      <aside style={{ 
+          width: '280px', 
           background: '#ffffff', 
-          border: '1px solid #e2e8f0', 
-          borderRadius: '32px',
-          marginBottom: '3rem',
+          borderRight: '1px solid #E9EDF7',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.05)',
-          position: 'relative',
-          overflow: 'hidden',
-          width: '100%'
-        }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '8px', height: '100%', background: '#6366f1' }}></div>
-          
-          <div style={{ zIndex: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.2rem' }}>
-                <span style={{ background: '#eef2ff', color: '#6366f1', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 900 }}>NEXT VISIT</span>
-                <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 700 }}>
-                   Arriving in {timeToNext < 24 ? `${timeToNext} hours` : `${Math.floor(timeToNext/24)} days`}
-                </span>
-            </div>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem', color: '#0f172a', letterSpacing: '-1px' }}>{nextApp.service.name}</h2>
-            <p style={{ fontSize: '1.1rem', color: '#475569' }}>
-              at <strong style={{ color: '#0f172a' }}>{nextApp.tenant.name}</strong> • with <strong style={{ color: '#6366f1' }}>{nextApp.barber.name}</strong>
-            </p>
-            <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                {nextApp.tenant.address || "Studio Address"}
-            </p>
-          </div>
-          
-          <div style={{ textAlign: 'right', zIndex: 1, paddingLeft: '3rem', borderLeft: '1px solid #f1f5f9' }}>
-             <p style={{ fontSize: '3.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1, margin: 0 }}>
-                {nextApp.startTime.getUTCDate()}
-             </p>
-             <p style={{ fontWeight: 800, fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#64748b', marginTop: '0.2rem' }}>
-                {nextApp.startTime.toLocaleDateString('en-AU', { month: 'short' })}
-             </p>
-             <div style={{ marginTop: '1.5rem', background: '#f8fafc', padding: '0.8rem 1.4rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
-                <p style={{ fontWeight: 900, fontSize: '1.3rem', color: '#0f172a', margin: 0 }}>
-                   {(() => {
-                      const h = nextApp.startTime.getUTCHours();
-                      const m = nextApp.startTime.getUTCMinutes();
-                      const ampm = h >= 12 ? 'PM' : 'AM';
-                      const h12 = h % 12 || 12;
-                      return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
-                   })()}
-                </p>
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── MAIN GRID ─── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2.5rem', width: '100%' }}>
-        <section>
-          {/* Policy Banner */}
-          <div style={{ padding: '1.5rem', marginBottom: '2.5rem', border: '1px solid rgba(245, 158, 11, 0.2)', background: 'rgba(245, 158, 11, 0.03)', borderRadius: '16px' }}>
-            <h4 style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem', fontSize: '0.95rem', fontWeight: 800 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-              CANCELLATION POLICY
-            </h4>
-            <p style={{ fontSize: '0.9rem', opacity: 0.8, lineHeight: 1.5 }}>
-              Appointments cancelled within 24 hours are subject to a **50% fee**. Refunds are processed automatically.
-            </p>
+          flexDirection: 'column',
+          padding: '2rem 1.5rem',
+          position: 'sticky',
+          top: 0,
+          height: '100vh'
+      }}>
+          <div style={{ marginBottom: '3rem', padding: '0 0.5rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 900, letterSpacing: '-1px' }}>Trim<span style={{ color: '#4318FF' }}>Space</span></h1>
+              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#A3AED0', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '0.4rem' }}>Software Portal</p>
           </div>
 
-          {/* Upcoming List */}
-          <div style={{ background: '#ffffff', padding: '2.5rem', borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
-             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', letterSpacing: '-0.5px', color: '#0f172a' }}>Upcoming Visits</h2>
-             {upcoming.length === 0 ? (
-               <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No active bookings. Start fresh today!</p>
-             ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                  {upcoming.map(group => (
-                    <div key={group.bookingGroupId || group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
-                      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                         <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#ffffff', color: '#0f172a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 800, border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#6366f1' }}>{group.startTime.toLocaleDateString('en-AU', { month: 'short' })}</span>
-                            <span style={{ fontSize: '1.3rem', lineHeight: 1.1 }}>{group.startTime.getUTCDate()}</span>
-                         </div>
-                         <div>
-                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                               {group.bookingGroupId ? `Group Visit` : `Private Session`}
-                            </span>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0.2rem 0', color: '#0f172a' }}>
-                              {group.services.map((s: any) => s.name).join(" + ")}
-                            </h3>
-                            <p style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>{group.tenant.name} • {group.barber.name}</p>
-                         </div>
-                      </div>
-                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
-                          <div>
-                            <p style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
-                               {(() => {
-                                   const h = group.startTime.getUTCHours();
-                                   const m = group.startTime.getUTCMinutes();
-                                   const ampm = h >= 12 ? 'PM' : 'AM';
-                                   const h12 = h % 12 || 12;
-                                   return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
-                               })()}
-                            </p>
-                            <p style={{ fontSize: '0.9rem', color: '#6366f1', fontWeight: 800, marginTop: '0.2rem' }}>${group.totalPrice.toFixed(2)}</p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.6rem' }}>
-                            <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} invoiceUrl={group.invoiceUrl} />
-                            <CancelButton
-                                appointmentId={group.bookingGroupId || group.id}
-                                amountPaidStripe={group.totalStripe}
-                                amountPaidGift={group.totalGift}
-                            />
-                          </div>
-                      </div>
-                    </div>
-                  ))}
-               </div>
-             )}
-          </div>
+          <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem', borderRadius: '12px', textDecoration: 'none', color: '#A3AED0', fontWeight: 700, transition: 'all 0.2s' }}>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                 Marketplace
+              </Link>
+              <Link href="/my-bookings" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem', borderRadius: '12px', textDecoration: 'none', color: '#4318FF', background: '#F4F7FE', fontWeight: 800 }}>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                 My Bookings
+              </Link>
+              <Link href="#" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.8rem 1rem', borderRadius: '12px', textDecoration: 'none', color: '#A3AED0', fontWeight: 700 }}>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                 Favorites
+              </Link>
+          </nav>
 
-          {/* History */}
-          <div style={{ marginTop: '3rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>Previous Sessions</h2>
-            <SessionHistoryTable rows={past.map(g => ({
-              id: g.id,
-              bookingGroupId: g.bookingGroupId,
-              startTime: g.startTime.toISOString(),
-              endTime: g.endTime.toISOString(),
-              status: g.status,
-              paymentStatus: g.paymentStatus,
-              paymentMethod: g.paymentMethod,
-              amountPaidStripe: g.amountPaidStripe,
-              amountPaidGift: g.amountPaidGift,
-              tenantName: g.tenant.name,
-              tenantSlug: g.tenant.slug,
-              tenantAddress: (g.tenant as any).address ?? null,
-              serviceName: g.services.map((s: any) => s.name).join(", "),
-              servicePrice: g.totalPrice,
-              barberName: g.barber?.name ?? null,
-              invoiceUrl: g.invoiceUrl ?? null,
-              hasReview: userReviewIds.includes(g.id),
-            }))} />
-          </div>
-        </section>
-
-        <aside>
-          <CustomerProfileManager 
-            user={{ 
-              name: dbUser?.name || session.user?.name || "User", 
-              email: dbUser?.email || session.user?.email || "", 
-              phone: dbUser?.phone,
-              avatarUrl: dbUser?.avatarUrl,
-              initial: dbUser?.name?.[0] || session.user?.name?.[0] || 'U'
-            }} 
-          />
-
-          <div className="glass" style={{ padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-             <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.4, marginBottom: '1.5rem', fontWeight: 800 }}>Account Maturity</h4>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
-                   <span style={{ opacity: 0.6, fontSize: '0.9rem' }}>Lifetime Visits</span>
-                   <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>{appointments.length}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
-                   <span style={{ opacity: 0.6, fontSize: '0.9rem' }}>Total Spent</span>
-                   <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>
-                      ${mappedAppointments.reduce((acc, app) => {
-                         if (app.status === 'CANCELLED' && app.paymentStatus === 'PARTIAL_REFUNDED') return acc + (app.service.price * 0.5);
-                         if (app.status === 'CANCELLED') return acc;
-                         return acc + app.service.price;
-                      }, 0).toFixed(2)}
-                   </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                   <span style={{ opacity: 0.6, fontSize: '0.9rem' }}>Member Since</span>
-                   <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>{new Date().getFullYear()}</span>
-                </div>
-          </div>
-
-          {myGiftCards.length > 0 && (
-            <div style={{ marginTop: '2.5rem' }}>
-              <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5, marginBottom: '1.2rem', fontWeight: 800 }}>
-                ✨ Active Credits
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {myGiftCards.map((card) => (
-                  <div key={card.id} className="glass" style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid rgba(212,175,55,0.2)' }}>
-                    <p style={{ fontSize: '0.6rem', opacity: 0.4, fontWeight: 800, marginBottom: '0.5rem' }}>{card.code}</p>
-                    <p style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--primary)', margin: 0 }}>
-                      ${card.balance.toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+          <div style={{ marginTop: 'auto', background: 'linear-gradient(135deg, #4318FF 0%, #707EAE 100%)', padding: '1.5rem', borderRadius: '20px', color: 'white', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>Need a haircut?</p>
+                  <p style={{ fontSize: '0.7rem', opacity: 0.8, marginBottom: '1rem' }}>Book your next session with ease.</p>
+                  <Link href="/" style={{ background: 'white', color: '#4318FF', padding: '0.5rem 1rem', borderRadius: '10px', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 800, display: 'inline-block' }}>Book Now</Link>
               </div>
-            </div>
-          )}
-        </aside>
-      </div>
+          </div>
+      </aside>
+
+      {/* ─── MAIN CONTENT ─── */}
+      <main style={{ flex: 1, padding: '2rem 3rem' }}>
+          
+          {/* Top Profile Banner */}
+          <div style={{ 
+              height: '320px', 
+              background: 'linear-gradient(135deg, #4318FF 0%, #B4B9FF 100%)', 
+              borderRadius: '30px', 
+              position: 'relative',
+              marginBottom: '4rem',
+              boxShadow: '0 20px 40px rgba(67, 24, 255, 0.15)'
+          }}>
+              <div style={{ position: 'absolute', bottom: '-40px', left: '40px', display: 'flex', alignItems: 'flex-end', gap: '1.5rem' }}>
+                  <div style={{ 
+                      width: '120px', 
+                      height: '120px', 
+                      borderRadius: '30px', 
+                      background: '#ffffff', 
+                      padding: '8px', 
+                      boxShadow: '0 10px 20px rgba(0,0,0,0.1)' 
+                  }}>
+                      <div style={{ 
+                          width: '100%', height: '100%', 
+                          borderRadius: '24px', 
+                          background: '#F4F7FE', 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                          fontSize: '2.5rem', fontWeight: 900, color: '#4318FF' 
+                      }}>
+                          {session.user?.name?.[0] || 'U'}
+                      </div>
+                  </div>
+                  <div style={{ paddingBottom: '10px' }}>
+                      <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1B2559', marginBottom: '0.2rem' }}>{session.user?.name}</h2>
+                      <p style={{ color: '#A3AED0', fontWeight: 700, fontSize: '0.9rem' }}>TrimSpace Premium Member</p>
+                  </div>
+              </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2.5rem' }}>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                  
+                  {/* Upcoming Visits Section */}
+                  <div style={{ background: 'white', borderRadius: '30px', padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                          <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Upcoming Visits</h3>
+                          <span style={{ fontSize: '0.8rem', color: '#4318FF', fontWeight: 800 }}>{upcoming.length} active</span>
+                      </div>
+
+                      {upcoming.length > 0 ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                              {upcoming.map(group => (
+                                  <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: '#F4F7FE', borderRadius: '20px' }}>
+                                      <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+                                          <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
+                                              <span style={{ fontSize: '0.6rem', fontWeight: 900, color: '#4318FF' }}>{group.startTime.toLocaleDateString('en-AU', { month: 'short' })}</span>
+                                              <span style={{ fontSize: '1.1rem', fontWeight: 900 }}>{group.startTime.getUTCDate()}</span>
+                                          </div>
+                                          <div>
+                                              <h4 style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>{group.services.map((s:any)=>s.name).join(' + ')}</h4>
+                                              <p style={{ fontSize: '0.8rem', color: '#A3AED0', fontWeight: 700 }}>{group.tenant.name} • {group.barber.name}</p>
+                                          </div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                          <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
+                                          <CancelButton appointmentId={group.id} amountPaidStripe={group.totalStripe} amountPaidGift={group.totalGift} />
+                                      </div>
+                                  </div>
+                              ))}
+                          </div>
+                      ) : (
+                          <p style={{ color: '#A3AED0', textAlign: 'center', padding: '2rem' }}>No upcoming bookings scheduled.</p>
+                      )}
+                  </div>
+
+                  {/* History Section */}
+                  <div style={{ background: 'white', borderRadius: '30px', padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '2rem' }}>Booking History</h3>
+                      <SessionHistoryTable rows={past.map(g => ({
+                        id: g.id,
+                        startTime: g.startTime.toISOString(),
+                        tenantName: g.tenant.name,
+                        serviceName: g.services.map((s: any) => s.name).join(", "),
+                        status: g.status,
+                        invoiceUrl: g.invoiceUrl,
+                        hasReview: userReviewIds.includes(g.id)
+                      }))} />
+                  </div>
+
+              </div>
+
+              {/* Sidebar Info Panels */}
+              <aside style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                  
+                  <div style={{ background: 'white', borderRadius: '30px', padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem' }}>General Info</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                          <div>
+                              <p style={{ fontSize: '0.75rem', color: '#A3AED0', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Email Address</p>
+                              <p style={{ fontSize: '0.95rem', fontWeight: 800 }}>{session.user?.email}</p>
+                          </div>
+                          <div>
+                              <p style={{ fontSize: '0.75rem', color: '#A3AED0', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.3rem' }}>Account ID</p>
+                              <p style={{ fontSize: '0.8rem', fontWeight: 700, fontFamily: 'monospace' }}>#{userId?.slice(-12)}</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', borderRadius: '30px', padding: '2rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem' }}>Wallet Balance</h3>
+                      <div style={{ background: '#F4F7FE', padding: '1.5rem', borderRadius: '20px', textAlign: 'center' }}>
+                          <p style={{ fontSize: '0.8rem', color: '#A3AED0', fontWeight: 800, marginBottom: '0.5rem' }}>AVAILABLE CREDIT</p>
+                          <p style={{ fontSize: '2rem', fontWeight: 900, color: '#4318FF' }}>$0.00</p>
+                      </div>
+                  </div>
+
+              </aside>
+
+          </div>
+
+      </main>
+
     </div>
   );
 }
