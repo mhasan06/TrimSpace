@@ -132,7 +132,14 @@ export async function updateCustomerAvatar(formData: FormData) {
   }
 }
 
-export async function updateCustomerProfile(data: { name?: string, phone?: string, password?: string }) {
+export async function updateCustomerProfile(data: { 
+  name?: string, 
+  phone?: string, 
+  password?: string,
+  suburb?: string,
+  state?: string,
+  gender?: string
+}) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
@@ -142,6 +149,9 @@ export async function updateCustomerProfile(data: { name?: string, phone?: strin
     let updateData: any = {};
     if (data.name) updateData.name = data.name;
     if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.suburb !== undefined) updateData.suburb = data.suburb;
+    if (data.state !== undefined) updateData.state = data.state;
+    if (data.gender !== undefined) updateData.gender = data.gender;
     
     if (data.password) {
       const bcrypt = require('bcryptjs');
