@@ -1,4 +1,4 @@
-import FulfillmentClient from "./FulfillmentClient";
+import VerificationSystem from "./VerificationSystem";
 import Link from "next/link";
 import styles from "../[slug]/page.module.css";
 
@@ -27,7 +27,7 @@ export default async function BookingSuccess({ searchParams }: { searchParams: P
             <Link href="/" style={{ color: '#D4AF37', fontWeight: 600, textDecoration: 'underline' }}>Return Home</Link>
           </div>
         ) : (
-          <FulfillmentClient sessionId={sessionId} />
+          <VerificationSystem sessionId={sessionId} />
         )}
       </div>
     </div>
