@@ -8,20 +8,8 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
 export default async function LoginGateway() {
-  const session = await getServerSession(authOptions);
-
-  if (session) {
-    const role = (session.user as any).role;
-    const tenantId = (session.user as any).tenantId;
-
-    if (role === "ADMIN" && !tenantId) {
-      redirect("/admin");
-    } else if (tenantId) {
-      redirect("/dashboard");
-    } else if (role === "CUSTOMER") {
-      redirect("/my-bookings");
-    }
-  }
+  // We are disabling automatic forwarding temporarily to resolve production redirect loops.
+  // Users will now select their login type manually.
   return (
     <main className={styles.main}>
       <div style={{ maxWidth: '800px', width: '100%', textAlign: 'center' }}>
