@@ -1,3 +1,5 @@
+"use server";
+
 import { fulfillBooking } from "@/lib/fulfillment";
 
 export async function finalizeStripeBooking(sessionId: string): Promise<{ success: boolean; error?: string; tenantSlug?: string; targetDate?: string; selectedTime?: string }> {

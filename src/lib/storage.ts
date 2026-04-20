@@ -4,6 +4,10 @@ import { supabaseAdmin } from "./supabase";
  * Uploads a file blob to a specified Supabase Storage bucket and returns the public URL.
  */
 export async function uploadFile(bucket: string, path: string, blob: Blob, contentType: string): Promise<string> {
+  if (!supabaseAdmin) {
+    throw new Error("Supabase Admin client not initialized. Check your SUPABASE_SERVICE_ROLE_KEY.");
+  }
+
   const { data, error } = await supabaseAdmin.storage
     .from(bucket)
     .upload(path, blob, {
@@ -15,6 +19,8 @@ export async function uploadFile(bucket: string, path: string, blob: Blob, conte
     console.error(`Storage Upload Error (${bucket}):`, error);
     throw new Error(`Failed to upload ${path} to ${bucket}: ${error.message}`);
   }
+
+  if (!supabaseAdmin) throw new Error("Supabase client missing.");
 
   const { data: { publicUrl } } = supabaseAdmin.storage
     .from(bucket)

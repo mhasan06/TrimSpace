@@ -4,9 +4,13 @@ import { createBookingTransaction } from "@/app/[slug]/actions";
 import { sendNotificationEmail } from "./mailer";
 import { createMerchantAlert } from "./alerts";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+
+const stripe = stripeKey 
+  ? new Stripe(stripeKey, {
+      apiVersion: "2024-12-18.acacia" as any,
+    })
+  : null;
 
 /**
  * Idempotent Booking Fulfillment Engine
@@ -14,8 +18,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 export async function fulfillBooking(sessionId: string) {
   try {
-    // 1. Check if already fulfilled (Avoid double booking/notification)
-    // We check if an appointment already exists with this Stripe Payment Intent
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const piId = typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id;
     
