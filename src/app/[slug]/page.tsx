@@ -4,6 +4,8 @@ import styles from './page.module.css';
 import BookingFlow from '@/components/BookingFlow';
 import { prisma } from '@/lib/prisma';
 import { getTerminology } from '@/lib/terminology';
+import FavoriteButton from '@/components/FavoriteButton';
+import { getIsFavorited } from './favoriteActions';
 
 export default async function TenantPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -35,6 +37,8 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
   }
 
   if (!tenant) notFound();
+
+  const isFavorited = await getIsFavorited(tenant.id);
 
   // Redirect inactive shops to Coming Soon portal
   if (!tenant.isActive) {
@@ -84,7 +88,10 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
                           <span style={{ margin: '0 8px', opacity: 0.3 }}>•</span>
                           <span>{tenant.category}</span>
                       </div>
-                      <h1 className={styles.title}>{tenant.name}</h1>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h1 className={styles.title}>{tenant.name}</h1>
+                          <FavoriteButton tenantId={tenant.id} initialIsFavorited={isFavorited} />
+                      </div>
                       <p className={styles.address}>{tenant.address}</p>
                       <Link href="#booking" className={styles.mobileBookBtn}>Book Now</Link>
                   </header>

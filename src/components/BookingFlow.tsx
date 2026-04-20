@@ -79,6 +79,7 @@ export default function BookingFlow({
 
   const fetchSlots = async (dateStr: string) => {
      setTargetDate(dateStr);
+     setSelectedTime(null);
      const totalDuration = cart.reduce((tot, item) => tot + (item.service.durationMinutes * item.quantity), 0);
      const result = await fetchPublicSlots(tenantSlug, dateStr, totalDuration);
      setSlots(result.availableSlots || []);
