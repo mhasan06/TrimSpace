@@ -93,35 +93,36 @@ export default async function MyBookings() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#f8fafc', color: '#1e293b' }}>
       {/* ─── HEADER ─── */}
       <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
         <div>
-           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Member Portal</span>
-           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1px', margin: 0 }}>
-              {getGreeting()}, <span style={{ color: 'var(--primary)' }}>{session.user?.name?.split(' ')[0]}</span>
+           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#6366f1', letterSpacing: '2px', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Member Portal</span>
+           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-1.5px', margin: 0, color: '#0f172a' }}>
+              {getGreeting()}, <span style={{ color: '#6366f1' }}>{session.user?.name?.split(' ')[0]}</span>
            </h1>
         </div>
         
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ textAlign: 'right', marginRight: '1rem' }}>
-               <p style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 700, margin: 0 }}>{new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+               <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700, margin: 0 }}>{new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
             </div>
             <Link href="/" style={{ 
-                background: 'var(--primary)', 
-                color: 'black', 
-                padding: '0.8rem 1.5rem', 
-                borderRadius: '12px', 
+                background: '#6366f1', 
+                color: 'white', 
+                padding: '0.9rem 1.8rem', 
+                borderRadius: '16px', 
                 textDecoration: 'none', 
                 fontWeight: 800, 
                 fontSize: '0.9rem',
-                boxShadow: '0 4px 15px rgba(var(--primary-rgb), 0.3)',
+                boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem'
+                gap: '0.6rem',
+                transition: 'transform 0.2s ease'
             }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Book New Appointment
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Book Visit
             </Link>
         </div>
       </header>
@@ -130,47 +131,46 @@ export default async function MyBookings() {
       {nextApp && timeToNext !== null && (
         <div style={{ 
           padding: '2.5rem', 
-          background: 'linear-gradient(135deg, #111827 0%, #1f2937 100%)', 
-          border: '1px solid rgba(255,255,255,0.1)', 
-          borderRadius: '24px',
+          background: '#ffffff', 
+          border: '1px solid #e2e8f0', 
+          borderRadius: '32px',
           marginBottom: '3rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.05)',
           position: 'relative',
           overflow: 'hidden',
           width: '100%'
         }}>
-          {/* Accent decoration */}
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', background: 'var(--primary)' }}></div>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '8px', height: '100%', background: '#6366f1' }}></div>
           
           <div style={{ zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.2rem' }}>
-                <span style={{ background: 'var(--primary)', color: 'black', padding: '0.35rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 900 }}>CONFIRMED VISIT</span>
-                <span style={{ color: 'var(--primary)', fontSize: '0.9rem', fontWeight: 800 }}>
+                <span style={{ background: '#eef2ff', color: '#6366f1', padding: '0.4rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 900 }}>NEXT VISIT</span>
+                <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 700 }}>
                    Arriving in {timeToNext < 24 ? `${timeToNext} hours` : `${Math.floor(timeToNext/24)} days`}
                 </span>
             </div>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem', color: 'white' }}>{nextApp.service.name}</h2>
-            <p style={{ opacity: 0.8, fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)' }}>
-              at <strong style={{ color: 'white' }}>{nextApp.tenant.name}</strong> • with <strong style={{ color: 'var(--primary)' }}>{nextApp.barber.name}</strong>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem', color: '#0f172a', letterSpacing: '-1px' }}>{nextApp.service.name}</h2>
+            <p style={{ fontSize: '1.1rem', color: '#475569' }}>
+              at <strong style={{ color: '#0f172a' }}>{nextApp.tenant.name}</strong> • with <strong style={{ color: '#6366f1' }}>{nextApp.barber.name}</strong>
             </p>
-            <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                 {nextApp.tenant.address || "Studio Address"}
             </p>
           </div>
           
-          <div style={{ textAlign: 'right', zIndex: 1, paddingLeft: '3rem', borderLeft: '2px dashed rgba(255,255,255,0.1)' }}>
-             <p style={{ fontSize: '3rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1, margin: 0 }}>
+          <div style={{ textAlign: 'right', zIndex: 1, paddingLeft: '3rem', borderLeft: '1px solid #f1f5f9' }}>
+             <p style={{ fontSize: '3.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1, margin: 0 }}>
                 {nextApp.startTime.getUTCDate()}
              </p>
-             <p style={{ fontWeight: 800, fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '2px', color: 'white', marginTop: '0.2rem' }}>
+             <p style={{ fontWeight: 800, fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '2px', color: '#64748b', marginTop: '0.2rem' }}>
                 {nextApp.startTime.toLocaleDateString('en-AU', { month: 'short' })}
              </p>
-             <div style={{ marginTop: '1.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.6rem 1.2rem', borderRadius: '12px' }}>
-                <p style={{ fontWeight: 900, fontSize: '1.25rem', color: 'white', margin: 0 }}>
+             <div style={{ marginTop: '1.5rem', background: '#f8fafc', padding: '0.8rem 1.4rem', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                <p style={{ fontWeight: 900, fontSize: '1.3rem', color: '#0f172a', margin: 0 }}>
                    {(() => {
                       const h = nextApp.startTime.getUTCHours();
                       const m = nextApp.startTime.getUTCMinutes();
@@ -199,32 +199,32 @@ export default async function MyBookings() {
           </div>
 
           {/* Upcoming List */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '2.5rem', borderRadius: '24px', border: '1px solid var(--border)' }}>
-             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', letterSpacing: '-0.5px' }}>Upcoming Bookings</h2>
+          <div style={{ background: '#ffffff', padding: '2.5rem', borderRadius: '32px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', letterSpacing: '-0.5px', color: '#0f172a' }}>Upcoming Visits</h2>
              {upcoming.length === 0 ? (
-               <p style={{ opacity: 0.4, fontStyle: 'italic' }}>No active bookings. Start fresh today!</p>
+               <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No active bookings. Start fresh today!</p>
              ) : (
                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                   {upcoming.map(group => (
-                    <div key={group.bookingGroupId || group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div key={group.bookingGroupId || group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: '#f8fafc', borderRadius: '20px', border: '1px solid #f1f5f9' }}>
                       <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                         <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'rgba(255,255,255,0.05)', color: 'var(--primary)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 800, border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <span style={{ fontSize: '0.6rem', textTransform: 'uppercase' }}>{group.startTime.toLocaleDateString('en-AU', { month: 'short' })}</span>
-                            <span style={{ fontSize: '1.2rem' }}>{group.startTime.getUTCDate()}</span>
+                         <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#ffffff', color: '#0f172a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 800, border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#6366f1' }}>{group.startTime.toLocaleDateString('en-AU', { month: 'short' })}</span>
+                            <span style={{ fontSize: '1.3rem', lineHeight: 1.1 }}>{group.startTime.getUTCDate()}</span>
                          </div>
                          <div>
-                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>
                                {group.bookingGroupId ? `Group Visit` : `Private Session`}
                             </span>
-                            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, margin: '0.1rem 0' }}>
+                            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0.2rem 0', color: '#0f172a' }}>
                               {group.services.map((s: any) => s.name).join(" + ")}
                             </h3>
-                            <p style={{ fontSize: '0.85rem', opacity: 0.5 }}>{group.tenant.name} • {group.barber.name}</p>
+                            <p style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 500 }}>{group.tenant.name} • {group.barber.name}</p>
                          </div>
                       </div>
-                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.8rem' }}>
+                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '1rem' }}>
                           <div>
-                            <p style={{ fontSize: '1rem', fontWeight: 800, margin: 0 }}>
+                            <p style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
                                {(() => {
                                    const h = group.startTime.getUTCHours();
                                    const m = group.startTime.getUTCMinutes();
@@ -233,9 +233,9 @@ export default async function MyBookings() {
                                    return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
                                })()}
                             </p>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 700, marginTop: '0.2rem' }}>${group.totalPrice.toFixed(2)}</p>
+                            <p style={{ fontSize: '0.9rem', color: '#6366f1', fontWeight: 800, marginTop: '0.2rem' }}>${group.totalPrice.toFixed(2)}</p>
                           </div>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.6rem' }}>
                             <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} invoiceUrl={group.invoiceUrl} />
                             <CancelButton
                                 appointmentId={group.bookingGroupId || group.id}
