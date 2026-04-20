@@ -7,6 +7,7 @@ import InvoiceButton from "@/components/InvoiceButton";
 import CancelButton from "@/components/CancelButton";
 import SessionHistoryTable from "./SessionHistoryTable";
 import CustomerProfileManager from "@/components/CustomerProfileManager";
+import CustomerLogoutButton from "@/components/CustomerLogoutButton";
 
 export default async function MyBookings() {
   const session = await getServerSession(authOptions);
@@ -101,6 +102,7 @@ export default async function MyBookings() {
                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                  Favorites
               </Link>
+              <CustomerLogoutButton />
           </nav>
 
           <div style={{ marginTop: 'auto', background: 'linear-gradient(135deg, #4318FF 0%, #707EAE 100%)', padding: '1.5rem', borderRadius: '20px', color: 'white', position: 'relative', overflow: 'hidden' }}>
