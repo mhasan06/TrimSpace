@@ -141,7 +141,7 @@ export default function CustomerDashboardClient({
                             {favorites.map((shop: any) => (
                                 <Link 
                                     key={shop.id}
-                                    href={`/shop/${shop.slug}`}
+                                    href={`/${shop.slug}`}
                                     style={{ 
                                         minWidth: '150px', background: 'white', padding: '1.2rem', 
                                         borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.02)',
@@ -201,27 +201,69 @@ export default function CustomerDashboardClient({
                         </button>
                     </nav>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                         {activeTab === "appointments" ? (
                             upcoming.length > 0 ? upcoming.map((group: any) => (
-                                <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', borderRadius: '24px', transition: 'all 0.2s' }}>
-                                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                                        <div style={{ textAlign: 'center', minWidth: '50px' }}>
-                                            <p style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Date(group.startTime).getUTCDate()}</p>
-                                            <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
+                                <div key={group.id} style={{ 
+                                    background: '#f8fafc', borderRadius: '32px', padding: '1.5rem', 
+                                    border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '1rem' 
+                                }}>
+                                    {/* Group Header */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem' }}>
+                                        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                                            <div style={{ textAlign: 'center', minWidth: '50px' }}>
+                                                <p style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Date(group.startTime).getUTCDate()}</p>
+                                                <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
+                                            </div>
+                                            <div>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>Group Session • {group.tenant.name}</h4>
+                                                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>{group.services.length} services booked together</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{group.services.map((s: any) => s.name).join(' + ')}</h4>
-                                            <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(group.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })} • {group.tenant.name}</p>
+                                        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                                            <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
+                                                <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
+                                            </div>
+                                            <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
+                                            {group.bookingGroupId && (
+                                                <CancelButton 
+                                                    appointmentId={group.bookingGroupId} 
+                                                    amountPaidStripe={group.totalStripe} 
+                                                    amountPaidGift={group.totalGift} 
+                                                    label="Cancel All"
+                                                />
+                                            )}
                                         </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                                        <span style={{ background: '#eef2ff', color: '#6366f1', padding: '0.4rem 1rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900 }}>BOOKED</span>
-                                        <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
-                                            <p style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
-                                        </div>
-                                        <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
-                                        <CancelButton appointmentId={group.id} amountPaidStripe={group.totalStripe} amountPaidGift={group.totalGift} />
+
+                                    {/* Cascaded Services */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                        {group.services.map((service: any, idx: number) => {
+                                            // Extract individual appointment data if possible
+                                            const appStatus = group.status; // simplified
+                                            return (
+                                                <div key={idx} style={{ 
+                                                    background: 'white', padding: '1rem 1.5rem', borderRadius: '18px', 
+                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                    boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
+                                                }}>
+                                                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1' }}></div>
+                                                        <span style={{ fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>{service.name}</span>
+                                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>• ${service.price.toFixed(2)}</span>
+                                                    </div>
+                                                    {group.services.length > 1 && (
+                                                        <CancelButton 
+                                                            appointmentId={group.ids[idx]} 
+                                                            amountPaidStripe={Number(group.totalStripe / group.services.length)} 
+                                                            amountPaidGift={Number(group.totalGift / group.services.length)} 
+                                                            label="Remove"
+                                                            small
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )) : (

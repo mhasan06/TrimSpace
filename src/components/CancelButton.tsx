@@ -3,10 +3,18 @@
 import { useState } from "react";
 import { handleRefundAndCancel } from "@/app/my-bookings/actions";
 
-export default function CancelButton({ appointmentId, amountPaidStripe, amountPaidGift }: {
+export default function CancelButton({ 
+  appointmentId, 
+  amountPaidStripe, 
+  amountPaidGift,
+  label = "Cancel Appointment",
+  small = false
+}: {
   appointmentId: string;
   amountPaidStripe?: number;
   amountPaidGift?: number;
+  label?: string;
+  small?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -53,22 +61,22 @@ export default function CancelButton({ appointmentId, amountPaidStripe, amountPa
       onClick={handleCancel}
       disabled={loading}
       style={{
-        background: '#fff1f2',
+        background: small ? 'transparent' : '#fff1f2',
         color: '#e11d48',
-        border: '1px solid #fecdd3',
-        padding: '0.6rem 1.2rem',
+        border: small ? 'none' : '1px solid #fecdd3',
+        padding: small ? '0.4rem 0.8rem' : '0.6rem 1.2rem',
         borderRadius: '12px',
-        fontSize: '0.85rem',
+        fontSize: small ? '0.75rem' : '0.85rem',
         cursor: loading ? 'not-allowed' : 'pointer',
         fontWeight: 800,
         transition: 'all 0.2s ease',
         opacity: loading ? 0.6 : 1,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        boxShadow: small ? 'none' : '0 2px 4px rgba(0,0,0,0.05)'
       }}
       onMouseOver={e => { if (!loading) { e.currentTarget.style.background = '#e11d48'; e.currentTarget.style.color = 'white'; } }}
-      onMouseOut={e => { e.currentTarget.style.background = '#fff1f2'; e.currentTarget.style.color = '#e11d48'; }}
+      onMouseOut={e => { e.currentTarget.style.background = small ? 'transparent' : '#fff1f2'; e.currentTarget.style.color = '#e11d48'; }}
     >
-      {loading ? "⏳ Processing refund..." : "Cancel Appointment"}
+      {loading ? "⏳..." : label}
     </button>
   );
 }
