@@ -53,19 +53,20 @@ export default function CancelButton({ appointmentId, amountPaidStripe, amountPa
       onClick={handleCancel}
       disabled={loading}
       style={{
-        background: 'rgba(255, 68, 68, 0.1)',
-        color: '#ff4444',
-        border: '1px solid rgba(255,68,68,0.4)',
-        padding: '0.4rem 0.8rem',
-        borderRadius: '6px',
-        fontSize: '0.8rem',
+        background: '#fff1f2',
+        color: '#e11d48',
+        border: '1px solid #fecdd3',
+        padding: '0.6rem 1.2rem',
+        borderRadius: '12px',
+        fontSize: '0.85rem',
         cursor: loading ? 'not-allowed' : 'pointer',
-        fontWeight: 600,
+        fontWeight: 800,
         transition: 'all 0.2s ease',
         opacity: loading ? 0.6 : 1,
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
       }}
-      onMouseOver={e => { if (!loading) { e.currentTarget.style.background = '#ff4444'; e.currentTarget.style.color = 'white'; } }}
-      onMouseOut={e => { e.currentTarget.style.background = 'rgba(255, 68, 68, 0.1)'; e.currentTarget.style.color = '#ff4444'; }}
+      onMouseOver={e => { if (!loading) { e.currentTarget.style.background = '#e11d48'; e.currentTarget.style.color = 'white'; } }}
+      onMouseOut={e => { e.currentTarget.style.background = '#fff1f2'; e.currentTarget.style.color = '#e11d48'; }}
     >
       {loading ? "⏳ Processing refund..." : "Cancel Appointment"}
     </button>

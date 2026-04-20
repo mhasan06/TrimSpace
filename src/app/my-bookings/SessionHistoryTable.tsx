@@ -22,12 +22,12 @@ export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] })
         />
       )}
 
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
+      <div style={{ overflowX: "auto", background: "#ffffff", borderRadius: "24px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
               {["Booking ID", "Date", "Shop", "Service", "Status", "Action"].map(h => (
-                <th key={h} style={{ padding: "0.6rem 1rem", textAlign: "left", fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.8px", opacity: 0.5, whiteSpace: "nowrap" }}>{h}</th>
+                <th key={h} style={{ padding: "1.2rem 1rem", textAlign: "left", fontWeight: 800, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px", color: "#94a3b8", whiteSpace: "nowrap" }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -35,74 +35,66 @@ export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] })
             {rows.map(row => (
               <tr
                 key={row.id}
-                style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}
-                onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                style={{ borderBottom: "1px solid #f1f5f9", transition: "background 0.2s ease" }}
+                onMouseOver={e => (e.currentTarget.style.background = "#f8fafc")}
                 onMouseOut={e  => (e.currentTarget.style.background = "transparent")}
               >
-                {/* Clickable Booking ID */}
-                <td style={{ padding: "0.8rem 1rem", whiteSpace: "nowrap" }}>
+                <td style={{ padding: "1.2rem 1rem", whiteSpace: "nowrap" }}>
                   <button
                     onClick={() => setSelected(row)}
-                    title="Click to view booking details"
                     style={{
                       fontFamily: "monospace",
-                      fontSize: "0.82rem",
+                      fontSize: "0.85rem",
                       fontWeight: 800,
-                      color: "#D4AF37",
-                      background: "rgba(212,175,55,0.1)",
-                      border: "1px solid rgba(212,175,55,0.3)",
-                      borderRadius: "6px",
-                      padding: "0.25rem 0.55rem",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                      letterSpacing: "0.5px",
+                      color: "#6366f1",
+                      background: "#eef2ff",
+                      border: "1px solid #e0e7ff",
+                      borderRadius: "8px",
+                      padding: "0.3rem 0.6rem",
+                      cursor: "pointer"
                     }}
-                    onMouseOver={e => { e.currentTarget.style.background = "rgba(212,175,55,0.22)"; e.currentTarget.style.borderColor = "#D4AF37"; }}
-                    onMouseOut={e  => { e.currentTarget.style.background = "rgba(212,175,55,0.1)";  e.currentTarget.style.borderColor = "rgba(212,175,55,0.3)"; }}
                   >
                     #{row.id.slice(-8).toUpperCase()}
                   </button>
                 </td>
-
-                <td style={{ padding: "0.8rem 1rem", whiteSpace: "nowrap", opacity: 0.85 }}>
+                <td style={{ padding: "1.2rem 1rem", color: "#475569", fontWeight: 600 }}>
                   {new Date(row.startTime).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}
                 </td>
-                <td style={{ padding: "0.8rem 1rem" }}>{row.tenantName}</td>
-                <td style={{ padding: "0.8rem 1rem" }}>{row.serviceName ?? "—"}</td>
-                <td style={{ padding: "0.8rem 1rem", whiteSpace: "nowrap" }}>
+                <td style={{ padding: "1.2rem 1rem", fontWeight: 700, color: "#0f172a" }}>{row.tenantName}</td>
+                <td style={{ padding: "1.2rem 1rem", color: "#475569" }}>{row.serviceName ?? "—"}</td>
+                <td style={{ padding: "1.2rem 1rem" }}>
                   <span style={{
-                    padding: "0.22rem 0.55rem",
+                    padding: "0.4rem 0.8rem",
                     borderRadius: "20px",
-                    fontSize: "0.72rem",
+                    fontSize: "0.75rem",
                     fontWeight: 800,
-                    background: row.status === "CANCELLED" ? "rgba(255,68,68,0.1)"   : "rgba(16,185,129,0.1)",
-                    color:      row.status === "CANCELLED" ? "#ff4444"               : "#10b981",
-                    border:     `1px solid ${row.status === "CANCELLED" ? "#ff4444" : "#10b981"}`,
+                    background: row.status === "CANCELLED" ? "#fff1f2" : "#f0fdf4",
+                    color:      row.status === "CANCELLED" ? "#e11d48" : "#16a34a",
+                    border:     `1px solid ${row.status === "CANCELLED" ? "#fecdd3" : "#bbf7d0"}`
                   }}>
                     {row.status === "CANCELLED" ? "CANCELLED" : "COMPLETED"}
                   </span>
                 </td>
-                <td style={{ padding: "0.8rem 1rem", display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <td style={{ padding: "1.2rem 1rem", display: 'flex', gap: '0.6rem' }}>
                   {row.invoiceUrl && (
                     <a
                       href={row.invoiceUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: "0.78rem", color: "#D4AF37", fontWeight: 700, textDecoration: "none", padding: "0.25rem 0.6rem", border: "1px solid rgba(212,175,55,0.4)", borderRadius: "6px" }}
+                      style={{ 
+                        fontSize: "0.85rem", 
+                        background: "#ffffff",
+                        color: "#475569", 
+                        fontWeight: 700, 
+                        textDecoration: "none", 
+                        padding: "0.4rem 1rem", 
+                        border: "1px solid #e2e8f0", 
+                        borderRadius: "10px",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                      }}
                     >
-                      📄 Invoice
+                      Invoice
                     </a>
-                  )}
-                  {row.status !== "CANCELLED" && !row.hasReview && (
-                    <button
-                      onClick={() => setReviewApp(row)}
-                      style={{ fontSize: "0.78rem", background: "var(--primary)", color: "white", fontWeight: 700, border: "none", padding: "0.3rem 0.8rem", borderRadius: "6px", cursor: "pointer" }}
-                    >
-                      Leave Review
-                    </button>
-                  )}
-                  {!row.invoiceUrl && row.status === "CANCELLED" && (
-                    <span style={{ fontSize: "0.78rem", opacity: 0.3 }}>—</span>
                   )}
                 </td>
               </tr>
@@ -110,6 +102,7 @@ export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] })
           </tbody>
         </table>
       </div>
+</div>
     </>
   );
 }
