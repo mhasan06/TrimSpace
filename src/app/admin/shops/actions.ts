@@ -15,3 +15,17 @@ export async function toggleShopAction(tenantId: string, isActive: boolean) {
     return { error: err.message };
   }
 }
+
+export async function updateShopFeaturesAction(tenantId: string, features: string[]) {
+  try {
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { enabledFeatures: features }
+    });
+    revalidatePath("/admin/shops");
+    revalidatePath("/dashboard", "layout");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}

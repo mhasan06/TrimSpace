@@ -45,6 +45,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   });
   const terminology = getTerminology(tenant?.category);
 
+  const enabledFeatures = (tenant?.enabledFeatures as string[]) || ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT"];
+
   return (
     <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
       {context.isSupportMode && (
@@ -60,15 +62,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>{terminology.industryIcon} {tenant?.category || 'BARBER'}</p>
         </div>
         <nav className={styles.nav}>
-          <Link href="/dashboard" className={styles.navLink}>Overview</Link>
-          <Link href="/dashboard/appointments" className={styles.navLink} style={{ color: 'var(--foreground)', fontWeight: 600 }}>Master Ledger</Link>
-          <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>
-          <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>
-          <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>
-          <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>
-          <Link href="/dashboard/customers" className={styles.navLink}>Customer Directory</Link>
-          <Link href="/dashboard/settings" className={styles.navLink}>Shop Settings</Link>
-          <Link href="/dashboard/support" className={styles.navLink} style={{ marginTop: 'auto', color: 'var(--accent)' }}>Contact Support</Link>
+          {enabledFeatures.includes("OVERVIEW") && <Link href="/dashboard" className={styles.navLink}>Overview</Link>}
+          {enabledFeatures.includes("LEDGER") && <Link href="/dashboard/appointments" className={styles.navLink} style={{ color: 'var(--foreground)', fontWeight: 600 }}>Master Ledger</Link>}
+          {enabledFeatures.includes("COMMS") && <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>}
+          {enabledFeatures.includes("REPORTS") && <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>}
+          {enabledFeatures.includes("SERVICES") && <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>}
+          {enabledFeatures.includes("ROSTER") && <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>}
+          {enabledFeatures.includes("CUSTOMERS") && <Link href="/dashboard/customers" className={styles.navLink}>Customer Directory</Link>}
+          {enabledFeatures.includes("SETTINGS") && <Link href="/dashboard/settings" className={styles.navLink}>Shop Settings</Link>}
+          {enabledFeatures.includes("SUPPORT") && <Link href="/dashboard/support" className={styles.navLink} style={{ marginTop: 'auto', color: 'var(--accent)' }}>Contact Support</Link>}
         </nav>
       </aside>
 

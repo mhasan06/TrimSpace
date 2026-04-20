@@ -62,6 +62,12 @@ export default function CustomerManager({ initialCustomers, tenantId, isAdmin }:
                                 <td style={{ padding: '1rem' }}>
                                     <p style={{ fontSize: '0.85rem' }}>{c.email}</p>
                                     <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>{c.phone || "No Phone"}</p>
+                                    {(c as any).suburb || (c as any).state || (c as any).gender ? (
+                                        <p style={{ fontSize: '0.7rem', color: 'var(--primary)', marginTop: '0.4rem', fontWeight: 600 }}>
+                                            {[(c as any).suburb, (c as any).state].filter(Boolean).join(', ')} 
+                                            {(c as any).gender ? ` • ${(c as any).gender}` : ''}
+                                        </p>
+                                    ) : null}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <span style={{ background: 'var(--primary)', color: 'black', padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>

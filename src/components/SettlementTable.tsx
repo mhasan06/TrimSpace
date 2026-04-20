@@ -37,6 +37,42 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
     document.body.removeChild(link);
   };
 
+  const groupList = (list: any[]) => {
+    const groups: any[] = [];
+    const map = new Map();
+    list.forEach(app => {
+        const gid = app.bookingGroupId || `single_${app.id}`;
+        if (!map.has(gid)) {
+            map.set(gid, { 
+                ...app, 
+                services: [], 
+                totalPrice: 0,
+                totalDigital: 0,
+                totalGift: 0,
+                totalFinalTake: 0
+            });
+            groups.push(map.get(gid));
+        }
+        const g = map.get(gid);
+        const finalTake = app.paymentStatus === 'PARTIAL_REFUNDED' ? (app.service.price * 0.5) : app.service.price;
+        g.services.push({ 
+          ...app.service, 
+          finalTake, 
+          id: app.id, 
+          status: app.status, 
+          paymentStatus: app.paymentStatus, 
+          invoiceUrl: app.invoiceUrl 
+        });
+        g.totalPrice += app.service.price;
+        g.totalDigital += Number(app.amountPaidStripe || 0);
+        g.totalGift += Number(app.amountPaidGift || 0);
+        g.totalFinalTake += finalTake;
+    });
+    return groups;
+  };
+
+  const groupedData = groupList(appointments);
+
   return (
     <div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
@@ -63,89 +99,57 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
             <table className={styles.table}>
                 <thead>
                     <tr>
-                        <th style={{ width: '100px' }}>ID</th>
+                        <th>Booking / Reference</th>
                         <th>Date</th>
                         <th>Customer</th>
-                        <th>Service</th>
-                        <th>Shop Take</th>
-                        <th>Digital Paid</th>
-                        <th>Gift Credit</th>
-                        <th>Status</th>
-                        <th>Invoice</th>
+                        <th>Services & Breakdown</th>
+                        <th>Gross</th>
+                        <th>Final Take</th>
+                        <th>Digital</th>
+                        <th>Gift</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {appointments.map(app => {
-                        const finalTake = app.paymentStatus === 'PARTIAL_REFUNDED' ? (app.service.price * 0.5) : app.service.price;
-                        return (
-                            <tr key={app.id}>
-                                <td style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, letterSpacing: '1px' }}>
-                                    #{app.id.substring(app.id.length - 6).toUpperCase()}
-                                </td>
-                                <td>{new Date(app.startTime).toISOString().split('T')[0]}</td>
-                                <td>{app.customer.name}</td>
-                                <td>
-                                    {app.service.name}
-                                    {(() => {
-                                        const cluster = appointments.filter(a => a.customerId === app.customerId && a.startTime === app.startTime);
-                                        if (cluster.length > 1) {
-                                            return (
-                                                <div style={{ fontSize: '0.65rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginLeft: '0.5rem', fontWeight: 700, border: '1px solid #ef4444' }}>
-                                                    GROUP CLUSTER
+                    {groupedData.map(group => (
+                        <tr key={group.id} style={{ borderBottom: '2px solid var(--border)' }}>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
+                                <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)' }}>
+                                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `REF: ${group.id.slice(-8).toUpperCase()}`}
+                                </div>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.bookingGroupId ? 'Multi-service session' : 'Single appointment'}</div>
+                            </td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>{new Date(group.startTime).toLocaleDateString('en-AU')}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>{group.customer.name}</td>
+                            <td style={{ padding: '1rem' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {group.services.map((s: any) => (
+                                        <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.5rem 0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{s.name}</div>
+                                                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>
+                                                    {s.status === 'CANCELLED' ? 'CANCELLED (50% Fee)' : s.paymentStatus}
                                                 </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                </td>
-                                <td style={{ opacity: 0.6 }}>${app.service.price.toFixed(2)}</td>
-                                <td style={{ fontWeight: 700, color: 'var(--secondary)' }}>${finalTake.toFixed(2)}</td>
-                                <td style={{ opacity: 0.7 }}>${Number(app.amountPaidStripe || 0).toFixed(2)}</td>
-                                <td style={{ color: 'var(--primary)', opacity: 0.9, fontSize: '0.85rem' }}>✨ ${Number(app.amountPaidGift || 0).toFixed(2)}</td>
-                                <td>
-                                    <span style={{ 
-                                        padding: '0.2rem 0.5rem', 
-                                        borderRadius: '4px', 
-                                        fontSize: '0.75rem', 
-                                        fontWeight: 800,
-                                        background: app.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                                        color: app.status === 'CANCELLED' ? '#ef4444' : '#10b981',
-                                        border: app.status === 'CANCELLED' ? '1px solid #ef4444' : '1px solid #10b981'
-                                    }}>
-                                        {app.status === 'CANCELLED' ? "BOOKING CANCELLED" : app.paymentStatus}
-                                    </span>
-                                </td>
-                                <td>
-                                    {app.invoiceUrl ? (
-                                        <a 
-                                            href={app.invoiceUrl} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            style={{ 
-                                                color: 'var(--primary)', 
-                                                textDecoration: 'none', 
-                                                fontSize: '0.75rem', 
-                                                fontWeight: 700,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.3rem'
-                                            }}>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                            PDF
-                                            {app.emailSent && (
-                                                <span title="Email Sent" style={{ opacity: 0.6 }}>✉️</span>
-                                            )}
-                                        </a>
-                                    ) : (
-                                        <span style={{ opacity: 0.3, fontSize: '0.7rem' }}>N/A</span>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    {appointments.length === 0 && (
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>${s.finalTake.toFixed(2)}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.6 }}>${group.totalPrice.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: 'var(--secondary)' }}>${group.totalFinalTake.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.7 }}>${group.totalDigital.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', color: 'var(--primary)', fontWeight: 700 }}>${group.totalGift.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
+                                {group.services.some((s: any) => s.invoiceUrl) && (
+                                    <a href={group.services.find((s: any) => s.invoiceUrl).invoiceUrl} target="_blank" rel="noreferrer" style={{ background: 'var(--primary)', color: 'black', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 900, textDecoration: 'none' }}>INV</a>
+                                )}
+                            </td>
+                        </tr>
+                    ))}
+                    {groupedData.length === 0 && (
                         <tr>
-                            <td colSpan={6} style={{ textAlign: 'center', opacity: 0.5, fontStyle: 'italic', padding: '2rem' }}>No processed transactions found for this period.</td>
+                            <td colSpan={9} style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>No processed transactions found.</td>
                         </tr>
                     )}
                 </tbody>

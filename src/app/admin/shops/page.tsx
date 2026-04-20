@@ -2,6 +2,7 @@ import styles from "../../dashboard/page.module.css";
 import { prisma } from "@/lib/prisma";
 import ShopStatusToggle from "./ShopStatusToggle";
 import SupportRemoteLink from "@/components/SupportRemoteLink";
+import FeatureControl from "./FeatureControl";
 
 export default async function AllShopsPage() {
   // RAW SQL BYPASS: Ensures 'isActive' field is not stripped by the Prisma Client
@@ -35,7 +36,7 @@ export default async function AllShopsPage() {
                 <th>Owner (Primary)</th>
                 <th>Gross Revenue</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -74,9 +75,9 @@ export default async function AllShopsPage() {
                       {shop.isActive ? "LIVE" : "PENDING REVIEW"}
                     </span>
                   </td>
-                  <td>{new Date(shop.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                      <FeatureControl tenantId={shop.id} enabledFeatures={shop.enabledFeatures} />
                       <ShopStatusToggle tenantId={shop.id} currentStatus={shop.isActive} />
                       <SupportRemoteLink tenantId={shop.id} shopName={shop.name} />
                     </div>
