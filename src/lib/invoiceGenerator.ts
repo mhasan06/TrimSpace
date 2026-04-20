@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export interface InvoiceData {
   bookingId: string;
@@ -86,7 +86,7 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
     ]);
   }
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: 105,
     head: [["Description", "Original Price", "Fee %", "Net Amount"]],
     body: tableData,
