@@ -177,16 +177,3 @@ export default function CustomerProfileManager({
     </div>
   );
 }
-      <h3 style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>{user.name}</h3>
-      <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{user.email}</p>
-      {user.phone && <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.2rem' }}>{user.phone}</p>}
-      
-      <button 
-        onClick={() => setIsEditing(true)}
-        style={{ marginTop: '1.5rem', background: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '20px', color: 'var(--background)', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
-      >
-        Manage Profile
-      </button>
-    </div>
-  );
-}
