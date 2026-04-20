@@ -75,6 +75,14 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
       `$${(isCancelled ? s.price * 0.5 : s.price).toFixed(2)}`
   ]);
 
+  const priorityFee = 0.50;
+  tableData.push([
+    "Priority Booking Fee",
+    `$${priorityFee.toFixed(2)}`,
+    "0%",
+    `$${priorityFee.toFixed(2)}`
+  ]);
+
   if (isCancelled) {
     tableData.push([
       "Cancellation Fee Total (50%)",
@@ -102,7 +110,8 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   const finalY = (doc as any).lastAutoTable.finalY + 15;
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.text(`Total Charged: $${netAmount.toFixed(2)}`, 190, finalY, { align: "right" });
+  const grandTotal = netAmount + priorityFee;
+  doc.text(`Total Charged: $${grandTotal.toFixed(2)}`, 190, finalY, { align: "right" });
 
   if (isCancelled) {
      doc.setFontSize(10);

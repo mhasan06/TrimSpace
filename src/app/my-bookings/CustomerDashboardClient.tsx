@@ -239,22 +239,26 @@ export default function CustomerDashboardClient({
                                     {/* Cascaded Services */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                         {group.services.map((service: any, idx: number) => {
-                                            // Extract individual appointment data if possible
-                                            const appStatus = group.status; // simplified
+                                            const sTime = new Date(service.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+                                            const sDate = new Date(service.startTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' });
                                             return (
-                                                <div key={idx} style={{ 
+                                                <div key={service.id || idx} style={{ 
                                                     background: 'white', padding: '1rem 1.5rem', borderRadius: '18px', 
                                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                                     boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
                                                 }}>
                                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                                         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1' }}></div>
-                                                        <span style={{ fontWeight: 700, color: '#334155', fontSize: '0.9rem' }}>{service.name}</span>
-                                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 600 }}>• ${service.price.toFixed(2)}</span>
+                                                        <div>
+                                                            <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '0.9rem' }}>{service.name}</span>
+                                                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>
+                                                                {sDate} at {sTime} • ${service.price.toFixed(2)}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                     {group.services.length > 1 && (
                                                         <CancelButton 
-                                                            appointmentId={group.ids[idx]} 
+                                                            appointmentId={service.id} 
                                                             amountPaidStripe={Number(group.totalStripe / group.services.length)} 
                                                             amountPaidGift={Number(group.totalGift / group.services.length)} 
                                                             label="Remove"

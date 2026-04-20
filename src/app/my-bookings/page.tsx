@@ -40,8 +40,9 @@ export default async function MyBookings() {
     const groups: any[] = [];
     const map = new Map();
     list.forEach(app => {
-      // Use bookingGroupId if it exists, otherwise fallback to id
-      const gid = app.bookingGroupId || app.id;
+      const timeStr = new Date(app.startTime).toISOString();
+      const gid = app.bookingGroupId || `fallback_${app.tenantId}_${timeStr}`;
+      
       if (!map.has(gid)) {
         map.set(gid, { 
             ...app, 
@@ -56,7 +57,13 @@ export default async function MyBookings() {
         groups.push(map.get(gid));
       }
       const g = map.get(gid);
-      g.services.push(app.service);
+      g.services.push({
+        id: app.id,
+        name: app.service.name,
+        price: app.service.price,
+        startTime: app.startTime,
+        endTime: app.endTime
+      });
       g.totalPrice += app.service.price;
       g.ids.push(app.id);
       g.totalStripe += Number(app.amountPaidStripe || 0);
