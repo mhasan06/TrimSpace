@@ -16,6 +16,7 @@ export default function FulfillmentClient({ sessionId }: { sessionId: string }) 
         setData(result);
         setStatus("SUCCESS");
       } else {
+        // @ts-ignore
         setErrorMsg(result.error || "Unknown error");
         setStatus("ERROR");
       }
