@@ -10,11 +10,11 @@ import { getActiveTenantContext } from "@/lib/support";
 import SupportSessionBanner from "@/components/SupportSessionBanner";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
   const context = await getActiveTenantContext();
+  const session = await getServerSession(authOptions);
   
   if (!context || !context.tenantId) {
-    if ((session?.user as any)?.role === "ADMIN") {
+    if (session && (session.user as any).role === "ADMIN") {
       redirect("/admin");
     }
     redirect("/");
