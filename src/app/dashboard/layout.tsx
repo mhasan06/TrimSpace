@@ -17,7 +17,27 @@ export default async function DashboardLayout({ children }: { children: React.Re
     if (session && (session.user as any).role === "ADMIN") {
       redirect("/admin");
     }
-    redirect("/");
+    
+    // Instead of redirecting (which causes loops), show a status screen
+    return (
+      <div style={{ color: 'white', padding: '4rem', textAlign: 'center', background: '#0a0a0a', minHeight: '100vh' }}>
+        <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Dashboard Access Restricted</h2>
+        <p style={{ opacity: 0.8, maxWidth: '500px', margin: '0 auto' }}>
+          You are logged in as <strong>{session?.user?.email || 'Unknown User'}</strong>, but this account is not linked to a shop dashboard.
+        </p>
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+          <a href="/" style={{ color: 'white', textDecoration: 'underline' }}>Return Home</a>
+          <button onClick={() => window.location.href='/login'} style={{ background: 'var(--primary)', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', color: 'white', cursor: 'pointer' }}>
+            Try Different Login
+          </button>
+        </div>
+        
+        {/* DEBUG INFO FOR MOHAMMAD */}
+        <div style={{ marginTop: '4rem', fontSize: '0.7rem', opacity: 0.3, fontFamily: 'monospace' }}>
+          DEBUG_LOG: role={(session?.user as any)?.role} | tenantId={(session?.user as any)?.tenantId}
+        </div>
+      </div>
+    );
   }
 
   try {
