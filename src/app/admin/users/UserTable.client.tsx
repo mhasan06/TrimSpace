@@ -110,11 +110,21 @@ export default function UserTable({ initialUsers }: { initialUsers: User[] }) {
                     fontSize: '0.7rem', 
                     fontWeight: 900,
                     cursor: 'pointer',
-                    background: user.isActive ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                    color: user.isActive ? '#ef4444' : '#10b981',
-                    border: `1px solid ${user.isActive ? '#ef4444' : '#10b981'}`,
+                    background: user.isActive ? '#fff1f2' : '#f0fdf4',
+                    color: user.isActive ? '#e11d48' : '#16a34a',
+                    border: `1px solid ${user.isActive ? '#fecdd3' : '#bbf7d0'}`,
                     transition: '0.2s',
                     marginRight: '0.5rem'
+                  }}
+                  onMouseOver={e => { 
+                    if (!loadingId) {
+                      e.currentTarget.style.background = user.isActive ? '#e11d48' : '#16a34a';
+                      e.currentTarget.style.color = 'white';
+                    }
+                  }}
+                  onMouseOut={e => { 
+                    e.currentTarget.style.background = user.isActive ? '#fff1f2' : '#f0fdf4';
+                    e.currentTarget.style.color = user.isActive ? '#e11d48' : '#16a34a';
                   }}
                 >
                   {loadingId === user.id ? "..." : user.isActive ? "DISABLE" : "ENABLE"}
@@ -128,11 +138,13 @@ export default function UserTable({ initialUsers }: { initialUsers: User[] }) {
                     fontSize: '0.7rem', 
                     fontWeight: 900,
                     cursor: 'pointer',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: '#fee2e2',
+                    color: '#b91c1c',
+                    border: '1px solid #fca5a5',
                     transition: '0.2s'
                   }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#b91c1c'; e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = '#b91c1c'; }}
                 >
                   DELETE
                 </button>
