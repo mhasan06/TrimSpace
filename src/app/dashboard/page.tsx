@@ -17,14 +17,22 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const highlightAppointmentId = params.appointmentId;
   const context = await getActiveTenantContext();
   const tenantId = context?.tenantId;
-
   if (!tenantId) {
-    // If they are a Portal Admin, they shouldn't be here, they should be in /admin
     const session = await getServerSession(authOptions);
     if ((session?.user as any)?.role === "ADMIN") {
       redirect("/admin");
     }
-    return <div style={{ color: 'white', padding: '2rem' }}>Unauthorized Access: Your account is not linked to a specific shop.</div>;
+    return (
+      <div style={{ color: 'white', padding: '4rem', textAlign: 'center', background: '#111' }}>
+        <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Profile Link Required</h2>
+        <p style={{ opacity: 0.8, maxWidth: '500px', margin: '0 auto' }}>
+          Your account ({session?.user?.email}) is successfully logged in, but it is not currently linked to a physical shop location.
+        </p>
+        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', opacity: 0.5 }}>
+          If you are a shop owner, please contact the platform administrator to link your account to your shop.
+        </p>
+      </div>
+    );
   }
 
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });

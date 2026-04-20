@@ -65,21 +65,24 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token && session.user) {
-        // SECURITY KICK-OUT: Force immediate revocation if account is disabled in DB
-        const statusRows = await prisma.$queryRawUnsafe<any[]>(
-           `SELECT "isActive" FROM "User" WHERE id = $1 LIMIT 1`,
-           token.id
-        );
-        
-        if (statusRows.length === 0 || statusRows[0].isActive === false) {
-            // Force sign-out by returning invalid session
-            return null as any; 
-        }
-
         (session.user as any).role = token.role;
         (session.user as any).tenantId = token.tenantId;
         (session.user as any).tenantName = token.tenantName;
         (session.user as any).id = token.id;
+
+        // SECURITY KICK-OUT: Force immediate revocation if account is disabled in DB
+        try {
+          const statusRows = await prisma.$queryRawUnsafe<any[]>(
+             `SELECT "isActive" FROM "User" WHERE id = $1 LIMIT 1`,
+             token.id
+          );
+          
+          if (statusRows.length > 0 && statusRows[0].isActive === false) {
+              return null as any; 
+          }
+        } catch(e) {
+          console.error("Session DB check failed:", e);
+        }
       }
       return session;
     }
