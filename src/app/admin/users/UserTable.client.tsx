@@ -76,13 +76,13 @@ export default function UserTable({ initialUsers }: { initialUsers: User[] }) {
                   borderRadius: '20px', 
                   fontSize: '0.7rem', 
                   fontWeight: 900,
-                  textTransform: 'uppercase',
+                  textTransform: 'capitalize',
                   background: user.role === 'ADMIN' ? '#ef4444' : user.role === 'BARBER' ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
                   color: 'white',
                   border: '1px solid rgba(255,255,255,0.1)'
                 }}
               >
-                {user.role || "CUSTOMER"}
+                {(user.role || "customer").toLowerCase()}
               </span>
             </td>
             <td>
