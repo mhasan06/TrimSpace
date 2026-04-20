@@ -4,12 +4,15 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-12-18.acacia" as any,
-});
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeKey 
+  ? new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" as any })
+  : null;
 
 export async function POST(req: Request) {
   try {
+    if (!stripe) throw new Error("Stripe is not initialized. Check your STRIPE_SECRET_KEY.");
+    
     const session = await getServerSession(authOptions);
     const body = await req.json();
     const { cart, tenantSlug, targetDate, selectedTime, userId, giftCode } = body;
@@ -18,8 +21,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required booking data." }, { status: 400 });
     }
 
-    // Guard: Ensure user is authorized
-    if (session && (session.user as any).id !== userId) {
+    // Robust identity check: Only block if both exist and truly differ
+    const sessionUserId = (session?.user as any)?.id;
+    if (sessionUserId && userId && String(sessionUserId) !== String(userId)) {
+      console.warn(`[Identity] Mismatch: Session(${sessionUserId}) vs Body(${userId})`);
       return NextResponse.json({ error: "Identity mismatch." }, { status: 403 });
     }
 
