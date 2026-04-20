@@ -17,6 +17,13 @@ export default function CustomerDashboardClient({
     cancelledCount
 }: any) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("appointments");
+
+    const filteredPast = past.filter((g: any) => {
+        if (activeTab === "appointments") return g.status !== "CANCELLED";
+        if (activeTab === "cancelled") return g.status === "CANCELLED";
+        return true;
+    });
 
     return (
         <div style={{ 
@@ -54,8 +61,7 @@ export default function CustomerDashboardClient({
                     </div>
                 </div>
 
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>{user.name}</h2>
-                <span style={{ background: '#f0fdf4', color: '#16a34a', padding: '0.3rem 1rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800, marginBottom: '1rem' }}>NEW CLIENT</span>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '1rem' }}>{user.name}</h2>
                 
                 <button 
                     onClick={() => setIsProfileOpen(true)}
@@ -84,7 +90,7 @@ export default function CustomerDashboardClient({
                 </div>
 
                 <div style={{ width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
-                    <CustomerLogoutButton />
+                    <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: 700, textAlign: 'center' }}>Member since {new Date().getFullYear()}</p>
                 </div>
             </section>
 
@@ -92,12 +98,13 @@ export default function CustomerDashboardClient({
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b' }}>Client Profile</h1>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <h1 style={{ fontSize: '1.8rem', fontWeight: 900, color: '#1e293b' }}>Welcome, {user.name.split(' ')[0]}!</h1>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <div style={{ background: 'white', padding: '0.8rem 1.5rem', borderRadius: '18px', boxShadow: '0 10px 20px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <span style={{ fontSize: '1.2rem' }}>🔍</span>
-                            <input type="text" placeholder="Search appointments..." style={{ border: 'none', outline: 'none', fontSize: '0.9rem', width: '200px' }} />
+                            <input type="text" placeholder="Search..." style={{ border: 'none', outline: 'none', fontSize: '0.9rem', width: '150px' }} />
                         </div>
+                        <CustomerLogoutButton />
                     </div>
                 </header>
 
@@ -123,11 +130,32 @@ export default function CustomerDashboardClient({
                 {/* Main Content Area */}
                 <div style={{ background: 'white', borderRadius: '40px', padding: '2.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.02)', flex: 1 }}>
                     <nav style={{ display: 'flex', gap: '2rem', borderBottom: '1px solid #f1f5f9', marginBottom: '2.5rem' }}>
-                        <button style={{ background: 'none', border: 'none', padding: '1rem 0', borderBottom: '3px solid #6366f1', color: '#1e293b', fontWeight: 800, fontSize: '1rem', cursor: 'pointer' }}>Appointments</button>
+                        <button 
+                            onClick={() => setActiveTab("appointments")}
+                            style={{ 
+                                background: 'none', border: 'none', padding: '1rem 0', 
+                                borderBottom: activeTab === "appointments" ? '3px solid #6366f1' : '3px solid transparent', 
+                                color: activeTab === "appointments" ? '#1e293b' : '#94a3b8', 
+                                fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
+                            }}
+                        >
+                            Appointments
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab("cancelled")}
+                            style={{ 
+                                background: 'none', border: 'none', padding: '1rem 0', 
+                                borderBottom: activeTab === "cancelled" ? '3px solid #6366f1' : '3px solid transparent', 
+                                color: activeTab === "cancelled" ? '#1e293b' : '#94a3b8', 
+                                fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
+                            }}
+                        >
+                            Cancelled
+                        </button>
                     </nav>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        {upcoming.length > 0 ? upcoming.map((group: any) => (
+                        {activeTab === "appointments" && upcoming.length > 0 ? upcoming.map((group: any) => (
                             <div key={group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', borderRadius: '24px', transition: 'all 0.2s' }}>
                                 <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                                     <div style={{ textAlign: 'center', minWidth: '50px' }}>
@@ -148,16 +176,16 @@ export default function CustomerDashboardClient({
                                     <CancelButton appointmentId={group.id} amountPaidStripe={group.totalStripe} amountPaidGift={group.totalGift} />
                                 </div>
                             </div>
-                        )) : (
+                        )) : activeTab === "appointments" && upcoming.length === 0 && (
                             <div style={{ textAlign: 'center', padding: '4rem 0' }}>
                                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
                                 <p style={{ color: '#94a3b8', fontWeight: 700 }}>No active appointments found.</p>
                             </div>
                         )}
 
-                        {past.length > 0 && <div style={{ height: '1px', background: '#f1f5f9', margin: '2rem 0' }}></div>}
+                        {filteredPast.length > 0 && <div style={{ height: '1px', background: '#f1f5f9', margin: '2rem 0' }}></div>}
                         
-                        <SessionHistoryTable rows={past.slice(0, 10).map((g: any) => ({
+                        <SessionHistoryTable rows={filteredPast.slice(0, 10).map((g: any) => ({
                                 id: g.id,
                                 startTime: g.startTime.toISOString ? g.startTime.toISOString() : g.startTime,
                                 endTime: g.endTime.toISOString ? g.endTime.toISOString() : g.endTime,

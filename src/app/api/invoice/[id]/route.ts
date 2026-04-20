@@ -43,7 +43,10 @@ export async function GET(
       date: appointment.startTime.toLocaleDateString('en-AU', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
       time: appointment.startTime.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true }),
       services: groupAppointments.map(a => ({ name: a.service.name, price: a.service.price })),
-      totalPrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0)
+      totalPrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0),
+      status: appointment.status,
+      serviceName: groupAppointments.length > 1 ? `${groupAppointments.length} Services` : appointment.service.name,
+      servicePrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0)
     };
 
     // 4. Generate PDF

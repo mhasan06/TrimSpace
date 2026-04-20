@@ -12,6 +12,9 @@ export interface InvoiceData {
   time: string;
   services: { name: string; price: number }[];
   totalPrice: number;
+  status?: string;
+  serviceName?: string;
+  servicePrice?: number;
 }
 
 export async function generateTaxInvoice(data: InvoiceData): Promise<Blob> {
@@ -61,28 +64,55 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<Blob> {
   doc.text(data.customerName, 130, 85);
 
   // ─── TABLE ───
-  const tableRows = data.services.map(s => [s.name, `$${s.price.toFixed(2)}`]);
-  tableRows.push(["Priority Booking Fee", `$${priorityFee.toFixed(2)}`]);
-  
-  autoTable(doc, {
+  const isCancelled = data.status === "CANCELLED";
+  const subtotal = data.servicePrice || data.totalPrice;
+  const cancellationFee = isCancelled ? subtotal * 0.5 : 0;
+  const netAmount = isCancelled ? cancellationFee : subtotal;
+
+  const tableData = [
+    [
+      data.serviceName || "Booking Services", 
+      `$${subtotal.toFixed(2)}`, 
+      isCancelled ? "50%" : "0%", 
+      `$${netAmount.toFixed(2)}`
+    ]
+  ];
+
+  if (isCancelled) {
+    tableData.push([
+      "Cancellation Fee (50%)",
+      "-",
+      "-",
+      `$${cancellationFee.toFixed(2)}`
+    ]);
+  }
+
+  (doc as any).autoTable({
     startY: 105,
-    head: [["DESCRIPTION", "AMOUNT (AUD)"]],
-    body: tableRows,
+    head: [["Description", "Original Price", "Fee %", "Net Amount"]],
+    body: tableData,
     theme: "striped",
-    headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
+    headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
     styles: { fontSize: 10, cellPadding: 5 },
-    columnStyles: { 1: { halign: 'right' } },
-    margin: { left: 20, right: 20 }
+    columnStyles: {
+      0: { cellWidth: "auto" },
+      1: { cellWidth: 30, halign: "right" },
+      2: { cellWidth: 30, halign: "center" },
+      3: { cellWidth: 35, halign: "right" },
+    },
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY;
-
-  // ─── TOTALS ───
+  const finalY = (doc as any).lastAutoTable.finalY + 15;
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(15, 23, 42);
-  doc.text(`TOTAL PAID (AUD):`, 120, finalY + 15);
-  doc.text(`$${totalAmount.toFixed(2)}`, 190, finalY + 15, { align: "right" });
+  doc.text(`Total Charged: $${netAmount.toFixed(2)}`, 190, finalY, { align: "right" });
+
+  if (isCancelled) {
+     doc.setFontSize(10);
+     doc.setFont("helvetica", "italic");
+     doc.setTextColor(150, 0, 0);
+     doc.text("* This booking was cancelled. A 50% cancellation fee was applied.", 20, finalY + 10);
+  }
 
   // ─── FOOTER ───
   doc.setDrawColor(240);

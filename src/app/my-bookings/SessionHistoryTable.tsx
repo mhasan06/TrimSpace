@@ -3,6 +3,7 @@
 import { useState } from "react";
 import BookingDetailModal, { type BookingDetail } from "@/components/BookingDetailModal";
 import ReviewModal from "@/components/ReviewModal";
+import InvoiceButton from "@/components/InvoiceButton";
 
 export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] }) {
   const [selected, setSelected] = useState<BookingDetail | null>(null);
@@ -58,25 +59,7 @@ export default function SessionHistoryTable({ rows }: { rows: BookingDetail[] })
                   </span>
                 </td>
                 <td style={{ padding: "1.5rem 1rem" }}>
-                  {row.invoiceUrl && (
-                    <a
-                      href={row.invoiceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ 
-                        fontSize: "0.85rem", 
-                        color: "#6366f1", 
-                        fontWeight: 800, 
-                        textDecoration: "none", 
-                        padding: "0.6rem 1.2rem", 
-                        border: "1px solid #eef2ff", 
-                        borderRadius: "12px",
-                        background: '#f5f3ff'
-                      }}
-                    >
-                      View Invoice
-                    </a>
-                  )}
+                  <InvoiceButton appointmentId={row.id} bookingId={row.id.slice(-8)} invoiceUrl={row.invoiceUrl} />
                 </td>
               </tr>
             ))}
