@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 
 export interface InvoiceData {
   bookingId: string;
@@ -67,12 +67,12 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<Blob> {
   const tableRows = data.services.map(s => [s.name, `$${s.price.toFixed(2)}`]);
   tableRows.push(["Priority Booking", `$${priorityFee.toFixed(2)}`]);
   
-  doc.autoTable({
+  autoTable(doc, {
     startY: 95,
     head: [["Service Description", "Amount (AUD)"]],
     body: tableRows,
     theme: "striped",
-    headStyles: { fillStyle: "var(--primary)", fillColor: [0,0,0], textColor: [255, 255, 255] },
+    headStyles: { fillColor: [0,0,0], textColor: [255, 255, 255] },
     margin: { left: 20, right: 20 }
   });
 
