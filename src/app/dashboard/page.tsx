@@ -10,6 +10,7 @@ import { markAlertAsRead } from "./actions";
 import { getTerminology } from "@/lib/terminology";
 import TrendBarChart from "@/components/TrendBarChart";
 import { getActiveTenantContext } from "@/lib/support";
+import { redirect } from "next/navigation";
 
 export default async function DashboardOverview({ searchParams }: { searchParams: { date?: string, appointmentId?: string } }) {
   const params = await searchParams;
