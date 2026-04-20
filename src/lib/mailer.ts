@@ -81,17 +81,22 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
     const adminEmails = shopAdmins.map(a => a.email).filter(Boolean);
 
     if (resend) {
+      console.log(`[Mailer] Attempting to send email to ${appointment.customer.email}`);
       // Send to Customer
-      await resend.emails.send({
+      const custEmail = await resend.emails.send({
         from: 'TrimSpace <onboarding@resend.dev>',
         to: appointment.customer.email!,
         subject: subject,
         html: emailHtml,
       });
 
+      if (custEmail.error) {
+        console.error("[Mailer] Customer Email Error:", custEmail.error);
+      }
+
       // Send to Shop Owner
       if (adminEmails.length > 0) {
-        await resend.emails.send({
+        const adminEmailRes = await resend.emails.send({
           from: 'TrimSpace <onboarding@resend.dev>',
           to: adminEmails,
           subject: `[BUSINESS ALERT] ${subject}`,
@@ -104,9 +109,12 @@ export async function sendNotificationEmail(appointmentId: string, type: 'CONFIR
             </div>
           `,
         });
+        if (adminEmailRes.error) {
+           console.error("[Mailer] Admin Email Error:", adminEmailRes.error);
+        }
       }
     } else {
-      console.log(`[SIMULATED EMAIL] To: ${appointment.customer.email} & Admins: ${adminEmails.join(', ')}\nSubject: ${subject}`);
+      console.log(`[SIMULATED EMAIL - KEY MISSING] To: ${appointment.customer.email} & Admins: ${adminEmails.join(', ')}\nSubject: ${subject}`);
     }
 
     // 4. Update Database
