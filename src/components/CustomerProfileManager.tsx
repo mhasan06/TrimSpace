@@ -122,58 +122,105 @@ export default function CustomerProfileManager({
   }
 
   return (
-    <div className="glass" style={{ textAlign: 'center', padding: '2rem', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '2rem', position: 'relative' }}>
-      {success && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '0.2rem 1rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>Update Successful</div>}
+    <div className="glass" style={{ 
+      textAlign: 'center', 
+      padding: '2.5rem 1.5rem', 
+      borderRadius: '20px', 
+      border: '1px solid rgba(255,255,255,0.1)', 
+      marginBottom: '2rem', 
+      position: 'relative',
+      background: 'linear-gradient(180deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(0,0,0,0) 100%)',
+      overflow: 'hidden'
+    }}>
+      {/* Decorative background circle */}
+      <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '150px', height: '150px', borderRadius: '50%', background: 'var(--primary)', opacity: 0.05, filter: 'blur(40px)', zIndex: 0 }}></div>
       
-      <div style={{ position: 'relative', width: '80px', height: '80px', margin: '0 auto 1.5rem' }}>
+      {success && <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: '#fff', padding: '0.4rem 1.5rem', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 800, zIndex: 10, boxShadow: '0 4px 12px rgba(16,185,129,0.3)' }}>CHANGES SAVED</div>}
+      
+      <div style={{ position: 'relative', width: '110px', height: '110px', margin: '0 auto 1.5rem', zIndex: 1 }}>
         <div style={{ 
-          width: '80px', 
-          height: '80px', 
+          width: '110px', 
+          height: '110px', 
           borderRadius: '50%', 
           background: 'var(--primary)', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
-          fontSize: '2rem', 
+          fontSize: '2.5rem', 
           fontWeight: 900,
           overflow: 'hidden',
-          border: '2px solid rgba(255,255,255,0.1)'
+          border: '4px solid rgba(255,255,255,0.05)',
+          boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
         }}>
            {user.avatarUrl ? (
              <img src={user.avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
            ) : user.initial}
         </div>
+        
         <label style={{ 
           position: 'absolute', 
-          bottom: 0, 
-          right: 0, 
-          background: 'var(--foreground)', 
-          color: 'var(--background)', 
-          width: '28px', 
-          height: '28px', 
+          bottom: '5px', 
+          right: '5px', 
+          background: 'var(--primary)', 
+          color: 'black', 
+          width: '32px', 
+          height: '32px', 
           borderRadius: '50%', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
           cursor: 'pointer',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
-          opacity: isUploading ? 0.5 : 1
+          boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+          opacity: isUploading ? 0.5 : 1,
+          transition: 'all 0.2s',
+          border: '2px solid var(--background)'
         }}>
-          {isUploading ? '...' : '📸'}
+          {isUploading ? '...' : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          )}
           <input type="file" onChange={handlePhotoUpload} accept="image/*" style={{ display: 'none' }} disabled={isUploading} />
         </label>
       </div>
 
-      <h3 style={{ fontSize: '1.3rem', marginBottom: '0.3rem' }}>{user.name}</h3>
-      <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{user.email}</p>
-      {user.phone && <p style={{ fontSize: '0.8rem', opacity: 0.5, marginTop: '0.2rem' }}>{user.phone}</p>}
-      
-      <button 
-        onClick={() => setIsEditing(true)}
-        style={{ marginTop: '1.5rem', background: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '20px', color: 'var(--background)', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600 }}
-      >
-        Manage Profile
-      </button>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '0.2rem' }}>{user.name}</h3>
+        <p style={{ fontSize: '0.85rem', opacity: 0.5, fontWeight: 500, marginBottom: '0.8rem' }}>{user.email}</p>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.8rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            VIP MEMBER
+          </span>
+          {user.phone && (
+            <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(var(--primary-rgb), 0.1)', color: 'var(--primary)', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>
+              VERIFIED
+            </span>
+          )}
+        </div>
+        
+        <button 
+          onClick={() => setIsEditing(true)}
+          style={{ 
+            width: '100%',
+            background: 'transparent', 
+            border: '1px solid var(--border)', 
+            padding: '0.8rem', 
+            borderRadius: '12px', 
+            color: 'var(--foreground)', 
+            fontSize: '0.85rem', 
+            cursor: 'pointer', 
+            transition: 'all 0.2s', 
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          Edit Account Settings
+        </button>
+      </div>
     </div>
   );
 }

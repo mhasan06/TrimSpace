@@ -32,7 +32,6 @@ export default async function MyBookings() {
     ORDER BY a."startTime" ASC
   `, userId);
 
-  // Map raw SQL results to the structure expected by the component
   const mappedAppointments = appointments.map(app => ({
     ...app,
     tenant: { name: app.tenantName, slug: app.tenantSlug, address: app.tenantAddress },
@@ -40,14 +39,12 @@ export default async function MyBookings() {
     barber: { name: app.barberName }
   }));
 
-
   let userReviewIds: string[] = [];
   try {
     const rawReviews = await prisma.$queryRaw<any[]>`SELECT "appointmentId" FROM "Review" WHERE "customerId" = ${userId}`;
     userReviewIds = rawReviews.map(r => r.appointmentId);
   } catch(e) {}
 
-  // Gift Card Wallet — fetch all cards ever linked to this customer's appointments
   const myGiftCards = await prisma.giftCard.findMany({
     where: {
       appointments: { some: { customerId: userId } }
@@ -88,43 +85,77 @@ export default async function MyBookings() {
   const nextApp = upcoming[0];
   const timeToNext = nextApp ? Math.ceil((new Date(nextApp.startTime).getTime() - now.getTime()) / (1000 * 60 * 60)) : null;
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   return (
-    <div className={styles.dashboardContainer} style={{ padding: '2rem' }}>
-      <header className={`${styles.header} glass`} style={{ marginBottom: '2rem' }}>
+    <div className={styles.dashboardContainer} style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+      <header style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-           <h1>My Appointments</h1>
-           <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Welcome back, {session.user?.name}</p>
+           <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px', textTransform: 'uppercase' }}>Customer Portal</span>
+           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginTop: '0.5rem', letterSpacing: '-1px' }}>
+              {getGreeting()}, <span style={{ color: 'var(--primary)' }}>{session.user?.name?.split(' ')[0]}</span>
+           </h1>
+           <p style={{ opacity: 0.6, fontSize: '0.95rem', marginTop: '0.4rem' }}>
+              Manage your bookings, invoices, and profile.
+           </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+           <p style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 700 }}>{new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
       </header>
 
       {nextApp && timeToNext !== null && (
-        <div className="glass" style={{ 
-          padding: '1.5rem', 
-          background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--secondary-rgb), 0.2))', 
-          border: '1px solid var(--primary)', 
-          borderRadius: '12px',
-          marginBottom: '2.5rem',
+        <div style={{ 
+          padding: '2.5rem', 
+          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', 
+          border: '1px solid rgba(var(--primary-rgb), 0.3)', 
+          borderRadius: '24px',
+          marginBottom: '3rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 0 20px rgba(var(--primary-rgb), 0.3)'
+          boxShadow: '0 20px 50px rgba(0,0,0,0.3), 0 0 20px rgba(var(--primary-rgb), 0.1)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <div>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '1px', color: 'var(--primary)', textTransform: 'uppercase' }}>Next Appointment Alert</span>
-            <h2 style={{ fontSize: '1.5rem', marginTop: '0.5rem' }}>Your {nextApp.service.name} is in <span style={{ color: 'var(--primary)' }}>{timeToNext < 24 ? `${timeToNext} hours` : `${Math.floor(timeToNext/24)} days`}</span></h2>
-            <p style={{ opacity: 0.8, fontSize: '0.9rem', marginTop: '0.2rem' }}>at {nextApp.tenant.name} with {nextApp.barber.name}</p>
+          <div style={{ position: 'absolute', top: '-100px', left: '-100px', width: '300px', height: '300px', borderRadius: '50%', background: 'var(--primary)', opacity: 0.03, filter: 'blur(80px)' }}></div>
+          
+          <div style={{ zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                <span style={{ background: 'var(--primary)', color: 'black', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800 }}>UPCOMING VISIT</span>
+                <span style={{ color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 700 }}>
+                   In {timeToNext < 24 ? `${timeToNext} hours` : `${Math.floor(timeToNext/24)} days`}
+                </span>
+            </div>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>{nextApp.service.name}</h2>
+            <p style={{ opacity: 0.8, fontSize: '1.1rem' }}>
+              with <strong style={{ color: 'white' }}>{nextApp.barber.name}</strong> at <strong>{nextApp.tenant.name}</strong>
+            </p>
           </div>
-          <div style={{ textAlign: 'right' }}>
-             <p style={{ fontWeight: 700, fontSize: '1.2rem' }}>{nextApp.startTime.toISOString().split('T')[0]}</p>
-             <p style={{ opacity: 0.7 }}>
-               {(() => {
-                  const h = nextApp.startTime.getUTCHours();
-                  const m = nextApp.startTime.getUTCMinutes();
-                  const ampm = h >= 12 ? 'PM' : 'AM';
-                  const h12 = h % 12 || 12;
-                  return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
-               })()}
+          
+          <div style={{ textAlign: 'right', zIndex: 1, paddingLeft: '2rem', borderLeft: '2px dashed rgba(255,255,255,0.1)' }}>
+             <p style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>
+                {nextApp.startTime.getUTCDate()}
              </p>
+             <p style={{ fontWeight: 700, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '2px', opacity: 0.7 }}>
+                {nextApp.startTime.toLocaleDateString('en-AU', { month: 'short' })}
+             </p>
+             <div style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.5rem 1rem', borderRadius: '10px' }}>
+                <p style={{ fontWeight: 800, fontSize: '1.1rem' }}>
+                   {(() => {
+                      const h = nextApp.startTime.getUTCHours();
+                      const m = nextApp.startTime.getUTCMinutes();
+                      const ampm = h >= 12 ? 'PM' : 'AM';
+                      const h12 = h % 12 || 12;
+                      return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+                   })()}
+                </p>
+             </div>
           </div>
         </div>
       )}
@@ -139,42 +170,46 @@ export default async function MyBookings() {
             <p style={{ fontSize: '0.9rem', opacity: 0.9 }}>
               Please note that all cancellations or no-shows are subject to a **50% administrative fee**. 
               Refunds for online payments are processed automatically back to your card after path-deduction. 
-              To avoid penalties, ensure appointments are rescheduled well in advance.
             </p>
           </div>
 
-          <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', margin: 0 }}>
-             <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Upcoming Visits</h2>
+          <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', margin: 0, borderRadius: '24px' }}>
+             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '2rem' }}>Upcoming Visits</h2>
              {upcoming.length === 0 ? (
-               <p style={{ opacity: 0.5, fontStyle: 'italic', padding: '1rem 0' }}>No upcoming appointments found. Time for a trim?</p>
+               <p style={{ opacity: 0.5, fontStyle: 'italic', padding: '1rem 0' }}>No upcoming appointments found.</p>
              ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {upcoming.map(group => (
-                    <div key={group.bookingGroupId || group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                      <div>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px', opacity: 0.6 }}>
-                          {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `ID: #${group.id.substring(group.id.length - 8).toUpperCase()}`}
-                        </span>
-                        <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginTop: '0.4rem' }}>
-                          {group.services.map((s: any) => s.name).join(" + ")}
-                        </h3>
-                        <p style={{ fontSize: '0.9rem', opacity: 0.7 }}>{group.tenant.name} • {group.barber.name}</p>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 700, marginTop: '0.3rem' }}>Total: ${group.totalPrice.toFixed(2)}</p>
+                    <div key={group.bookingGroupId || group.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                         <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: 'var(--primary)', color: 'black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                            <span style={{ fontSize: '0.65rem', lineHeight: 1 }}>{group.startTime.toLocaleDateString('en-AU', { month: 'short' }).toUpperCase()}</span>
+                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{group.startTime.getUTCDate()}</span>
+                         </div>
+                         <div>
+                            <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                               {group.bookingGroupId ? `Group Booking` : `Individual`}
+                            </span>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginTop: '0.2rem' }}>
+                              {group.services.map((s: any) => s.name).join(" + ")}
+                            </h3>
+                            <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{group.tenant.name} • {group.barber.name}</p>
+                         </div>
                       </div>
-                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                       <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.8rem' }}>
                           <div>
-                            <p style={{ fontWeight: 600 }}>{group.startTime.toISOString().split('T')[0]}</p>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--primary)' }}>
-                              {(() => {
-                                  const h = group.startTime.getUTCHours();
-                                  const m = group.startTime.getUTCMinutes();
-                                  const ampm = h >= 12 ? 'PM' : 'AM';
-                                  const h12 = h % 12 || 12;
-                                  return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
-                              })()}
+                            <p style={{ fontSize: '0.95rem', fontWeight: 700 }}>
+                               {(() => {
+                                   const h = group.startTime.getUTCHours();
+                                   const m = group.startTime.getUTCMinutes();
+                                   const ampm = h >= 12 ? 'PM' : 'AM';
+                                   const h12 = h % 12 || 12;
+                                   return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+                               })()}
                             </p>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 700 }}>${group.totalPrice.toFixed(2)}</p>
                           </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} invoiceUrl={group.invoiceUrl} />
                             <CancelButton
                                 appointmentId={group.bookingGroupId || group.id}
@@ -189,9 +224,8 @@ export default async function MyBookings() {
              )}
           </div>
 
-          <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', marginTop: '2rem' }}>
-            <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Session History</h2>
-            <p style={{ fontSize: '0.78rem', opacity: 0.4, marginBottom: '1rem', marginTop: '-1rem' }}>Click any Booking ID to view full details.</p>
+          <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', marginTop: '2rem', borderRadius: '24px' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem' }}>Session History</h2>
             {past.length === 0 ? (
               <p style={{ opacity: 0.5, fontStyle: 'italic', padding: '1rem 0' }}>Your history is empty.</p>
             ) : (
@@ -229,19 +263,19 @@ export default async function MyBookings() {
             }} 
           />
 
-          <div className={`${styles.statCard} glass`} style={{ textAlign: 'left' }}>
-             <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5, marginBottom: '1rem' }}>Advanced Session Stats</h4>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                   <span>Lifetime Sessions</span>
-                   <span style={{ fontWeight: 600 }}>{appointments.length}</span>
+          <div className={`${styles.statCard} glass`} style={{ textAlign: 'left', borderRadius: '20px' }}>
+             <h4 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5, marginBottom: '1.5rem' }}>Membership Stats</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                   <span style={{ opacity: 0.7 }}>Lifetime Sessions</span>
+                   <span style={{ fontWeight: 800 }}>{appointments.length}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                   <span>Completed Visits</span>
-                   <span style={{ fontWeight: 600, color: 'var(--secondary)' }}>{past.filter(a => a.status !== 'CANCELLED').length}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                   <span style={{ opacity: 0.7 }}>Completed Visits</span>
+                   <span style={{ fontWeight: 800, color: 'var(--secondary)' }}>{past.filter(a => a.status !== 'CANCELLED').length}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
-                   <span>Total Investment</span>
-                   <span style={{ fontWeight: 600, color: 'var(--primary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                   <span style={{ opacity: 0.7 }}>Total Investment</span>
+                   <span style={{ fontWeight: 800, color: 'var(--primary)' }}>
                       ${mappedAppointments.reduce((acc, app) => {
                          if (app.status === 'CANCELLED' && app.paymentStatus === 'PARTIAL_REFUNDED') return acc + (app.service.price * 0.5);
                          if (app.status === 'CANCELLED') return acc;
@@ -250,15 +284,14 @@ export default async function MyBookings() {
                    </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                   <span>Member Since</span>
-                   <span style={{ fontWeight: 600 }}>{new Date().getFullYear()}</span>
+                   <span style={{ opacity: 0.7 }}>Member Since</span>
+                   <span style={{ fontWeight: 800 }}>{new Date().getFullYear()}</span>
                 </div>
           </div>
 
-          {/* ─── Gift Card Wallet ─── */}
           {myGiftCards.length > 0 && (
             <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5, marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.5, marginBottom: '1.2rem' }}>
                 ✨ Gift Card Wallet
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -268,71 +301,28 @@ export default async function MyBookings() {
                   const isFullyUsed = card.balance <= 0;
                   return (
                     <div key={card.id} className="glass" style={{
-                      padding: '1.2rem',
-                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      borderRadius: '20px',
                       border: `1px solid ${isFullyUsed ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.25)'}`,
                       opacity: isFullyUsed ? 0.5 : 1,
-                      transition: 'opacity 0.2s'
                     }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                         <div>
-                          <p style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{card.code}</p>
-                          <p style={{ fontWeight: 800, fontSize: '1.1rem', color: isFullyUsed ? 'rgba(255,255,255,0.4)' : 'var(--primary)', marginTop: '0.1rem' }}>
-                            ${card.balance.toFixed(2)} <span style={{ fontSize: '0.65rem', opacity: 0.5, fontWeight: 400 }}>remaining</span>
+                          <p style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700, textTransform: 'uppercase' }}>{card.code}</p>
+                          <p style={{ fontWeight: 800, fontSize: '1.25rem', color: isFullyUsed ? 'rgba(255,255,255,0.4)' : 'var(--primary)', marginTop: '0.2rem' }}>
+                            ${card.balance.toFixed(2)}
                           </p>
                         </div>
-                        <span style={{ fontSize: '0.65rem', background: isFullyUsed ? 'rgba(255,255,255,0.05)' : 'rgba(212,175,55,0.1)', borderRadius: '4px', padding: '0.2rem 0.4rem', color: isFullyUsed ? 'rgba(255,255,255,0.3)' : 'var(--primary)', fontWeight: 700 }}>
-                          {isFullyUsed ? 'SPENT' : 'ACTIVE'}
-                        </span>
                       </div>
-
-                      {/* Balance bar */}
-                      <div style={{ marginBottom: '0.8rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', opacity: 0.5, marginBottom: '0.35rem' }}>
-                          <span>Used ${usedAmount.toFixed(2)}</span>
-                          <span>of ${card.initialValue.toFixed(2)}</span>
-                        </div>
-                        <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: `${Math.min(100, usedPct)}%`,
-                            height: '100%',
-                            background: isFullyUsed ? 'rgba(255,255,255,0.2)' : `linear-gradient(90deg, var(--primary), #10b981)`,
-                            borderRadius: '4px',
-                            transition: 'width 0.5s ease'
-                          }}></div>
-                        </div>
+                      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, usedPct)}%`, height: '100%', background: isFullyUsed ? 'rgba(255,255,255,0.2)' : 'var(--primary)', borderRadius: '10px' }}></div>
                       </div>
-
-                      {/* Usage history */}
-                      {card.appointments.length > 0 && (
-                        <details style={{ marginTop: '0.5rem' }}>
-                          <summary style={{ fontSize: '0.72rem', opacity: 0.5, cursor: 'pointer', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <span>▸</span> {card.appointments.length} redemption{card.appointments.length !== 1 ? 's' : ''}
-                          </summary>
-                          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            {card.appointments.map(app => (
-                              <div key={app.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                <span style={{ opacity: 0.6 }}>{app.startTime.toISOString().split('T')[0]} · {app.service.name}</span>
-                                <span style={{ fontWeight: 700, color: 'var(--primary)' }}>-${Number(app.amountPaidGift).toFixed(2)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </details>
-                      )}
                     </div>
                   );
                 })}
               </div>
             </div>
           )}
-
-          <div className={`${styles.statCard} glass`} style={{ marginTop: '2rem', background: 'rgba(var(--secondary-rgb), 0.1)', border: '1px solid var(--secondary)' }}>
-             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.8rem' }}>Recommended for you</h3>
-             <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>Based on your history at <strong>{past[0]?.tenant.name || 'your last shop'}</strong>, we recommend booking every 3-4 weeks to keep your fade sharp.</p>
-             <Link href={past[0] ? `/${past[0].tenant.slug}` : '/'} style={{ display: 'block', marginTop: '1.5rem', width: '100%', textAlign: 'center', padding: '0.8rem', background: 'var(--secondary)', color: 'white', borderRadius: '8px', textDecoration: 'none', fontWeight: 600 }}>
-                Find a Barbershop
-             </Link>
-          </div>
         </aside>
       </div>
     </div>
