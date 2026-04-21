@@ -73,15 +73,62 @@ export default function GlobalVariablesManager({ initialSettings }: { initialSet
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr auto', gap: '1rem', background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <input placeholder="VARIABLE_KEY" value={newKey} onChange={e => setNewKey(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'white' }} />
-                <input placeholder="Value" value={newValue} onChange={e => setNewValue(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'white' }} />
-                <input placeholder="Friendly Label (Optional)" value={newLabel} onChange={e => setNewLabel(e.target.value)} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'white' }} />
-                <button onClick={handleCreate} disabled={isLoading} style={{ padding: '0.8rem 1.5rem', background: 'var(--primary)', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}>ADD VARIABLE</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            {/* Creation Header Section */}
+            <div style={{ background: 'rgba(var(--primary-rgb), 0.05)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--primary)' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1.5rem', color: 'var(--primary)' }}>➕ Define New Platform Variable</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.2rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', opacity: 0.9 }}>SYSTEM KEY</label>
+                        <input 
+                            placeholder="e.g. STRIPE_API_KEY" 
+                            value={newKey} 
+                            onChange={e => setNewKey(e.target.value)} 
+                            style={{ padding: '0.8rem', borderRadius: '8px', border: '2px solid rgba(255,255,255,0.2)', background: '#111', color: 'white', fontWeight: 600 }} 
+                        />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', opacity: 0.9 }}>VALUE / SECRET</label>
+                        <input 
+                            placeholder="sk_test_..." 
+                            value={newValue} 
+                            onChange={e => setNewValue(e.target.value)} 
+                            style={{ padding: '0.8rem', borderRadius: '8px', border: '2px solid rgba(255,255,255,0.2)', background: '#111', color: 'white', fontWeight: 600 }} 
+                        />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', opacity: 0.9 }}>FRIENDLY LABEL</label>
+                        <input 
+                            placeholder="Primary Payout Key" 
+                            value={newLabel} 
+                            onChange={e => setNewLabel(e.target.value)} 
+                            style={{ padding: '0.8rem', borderRadius: '8px', border: '2px solid rgba(255,255,255,0.2)', background: '#111', color: 'white', fontWeight: 600 }} 
+                        />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <button 
+                            onClick={handleCreate} 
+                            disabled={isLoading} 
+                            style={{ 
+                                padding: '0.8rem 2rem', 
+                                background: 'var(--primary)', 
+                                color: 'black', 
+                                border: 'none', 
+                                borderRadius: '8px', 
+                                fontWeight: 900, 
+                                cursor: 'pointer',
+                                width: '100%',
+                                height: '48px'
+                            }}>
+                            {isLoading ? "PROVISIONING..." : "ADD VARIABLE"}
+                        </button>
+                    </div>
+                </div>
             </div>
 
+            {/* List Section */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, opacity: 0.7, marginBottom: '0.5rem' }}>Active Application Settings</h3>
                 {settings.map((s) => (
                     <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '1rem', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
                         <div>

@@ -21,6 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <p style={{ fontSize: '0.8rem', color: 'var(--accent)', marginTop: '0.2rem' }}>Superuser Environment</p>
         </div>
         <nav className={styles.nav}>
+          <Link href="/download" style={{ background: 'var(--primary)', color: 'black', padding: '0.8rem', borderRadius: '12px', fontWeight: 900, textAlign: 'center', marginBottom: '2rem', textDecoration: 'none', display: 'block' }}>⬇️ DOWNLOAD APPS</Link>
           <Link href="/admin" className={styles.navLink}>Global Metrics</Link>
           <Link href="/admin/reports" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 600 }}>Marketplace Analytics</Link>
           <Link href="/admin/variables" className={styles.navLink} style={{ color: '#fbbf24', fontWeight: 800 }}>✨ Platform Variables</Link>
