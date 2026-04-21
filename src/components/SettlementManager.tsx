@@ -465,12 +465,11 @@ export default function SettlementManager({
                 <thead>
                     <tr style={{ background: '#f5f5f5', borderBottom: '2px solid black' }}>
                         <th style={{ textAlign: 'left', padding: '10px' }}>BOOKING ID</th>
-                        <th style={{ textAlign: 'left', padding: '10px' }}>DATE</th>
-                        <th style={{ textAlign: 'left', padding: '10px' }}>CUSTOMER</th>
-                        <th style={{ textAlign: 'left', padding: '10px' }}>SERVICE</th>
-                        <th style={{ textAlign: 'center', padding: '10px' }}>PAYMENT</th>
-                        <th style={{ textAlign: 'center', padding: '10px' }}>PRIORITY</th>
-                        <th style={{ textAlign: 'right', padding: '10px' }}>TOTAL</th>
+                        <th style={{ textAlign: 'left', padding: '10px' }}>DATE / TIME</th>
+                        <th style={{ textAlign: 'left', padding: '10px' }}>SERVICE ITEM</th>
+                        <th style={{ textAlign: 'right', padding: '10px' }}>ORIGINAL</th>
+                        <th style={{ textAlign: 'center', padding: '10px' }}>APPLIED POLICY</th>
+                        <th style={{ textAlign: 'right', padding: '10px' }}>FINAL TAKE</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -487,11 +486,15 @@ export default function SettlementManager({
                                 {new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(a.startTime))}<br/>
                                 <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', hour: '2-digit', minute: '2-digit', hour12: true }).format(new Date(a.startTime))}</span>
                             </td>
-                            <td style={{ padding: '10px', fontSize: '0.9rem' }}>{a.customerName}</td>
-                            <td style={{ padding: '10px', fontSize: '0.9rem' }}>{a.serviceName}</td>
-                            <td style={{ padding: '10px', textAlign: 'center', fontSize: '0.8rem' }}>{a.paymentMethod}</td>
-                            <td style={{ padding: '10px', textAlign: 'center', fontSize: '0.8rem' }}>${(a.priorityFee || 0).toFixed(2)}</td>
-                            <td style={{ padding: '10px', textAlign: 'right', fontWeight: 600 }}>${(a.totalWithFee || a.servicePrice).toFixed(2)}</td>
+                            <td style={{ padding: '10px', fontSize: '0.9rem' }}>
+                                <strong>{a.serviceName}</strong><br/>
+                                <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Client: {a.customerName}</span>
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'right', fontSize: '0.9rem' }}>${(a.servicePrice || 0).toFixed(2)}</td>
+                            <td style={{ padding: '10px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, color: a.status === 'CANCELLED' ? '#ef4444' : '#10b981' }}>
+                                {a.status === 'CANCELLED' ? '50% RETENTION FEE' : 'STANDARD RATE'}
+                            </td>
+                            <td style={{ padding: '10px', textAlign: 'right', fontWeight: 900 }}>${(a.actualServicePrice || a.servicePrice).toFixed(2)}</td>
                         </tr>
                     ))}
                 </tbody>
