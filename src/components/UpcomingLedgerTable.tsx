@@ -67,6 +67,7 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
   };
 
   return (
+    <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
@@ -270,4 +271,6 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
             </div>
         </div>
     )}
-  </div>
+    </>
+  );
+}
