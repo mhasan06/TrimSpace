@@ -55,7 +55,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     WHERE a."tenantId" = $1 
     AND a."startTime" >= $2 
     AND a."startTime" <= $3
-    AND a.status != 'CANCELLED'
     ORDER BY a."startTime" ASC
   `, tenantId, startOfMonth, endOfMonth);
 

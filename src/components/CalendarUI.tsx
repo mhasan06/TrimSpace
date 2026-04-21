@@ -187,17 +187,18 @@ export default function CalendarUI({ barbers, appointments, currentDateStr, high
                                         key={group.bookingGroupId || group.id} 
                                         onClick={() => setSelectedBooking(group)}
                                         style={{ 
-                                            background: group.bookingGroupId ? '#dcfce7' : '#bfdbfe', 
+                                            background: group.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.1)' : (group.bookingGroupId ? '#dcfce7' : '#bfdbfe'), 
                                             padding: '4px 6px', 
                                             borderRadius: '4px', 
                                             fontSize: '0.7rem', 
                                             fontWeight: 800, 
-                                            color: group.bookingGroupId ? '#166534' : '#1e40af', 
+                                            color: group.status === 'CANCELLED' ? '#ef4444' : (group.bookingGroupId ? '#166534' : '#1e40af'), 
                                             whiteSpace: 'nowrap', 
                                             overflow: 'hidden', 
                                             textOverflow: 'ellipsis',
                                             cursor: 'pointer',
-                                            borderLeft: group.bookingGroupId ? '3px solid #166534' : 'none'
+                                            borderLeft: group.status === 'CANCELLED' ? '3px solid #ef4444' : (group.bookingGroupId ? '3px solid #166534' : 'none'),
+                                            textDecoration: group.status === 'CANCELLED' ? 'line-through' : 'none'
                                         }}>
                                         {new Date(group.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} 
                                         {group.bookingGroupId ? ' [GRP] ' : ' '}
