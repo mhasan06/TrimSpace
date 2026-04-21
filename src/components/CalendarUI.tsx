@@ -131,10 +131,11 @@ export default function CalendarUI({ barbers, appointments, currentDateStr, high
         {/* Month Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: 'minmax(120px, auto)' }}>
             {monthData.map((cell: any, idx: number) => {
-                const dayStr = cell.date.toISOString().split('T')[0];
+                const dayStr = cell.date.toLocaleDateString('en-CA'); // YYYY-MM-DD
                 const dayApps = appointments.filter(a => {
-                    const aStart = new Date(a.startTime).toISOString().split('T')[0];
-                    return aStart === dayStr && (selectedBarberId === 'all' || a.barberId === selectedBarberId);
+                    const aStart = new Date(a.startTime).toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' });
+                    const cellStart = cell.date.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' });
+                    return aStart === cellStart && (selectedBarberId === 'all' || a.barberId === selectedBarberId);
                 });
 
                 const isTodayCell = isToday(cell.date);

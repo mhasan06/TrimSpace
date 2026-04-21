@@ -74,7 +74,7 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   const tableData = data.services.map(s => [
       s.name,
       `$${s.price.toFixed(2)}`,
-      isCancelled ? "50%" : "0%",
+      isCancelled ? "50% Retention Fee" : "Standard Rate",
       `$${(isCancelled ? s.price * 0.5 : s.price).toFixed(2)}`
   ]);
 
@@ -96,16 +96,16 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
 
   autoTable(doc, {
     startY: 105,
-    head: [["Description", "Original Price", "Fee %", "Net Amount"]],
+    head: [["Service Item", "Original Price", "Applied Policy", "Final Amount"]],
     body: tableData,
     theme: "striped",
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
     styles: { fontSize: 10, cellPadding: 5 },
     columnStyles: {
       0: { cellWidth: "auto" },
-      1: { cellWidth: 30, halign: "right" },
-      2: { cellWidth: 30, halign: "center" },
-      3: { cellWidth: 35, halign: "right" },
+      1: { cellWidth: 35, halign: "right" },
+      2: { cellWidth: 35, halign: "center" },
+      3: { cellWidth: 40, halign: "right" },
     },
   });
 
