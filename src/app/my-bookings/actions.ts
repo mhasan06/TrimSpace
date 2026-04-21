@@ -139,7 +139,8 @@ export async function updateCustomerProfile(data: {
   password?: string,
   suburb?: string,
   state?: string,
-  gender?: string
+  gender?: string,
+  avatarUrl?: string
 }) {
   try {
     const session = await getServerSession(authOptions);
@@ -153,6 +154,7 @@ export async function updateCustomerProfile(data: {
     if (data.suburb !== undefined) updateData.suburb = data.suburb;
     if (data.state !== undefined) updateData.state = data.state;
     if (data.gender !== undefined) updateData.gender = data.gender;
+    if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
     
     if (data.password) {
       const bcrypt = require('bcryptjs');
