@@ -133,6 +133,7 @@ model Appointment {
   giftCardId    String?
   stripePaymentIntentId String?
   bookingGroupId String?
+  cancellationFee Float    @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

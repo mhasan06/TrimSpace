@@ -67,7 +67,8 @@ export async function handleRefundAndCancel(id: string) {
         // Update Appointment Status
         await prisma.$executeRawUnsafe(
           `UPDATE "Appointment" SET status = 'CANCELLED', "paymentStatus" = 'PARTIAL_REFUNDED', 
-           "amountPaidStripe" = "amountPaidStripe" - $1, "amountPaidGift" = "amountPaidGift" - $2, "updatedAt" = NOW()
+           "amountPaidStripe" = "amountPaidStripe" - $1, "amountPaidGift" = "amountPaidGift" - $2, 
+           "cancellationFee" = $1 + $2, "updatedAt" = NOW()
            WHERE id = $3`,
           stripeRefundAmount, giftRefundAmount, app.id
         );

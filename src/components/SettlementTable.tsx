@@ -11,7 +11,7 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
   const downloadCSV = () => {
     const headers = ["Booking ID", "Date", "Customer", "Service", "Original Price", "Final Take", "Digital (Stripe)", "Credit (Gift)", "Status (Actual)"];
     const rows = appointments.map(app => {
-        const finalTake = app.paymentStatus === 'PARTIAL_REFUNDED' ? (app.service.price * 0.5) : app.service.price;
+        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : app.service.price;
         return [
             app.id.substring(app.id.length - 8).toUpperCase(),
             new Date(app.startTime).toISOString().split('T')[0],
@@ -54,7 +54,7 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
             groups.push(map.get(gid));
         }
         const g = map.get(gid);
-        const finalTake = app.paymentStatus === 'PARTIAL_REFUNDED' ? (app.service.price * 0.5) : app.service.price;
+        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : app.service.price;
         g.services.push({ 
           ...app.service, 
           finalTake, 

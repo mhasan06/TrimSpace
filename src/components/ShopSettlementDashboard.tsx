@@ -76,7 +76,7 @@ export default function ShopSettlementDashboard({ appointments }: { appointments
         filteredApps.forEach(app => {
             const price = Number(app.service?.price || app.sp || 0);
             if (app.status === 'CANCELLED') {
-                cancellation += (price * 0.5);
+                cancellation += Number(app.cancellationFee || (price * 0.5));
             } else {
                 if (Number(app.amountPaidGift || 0) > 0) gift += Number(app.amountPaidGift);
                 
