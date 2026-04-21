@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HoursManager, BlockerManager } from "@/components/ScheduleManagers";
 import BrandingManager from "@/components/BrandingManager";
+import BankingManager from "@/components/BankingManager";
 
 export default async function ShopSettings() {
   const session = await getServerSession(authOptions);
@@ -88,6 +89,16 @@ export default async function ShopSettings() {
                <button style={{ width: '100%', background: 'var(--foreground)', color: 'var(--background)', padding: '0.8rem', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>
                   Manage Billing (Stripe)
                </button>
+            </div>
+
+            <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', margin: '2rem 0 0 0', border: '1px solid var(--primary)' }}>
+               <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Settlement & Payout Account</h2>
+               <BankingManager 
+                 tenantId={tenantId}
+                 initialBankName={tenant?.bankName || ""}
+                 initialBSB={tenant?.bsb || ""}
+                 initialAccountNumber={tenant?.accountNumber || ""}
+               />
             </div>
          </aside>
       </div>

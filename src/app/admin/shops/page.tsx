@@ -36,6 +36,7 @@ export default async function AllShopsPage() {
                 <th>ABN</th>
                 <th>Owner (Primary)</th>
                 <th>Gross Revenue</th>
+                <th>Bank Details</th>
                 <th>Status</th>
                 <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
@@ -62,6 +63,17 @@ export default async function AllShopsPage() {
                   <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
                     ${Number(shop.grossRevenue).toFixed(2)}
                     <div style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 400 }}>Digital Settlements Only</div>
+                  </td>
+                  <td>
+                    {shop.bankName ? (
+                        <div style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
+                            <div style={{ fontWeight: 700 }}>{shop.bankName}</div>
+                            <div style={{ opacity: 0.7 }}>BSB: {shop.bsb}</div>
+                            <div style={{ opacity: 0.7 }}>ACC: {shop.accountNumber}</div>
+                        </div>
+                    ) : (
+                        <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>No Details</span>
+                    )}
                   </td>
                   <td>
                     <span style={{ 

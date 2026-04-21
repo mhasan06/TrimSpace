@@ -23,7 +23,13 @@ model Tenant {
   galleryImages String[] @default([])
   customerPhotos String[] @default([])
   description String? @db.Text
-  enabledFeatures Json? @default("[\"OVERVIEW\", \"LEDGER\", \"COMMS\", \"REPORTS\", \"SERVICES\", \"ROSTER\", \"CUSTOMERS\", \"SETTINGS\", \"SUPPORT\", \"PAYMENTS\"]")
+  enabledFeatures Json?    @default("[\"OVERVIEW\", \"SERVICES\", \"CUSTOMERS\", \"ROSTER\", \"REPORTS\", \"LEDGER\", \"SETTINGS\"]")
+  
+  // Financial Details (AU Standard)
+  bankName      String?
+  bsb           String?
+  accountNumber String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
