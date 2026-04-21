@@ -21,7 +21,18 @@ export default function FeatureControl({ tenantId, enabledFeatures }: { tenantId
   const [loading, setLoading] = useState(false);
 
   const handleToggle = (id: string) => {
-    setFeatures(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+    let newFeatures = features.includes(id) ? features.filter(x => x !== id) : [...features, id];
+    
+    // Sync LEDGER and SETTLEMENTS for backwards compatibility
+    if (id === "LEDGER") {
+        if (newFeatures.includes("LEDGER")) {
+            if (!newFeatures.includes("SETTLEMENTS")) newFeatures.push("SETTLEMENTS");
+        } else {
+            newFeatures = newFeatures.filter(x => x !== "SETTLEMENTS");
+        }
+    }
+    
+    setFeatures(newFeatures);
   };
 
   const handleSave = async () => {
