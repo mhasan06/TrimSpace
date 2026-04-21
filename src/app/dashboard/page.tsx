@@ -177,7 +177,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   ]);
 
   const monthlyTrends = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date(now.getFullYear(), i, 1);
+    const d = new Date(nowSydney.getFullYear(), i, 1);
     const monthKey = d.toISOString().slice(0, 7);
     const found = monthlyRaw.find((r: any) => r.bucket.toISOString().startsWith(monthKey));
     return {
