@@ -323,17 +323,16 @@ export default function CustomerDashboardClient({
                                                 <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
                                             </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
                                                 <button 
                                                     onClick={() => setViewingInvoice(group)}
                                                     style={{ 
-                                                        background: '#ffffff', border: '1px solid #e2e8f0', color: '#6366f1', 
-                                                        padding: '0.6rem 0.8rem', borderRadius: '12px', cursor: 'pointer',
-                                                        display: 'flex', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                                        background: '#6366f1', color: 'white', 
+                                                        padding: '0.5rem 1.2rem', borderRadius: '12px', cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', fontWeight: 800, fontSize: '0.7rem',
+                                                        boxShadow: '0 5px 15px rgba(99, 102, 241, 0.2)', border: 'none'
                                                     }}
-                                                    title="View & Print Invoice"
                                                 >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                                    VIEW
                                                 </button>
                                             </div>
                                             {group.bookingGroupId && group.services.length > 1 && (

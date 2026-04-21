@@ -76,18 +76,24 @@ export async function createBookingTransaction(
     const giftPerApp = amountPaidGift / totalItems;
     const bookingGroupId = `grp_${Math.random().toString(36).substr(2, 9)}`;
 
+    let processedCount = 0;
     const appointmentPromises = cart.flatMap(item => {
       const service = services.find(s => s.id === item.serviceId);
       const duration = service?.durationMinutes || 45;
-      const endTime = new Date(startDate.getTime() + 1000 * 60 * duration);
       
-      const stripePerApp = (service?.price || 0) - giftPerApp;
-      // Normalize: empty string from Stripe metadata must become null to satisfy FK constraint
       const safeGiftCardId = (giftCardId && giftCardId.trim() !== '') ? giftCardId : null;
       const safeStripeId = (stripePaymentIntentId && stripePaymentIntentId.trim() !== '') ? stripePaymentIntentId : null;
 
       return Array(item.quantity).fill(null).map(async () => {
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
+        const localIndex = processedCount++;
+        
+        // Add Priority Fee ($0.50) ONLY to the first service in the group
+        const priorityFee = localIndex === 0 ? 0.50 : 0;
+        const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
+        
+        const endTime = new Date(startDate.getTime() + 1000 * 60 * duration);
+
         return prisma.$executeRaw`
           INSERT INTO "Appointment" (
             "id", "startTime", "endTime", "status", "customerId", 

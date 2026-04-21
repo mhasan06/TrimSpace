@@ -209,39 +209,39 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Today's Earnings</h3>
+           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Today's Earnings</h3>
            <p className={styles.statNumber} style={{ color: 'var(--primary)', fontSize: '2.2rem' }}>${todayRev.toFixed(2)}</p>
-           <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '0.5rem' }}>Live Sydney Time</p>
+           <p style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Live Sydney Time</p>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Weekly Progress</h3>
+           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Weekly Progress</h3>
            <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>${thisWeekRev.toFixed(0)}</p>
            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444' }}>
                  {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>vs last week</span>
+              <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 600 }}>vs last week</span>
            </div>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>MTD Progress</h3>
+           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>MTD Progress</h3>
            <p className={styles.statNumber} style={{ color: 'var(--secondary)', fontSize: '2.2rem' }}>${thisMonthRev.toFixed(0)}</p>
            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444' }}>
                  {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>vs last month</span>
+              <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 600 }}>vs last month</span>
            </div>
         </div>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Yearly Total (YTD)</h3>
+           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
            <p className={styles.statNumber} style={{ color: 'var(--accent)', fontSize: '2.2rem' }}>${ytdRev.toFixed(0)}</p>
-           <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '0.5rem' }}>Current Fiscal Year</p>
+           <p style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Current Fiscal Year</p>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Active {terminology.staffLabelPlural}</h3>
+           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
            <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>{barbers?.length || 0}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>Team Capacity</p>
+           <p style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Team Capacity</p>
         </div>
       </div>
 

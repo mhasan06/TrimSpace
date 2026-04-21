@@ -30,6 +30,29 @@ export default function CustomerProfileManager({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await updateCustomerAvatar(formData);
+      if (res.error) {
+        setError(res.error);
+      } else {
+        setAvatarUrl(res.avatarUrl);
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+    setUploading(false);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,9 +117,22 @@ export default function CustomerProfileManager({
             <input type="email" value={user.email} disabled style={{ width: '100%', padding: '1rem', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 600, color: '#64748b', cursor: 'not-allowed' }} />
           </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Profile Picture URL</label>
-            <input type="text" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 600 }} />
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', background: '#f8fafc', padding: '1.2rem', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '4px solid white', boxShadow: '0 5px 15px rgba(0,0,0,0.05)', flexShrink: 0 }}>
+                <img src={avatarUrl || `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=fff`} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                    {uploading ? "Uploading Image..." : "Profile Picture"}
+                </label>
+                <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                    style={{ fontSize: '0.8rem', color: '#64748b' }} 
+                />
+            </div>
           </div>
 
           <div>

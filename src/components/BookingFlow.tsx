@@ -333,28 +333,40 @@ export default function BookingFlow({
              )}
 
              <div style={{ marginTop: '2.5rem', padding: '2rem', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1rem' }}>Order Summary</h4>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span>Services Subtotal</span>
+                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1.5rem' }}>Order Summary</h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem' }}>
+                   {cart.map(item => (
+                      <div key={item.service.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                         <div style={{ color: '#1e293b', fontWeight: 600 }}>
+                            {item.service.name} <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>x{item.quantity}</span>
+                         </div>
+                         <span style={{ fontWeight: 800 }}>${(item.service.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                   ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Subtotal</span>
                   <span style={{ fontWeight: 700 }}>${totalPrice.toFixed(2)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <span>Priority Booking Fee</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                  <span style={{ color: '#64748b', fontWeight: 600 }}>Priority Booking Fee</span>
                   <span style={{ fontWeight: 700 }}>$0.50</span>
                 </div>
                 {giftDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#10b981' }}>
-                    <span>Gift Card Applied</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#10b981', fontSize: '0.9rem' }}>
+                    <span style={{ fontWeight: 600 }}>Gift Card Applied</span>
                     <span style={{ fontWeight: 700 }}>-${giftDiscount.toFixed(2)}</span>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 900, fontSize: '1.1rem' }}>Total (AUD)</span>
-                  <span style={{ fontWeight: 900, fontSize: '1.1rem' }}>${(finalPrice + 0.50).toFixed(2)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a' }}>Total (AUD)</span>
+                  <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#6366f1' }}>${(finalPrice + 0.50).toFixed(2)}</span>
                 </div>
                 
-                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2rem' }}>Selected Date & Time</h4>
-                <p style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b' }}>{targetDate} at {selectedTime}</p>
+                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Date & Time</h4>
+                <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>{new Date(targetDate).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })} at {selectedTime}</p>
              </div>
 
              <button 

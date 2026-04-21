@@ -199,8 +199,9 @@ export async function triggerWeeklyRunAction() {
       // LOOKUP DATE-AWARE FEE
       const feeScale = await getEffectiveFeeForDate(batch.startDate, settings);
       
-      // Only sum priority fees for active sessions (cancellations don't pay priority fee)
-      const priorityFeeTotal = batch.apps.reduce((acc, a) => acc + (a.status === 'CANCELLED' ? 0 : 0.50), 0);
+      // Rollback: Charge 0.50 per UNIQUE booking (Group or Single)
+      const uniqueBookings = new Set(batch.apps.map(a => a.bookingGroupId || a.id));
+      const priorityFeeTotal = uniqueBookings.size * 0.50;
       
       // Use actual take (service price OR cancellation fee)
       const baseGross = batch.apps.reduce((acc, a) => {
@@ -272,10 +273,16 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
        WHERE a."settlementId" = $1 ORDER BY a."startTime" ASC`,
       settlementId
     );
-    // Add Priority Fee to each appointment for the report
+    
+    const chargedGroups = new Set();
     const appsWithFees = appointments.map(a => {
+      const gid = a.bookingGroupId || a.id;
+      let actualPriority = 0;
+      if (!chargedGroups.has(gid)) {
+        actualPriority = 0.50;
+        chargedGroups.add(gid);
+      }
       const actualRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-      const actualPriority = a.status === 'CANCELLED' ? 0 : 0.50;
       return {
         ...a,
         priorityFee: actualPriority,
@@ -283,6 +290,7 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
         totalWithFee: actualRev + actualPriority
       };
     });
+
     const settlementRows = await prisma.$queryRawUnsafe<any[]>(`SELECT s.*, t.name as "shopName", t.address as "shopAddress" FROM "Settlement" s JOIN "Tenant" t ON s."tenantId" = t.id WHERE s.id = $1 LIMIT 1`, settlementId);
     const platformRows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PlatformSettings" WHERE id = 'platform_global' LIMIT 1`);
     return { appointments: appsWithFees, settlement: settlementRows[0], platform: platformRows[0] };

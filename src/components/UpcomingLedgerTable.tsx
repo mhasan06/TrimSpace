@@ -10,6 +10,8 @@ interface UpcomingLedgerTableProps {
 }
 
 export default function UpcomingLedgerTable({ appointments, currentPeriod, startDate, endDate }: UpcomingLedgerTableProps) {
+  const [viewingInvoice, setViewingInvoice] = (require("react")).useState(null);
+
   const groupList = (list: any[]) => {
     const groups: any[] = [];
     const map = new Map();
@@ -19,8 +21,10 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
             map.set(gid, { 
                 ...app, 
                 services: [], 
-                totalPrice: 0,
-                totalRetention: 0
+                totalPrice: 0.50, // Rollback Priority Fee
+                totalRetention: 0.50,
+                totalStripe: 0,
+                totalGift: 0
             });
             groups.push(map.get(gid));
         }
@@ -38,6 +42,8 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
         });
         g.totalPrice += app.service.price;
         g.totalRetention += (retentionFee !== null ? retentionFee : app.service.price);
+        g.totalStripe += Number(app.amountPaidStripe || 0);
+        g.totalGift += Number(app.amountPaidGift || 0);
     });
     return groups;
   };
@@ -63,35 +69,38 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          {['week', 'month', 'year'].map(p => (
-            <button 
-              key={p}
-              onClick={() => handlePeriodChange(p)}
-              style={{ 
-                background: currentPeriod === p || (!currentPeriod && p === 'week') ? 'var(--primary)' : 'rgba(255,255,255,0.05)', 
-                color: currentPeriod === p || (!currentPeriod && p === 'week') ? 'black' : 'white',
-                border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem' 
-              }}
-            >
-              {p}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'white', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            {['week', 'month', 'year'].map(p => (
+              <button 
+                key={p}
+                onClick={() => handlePeriodChange(p)}
+                style={{ 
+                  background: currentPeriod === p || (!currentPeriod && p === 'week') ? 'var(--primary)' : 'rgba(255,255,255,0.08)', 
+                  color: currentPeriod === p || (!currentPeriod && p === 'week') ? 'black' : 'white',
+                  border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem' 
+                }}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Custom Range:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'white', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
           <input 
             type="date" 
             defaultValue={startDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px' }}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px', fontWeight: 700 }}
           />
-          <span style={{ opacity: 0.3 }}>to</span>
+          <span style={{ opacity: 0.3, color: 'white' }}>to</span>
           <input 
             type="date" 
             defaultValue={endDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px' }}
+            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px', fontWeight: 700 }}
           />
         </div>
       </div>
@@ -120,6 +129,19 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                     {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `SINGLE SESSION`}
                 </div>
                 <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.id.slice(-8).toUpperCase()}</div>
+                <div style={{ marginTop: '0.8rem' }}>
+                    <button 
+                        onClick={() => setViewingInvoice(group)}
+                        style={{ 
+                            background: '#6366f1', color: 'white', 
+                            padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer',
+                            border: 'none', fontWeight: 800, fontSize: '0.65rem',
+                            boxShadow: '0 4px 10px rgba(99, 102, 241, 0.2)'
+                        }}
+                    >
+                        VIEW
+                    </button>
+                </div>
               </td>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>
                 {group.customer.name}
@@ -180,5 +202,72 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
       </table>
       </div>
     </div>
-  );
-}
+
+    {viewingInvoice && (
+        <div className="no-print" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+            <div className="printable-invoice" style={{ width: '100%', maxWidth: '600px', background: 'white', borderRadius: '32px', padding: '3rem', color: '#1e293b', maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>Business Standard Invoice</div>
+                    <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Transaction Summary</h2>
+                    <p style={{ opacity: 0.5, fontSize: '0.9rem' }}>{viewingInvoice.bookingGroupId ? `Group Reference: ${viewingInvoice.bookingGroupId.toUpperCase()}` : `Session ID: ${viewingInvoice.id.toUpperCase()}`}</p>
+                </div>
+
+                <div style={{ background: '#f8fafc', borderRadius: '24px', padding: '1.5rem', marginBottom: '2rem' }}>
+                    <h4 style={{ fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '1.2rem', letterSpacing: '1px' }}>Customer & Session</h4>
+                    <p style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.3rem' }}>{viewingInvoice.customer.name}</p>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.6 }}>{new Date(viewingInvoice.startTime).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
+                    <h4 style={{ fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '1px' }}>Service Details</h4>
+                    {viewingInvoice.services.map((s: any, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                            <div>
+                                <div style={{ fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : '#1e293b', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
+                                <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>Service Charge</div>
+                            </div>
+                            <div style={{ fontWeight: 800 }}>${s.price.toFixed(2)}</div>
+                        </div>
+                    ))}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6 }}>
+                        <span>Priority Booking Fee (Standard)</span>
+                        <span>$0.50</span>
+                    </div>
+                </div>
+
+                <div style={{ borderTop: '2px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontWeight: 600, opacity: 0.5 }}>
+                        <span>Method</span>
+                        <span style={{ textTransform: 'uppercase' }}>{viewingInvoice.paymentMethod || "CASH / INSTORE"}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontWeight: 900, fontSize: '1.2rem', color: '#6366f1' }}>
+                        <span>Total Paid / Payout</span>
+                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift).toFixed(2)}</span>
+                    </div>
+                    {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
+                        <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #ef4444' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#ef4444' }}>
+                                <span>Retention Held (50%)</span>
+                                <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.retentionFee || s.price * 0.5) : s.price), 0) + 0.50).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="no-print" style={{ marginTop: '3rem', display: 'flex', gap: '1rem' }}>
+                    <button onClick={() => window.print()} style={{ flex: 1, background: '#6366f1', color: 'white', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Print Statement</button>
+                    <button onClick={() => setViewingInvoice(null)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Close</button>
+                </div>
+
+                <style>{`
+                    @media print {
+                        .no-print { display: none !important; }
+                        body * { visibility: hidden; }
+                        .printable-invoice, .printable-invoice * { visibility: visible; }
+                        .printable-invoice { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+                    }
+                `}</style>
+            </div>
+        </div>
+    )}
+  </div>
