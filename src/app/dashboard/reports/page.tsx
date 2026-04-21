@@ -21,38 +21,38 @@ export default async function Reporting({ searchParams }: { searchParams: { from
   const fromObj = new Date(`${fromDate}T00:00:00.000Z`);
   const toObj = new Date(`${toDate}T23:59:59.999Z`);
 
-  // 1. All paid appointments
+  // 1. All revenue-generating appointments (including cancellations)
   const allPaidAppointments: any[] = role === "ADMIN"
     ? await prisma.$queryRaw`
         SELECT a.*, s.name as "serviceName", s.price as "servicePrice", s."durationMinutes" as "serviceDuration", u.name as "customerName", u.email as "customerEmail"
         FROM "Appointment" a
         JOIN "Service" s ON a."serviceId" = s.id
         JOIN "User" u ON a."customerId" = u.id
-        WHERE a."paymentStatus" = 'PAID'
+        WHERE a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED')
       `
     : await prisma.$queryRaw`
         SELECT a.*, s.name as "serviceName", s.price as "servicePrice", s."durationMinutes" as "serviceDuration", u.name as "customerName", u.email as "customerEmail"
         FROM "Appointment" a
         JOIN "Service" s ON a."serviceId" = s.id
         JOIN "User" u ON a."customerId" = u.id
-        WHERE a."tenantId" = ${tenantId} AND a."paymentStatus" = 'PAID'
+        WHERE a."tenantId" = ${tenantId} AND a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED')
       `;
 
-  // 2. 30-Day Daily Revenue Split
+  // 2. 30-Day Daily Revenue Split (Including Cancellations)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const recentPaid: any[] = role === "ADMIN"
     ? await prisma.$queryRaw`
         SELECT DATE("startTime") as day, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
         FROM "Appointment"
-        WHERE "paymentStatus" = 'PAID' AND "startTime" >= ${thirtyDaysAgo}
+        WHERE "paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED') AND "startTime" >= ${thirtyDaysAgo}
         GROUP BY DATE("startTime")
         ORDER BY day ASC
       `
     : await prisma.$queryRaw`
         SELECT DATE("startTime") as day, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
         FROM "Appointment"
-        WHERE "tenantId" = ${tenantId} AND "paymentStatus" = 'PAID' AND "startTime" >= ${thirtyDaysAgo}
+        WHERE "tenantId" = ${tenantId} AND "paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED') AND "startTime" >= ${thirtyDaysAgo}
         GROUP BY DATE("startTime")
         ORDER BY day ASC
       `;
@@ -83,7 +83,7 @@ export default async function Reporting({ searchParams }: { searchParams: { from
         FROM "Appointment" a
         JOIN "Service" s ON a."serviceId" = s.id
         JOIN "User" u ON a."customerId" = u.id
-        WHERE (a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED') OR a."status" = 'CANCELLED')
+        WHERE (a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED'))
           AND a."startTime" >= ${fromObj} AND a."startTime" <= ${toObj}
         ORDER BY a."startTime" DESC LIMIT 1000
       `
@@ -93,32 +93,32 @@ export default async function Reporting({ searchParams }: { searchParams: { from
         JOIN "Service" s ON a."serviceId" = s.id
         JOIN "User" u ON a."customerId" = u.id
         WHERE a."tenantId" = ${tenantId} 
-          AND (a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED') OR a."status" = 'CANCELLED')
+          AND (a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED'))
           AND a."startTime" >= ${fromObj} AND a."startTime" <= ${toObj}
         ORDER BY a."startTime" DESC LIMIT 1000
       `;
 
-  const totalRevenue = allPaidAppointments.reduce((sum, app) => sum + Number(app.servicePrice || 0), 0);
+  const totalRevenue = allPaidAppointments.reduce((sum, app) => sum + Number(app.amountPaidStripe || 0) + Number(app.amountPaidGift || 0), 0);
   const totalAppointments = allPaidAppointments.length;
   const uniqueCustomerIds = new Set(allPaidAppointments.map(a => a.customerId));
   const newCustomers = uniqueCustomerIds.size;
 
-  // Top Services
+  // Top Services (Actual Revenue)
   const serviceStats = allPaidAppointments.reduce((acc: any, app) => {
     const sId = app.serviceId;
     if (!acc[sId]) acc[sId] = { name: app.serviceName || "System Service", count: 0, revenue: 0, duration: app.serviceDuration || 45 };
     acc[sId].count += 1;
-    acc[sId].revenue += Number(app.servicePrice || 0);
+    acc[sId].revenue += (Number(app.amountPaidStripe || 0) + Number(app.amountPaidGift || 0));
     return acc;
   }, {});
   const topServices = Object.values(serviceStats).sort((a: any, b: any) => b.revenue - a.revenue);
 
-  // Top Customers (LTV)
+  // Top Customers (Actual LTV)
   const customerLTV = allPaidAppointments.reduce((acc: any, app) => {
     const cId = app.customerId;
     if (!acc[cId]) acc[cId] = { name: app.customerName || app.customerEmail || "Guest Client", visits: 0, totalSpend: 0 };
     acc[cId].visits += 1;
-    acc[cId].totalSpend += Number(app.servicePrice || 0);
+    acc[cId].totalSpend += (Number(app.amountPaidStripe || 0) + Number(app.amountPaidGift || 0));
     return acc;
   }, {});
   const topCustomers = Object.values(customerLTV).sort((a: any, b: any) => b.totalSpend - a.totalSpend).slice(0, 5);

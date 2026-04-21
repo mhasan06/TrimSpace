@@ -77,8 +77,8 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
 
   const [thisWeekStats, lastWeekStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfThisWeek}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek}`
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek}`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek}`
   ]);
 
   const thisWeekRev = Number(thisWeekStats[0]?.revenue || 0);
@@ -90,8 +90,8 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   
   const [thisMonthStats, lastMonthStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfThisMonth}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth}`
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth}`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth}`
   ]);
 
   const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
@@ -118,7 +118,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       COUNT(id) as jobs, 
       SUM("amountPaidStripe" + "amountPaidGift") as revenue
     FROM "Appointment"
-    WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${thirtyDaysAgo}
+    WHERE "tenantId" = ${tenantId} AND "startTime" >= ${thirtyDaysAgo}
     GROUP BY "barberId"
   `;
 
@@ -135,7 +135,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     const dayStats: any[] = await prisma.$queryRaw`
       SELECT COUNT(id) as count, SUM("amountPaidStripe" + "amountPaidGift") as revenue
       FROM "Appointment"
-      WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${s} AND "startTime" <= ${e}
+      WHERE "tenantId" = ${tenantId} AND "startTime" >= ${s} AND "startTime" <= ${e}
     `;
     outlook.push({
       date: dateStr,
@@ -155,11 +155,11 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const [monthlyRaw, weeklyRaw]: any[] = await Promise.all([
     prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
-      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfYear}
+      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfYear}
       GROUP BY 1 ORDER BY 1`,
     prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
-      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "status" != 'CANCELLED' AND "startTime" >= ${startOfYear}
+      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfYear}
       GROUP BY 1 ORDER BY 1`
   ]);
 
