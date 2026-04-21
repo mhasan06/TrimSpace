@@ -71,37 +71,42 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'white', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
           <div style={{ display: 'flex', gap: '0.6rem' }}>
-            {['week', 'month', 'year'].map(p => (
-              <button 
-                key={p}
-                onClick={() => handlePeriodChange(p)}
-                style={{ 
-                  background: currentPeriod === p || (!currentPeriod && p === 'week') ? 'var(--primary)' : 'rgba(255,255,255,0.08)', 
-                  color: currentPeriod === p || (!currentPeriod && p === 'week') ? 'black' : 'white',
-                  border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem' 
-                }}
-              >
-                {p}
-              </button>
-            ))}
+            {['week', 'month', 'year'].map(p => {
+              const isActive = currentPeriod === p || (!currentPeriod && p === 'week');
+              return (
+                <button 
+                  key={p}
+                  onClick={() => handlePeriodChange(p)}
+                  style={{ 
+                    background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.08)', 
+                    color: isActive ? 'black' : 'rgba(255,255,255,0.8)',
+                    border: isActive ? 'none' : '1px solid rgba(255,255,255,0.1)', 
+                    padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {p}
+                </button>
+              );
+            })}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'white', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
           <input 
             type="date" 
             defaultValue={startDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px', fontWeight: 700 }}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
-          <span style={{ opacity: 0.3, color: 'white' }}>to</span>
+          <span style={{ opacity: 0.5, color: 'white', fontWeight: 900 }}>to</span>
           <input 
             type="date" 
             defaultValue={endDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px', fontWeight: 700 }}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
         </div>
       </div>

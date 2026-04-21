@@ -209,39 +209,39 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>
-           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Today's Earnings</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--primary)', fontSize: '2.2rem' }}>${todayRev.toFixed(2)}</p>
-           <p style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Live Sydney Time</p>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Today's Earnings</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.5rem', fontWeight: 900 }}>${todayRev.toFixed(2)}</p>
+           <p style={{ fontSize: '0.75rem', opacity: 1, marginTop: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>Live Sydney Time</p>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Weekly Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>${thisWeekRev.toFixed(0)}</p>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444' }}>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Weekly Progress</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.5rem', fontWeight: 900 }}>${thisWeekRev.toFixed(0)}</p>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.6rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444', background: weekProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
                  {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 600 }}>vs last week</span>
+              <span style={{ fontSize: '0.75rem', opacity: 1, fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>vs last week</span>
            </div>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>MTD Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--secondary)', fontSize: '2.2rem' }}>${thisMonthRev.toFixed(0)}</p>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444' }}>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>MTD Progress</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.5rem', fontWeight: 900 }}>${thisMonthRev.toFixed(0)}</p>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.6rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444', background: monthProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
                  {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.7rem', opacity: 0.8, fontWeight: 600 }}>vs last month</span>
+              <span style={{ fontSize: '0.75rem', opacity: 1, fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>vs last month</span>
            </div>
         </div>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
-           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--accent)', fontSize: '2.2rem' }}>${ytdRev.toFixed(0)}</p>
-           <p style={{ fontSize: '0.7rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Current Fiscal Year</p>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.5rem', fontWeight: 900 }}>${ytdRev.toFixed(0)}</p>
+           <p style={{ fontSize: '0.75rem', opacity: 1, marginTop: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>Current Fiscal Year</p>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 1, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
-           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>{barbers?.length || 0}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.5rem', fontWeight: 600 }}>Team Capacity</p>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.5rem', fontWeight: 900 }}>{barbers?.length || 0}</p>
+           <p style={{ fontSize: '0.75rem', opacity: 1, marginTop: '0.6rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)' }}>Team Capacity</p>
         </div>
       </div>
 
