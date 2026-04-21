@@ -40,6 +40,7 @@ export default function NavHeader() {
         </div>
 
         <a href="/pricing" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--foreground)', textDecoration: 'none' }}>Pricing</a>
+        <a href="/download" style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--primary)', textDecoration: 'none' }}>⬇️ Apps Download</a>
         
         {session ? (
           <>
