@@ -9,10 +9,13 @@ export async function POST(req: Request) {
 
     try {
         const { key, value, label } = await req.json();
-        const setting = await prisma.globalSetting.create({
-            data: { key, value, label }
-        });
-        return NextResponse.json(setting);
+        const id = `gs_${Math.random().toString(36).substring(2, 9)}`;
+        await prisma.$executeRawUnsafe(
+            `INSERT INTO "GlobalSetting" (id, "key", "value", "label", "updatedAt") 
+             VALUES ($1, $2, $3, $4, NOW())`,
+            id, key, value, label
+        );
+        return NextResponse.json({ id, key, value, label });
     } catch (err) {
         return NextResponse.json({ error: "Conflict" }, { status: 409 });
     }
@@ -24,11 +27,11 @@ export async function PUT(req: Request) {
 
     try {
         const { id, value } = await req.json();
-        const setting = await prisma.globalSetting.update({
-            where: { id },
-            data: { value }
-        });
-        return NextResponse.json(setting);
+        await prisma.$executeRawUnsafe(
+            `UPDATE "GlobalSetting" SET "value" = $1, "updatedAt" = NOW() WHERE "id" = $2`,
+            value, id
+        );
+        return NextResponse.json({ success: true });
     } catch (err) {
         return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
@@ -40,9 +43,10 @@ export async function DELETE(req: Request) {
 
     try {
         const { id } = await req.json();
-        await prisma.globalSetting.delete({
-            where: { id }
-        });
+        await prisma.$executeRawUnsafe(
+            `DELETE FROM "GlobalSetting" WHERE "id" = $1`,
+            id
+        );
         return NextResponse.json({ success: true });
     } catch (err) {
         return NextResponse.json({ error: "Not Found" }, { status: 404 });

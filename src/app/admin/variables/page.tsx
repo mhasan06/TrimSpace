@@ -3,9 +3,9 @@ import { prisma } from "@/lib/prisma";
 import GlobalVariablesManager from "@/components/GlobalVariablesManager";
 
 export default async function GlobalVariablesPage() {
-    const settings = await prisma.globalSetting.findMany({
-        orderBy: { key: 'asc' }
-    });
+    const settings = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT * FROM "GlobalSetting" ORDER BY "key" ASC`
+    );
 
     return (
         <>
