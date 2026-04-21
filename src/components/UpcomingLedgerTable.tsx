@@ -11,7 +11,7 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
     const groups: any[] = [];
     const map = new Map();
     list.forEach(app => {
-        const gid = app.bookingGroupId || `${app.tenantId}_${new Date(app.startTime).getTime()}`;
+        const gid = app.bookingGroupId || `${app.tenantId}_${app.customerId}_${new Date(app.startTime).toISOString().split('T')[0]}`;
         if (!map.has(gid)) {
             map.set(gid, { 
                 ...app, 

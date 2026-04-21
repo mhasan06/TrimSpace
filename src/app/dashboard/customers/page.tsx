@@ -19,6 +19,7 @@ export default async function ShopCustomersPage() {
         <div style={{ padding: '2rem' }}>
             <header className={`${styles.header} glass`} style={{ marginBottom: '2rem' }}>
                 <div>
+                   <div style={{ fontSize: '0.6rem', background: 'var(--primary)', color: 'black', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.5rem' }}>BUILD V2.2 - ENRICHED DIRECTORY ACTIVE</div>
                    <h1 style={{ fontSize: '1.8rem', fontWeight: 900 }}>Customer Directory</h1>
                    <p style={{ opacity: 0.6 }}>Manage users who have registered with {tenant?.name}.</p>
                 </div>

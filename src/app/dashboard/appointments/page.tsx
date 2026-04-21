@@ -25,6 +25,7 @@ export default async function AppointmentsLedger() {
     <>
       <header className={`${styles.header} glass`}>
         <div>
+           <div style={{ fontSize: '0.6rem', background: 'var(--primary)', color: 'black', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.5rem' }}>BUILD V2.2 - CASCADING ACTIVE</div>
            <h1>Master Ledger</h1>
            <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Unified view of all upcoming sessions and bookings</p>
         </div>
