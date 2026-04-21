@@ -245,3 +245,12 @@ model Favorite {
 
   @@unique([userId, tenantId])
 }
+
+model GlobalSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  label     String?
+  category  String?  @default("GENERAL")
+  updatedAt DateTime @updatedAt
+}
