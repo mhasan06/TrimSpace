@@ -38,13 +38,14 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
   const terminology = getTerminology(tenant?.category);
 
+  const { getSydneyStartOfMonth, getSydneyEndOfMonth, getSydneyDate } = require("@/lib/dateUtils");
+  const nowSydney = getSydneyDate();
+
   // 1. Resolve Month bounds (Sydney context)
-  const targetDateStr = params.date || new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' }).split(',')[0];
-  
-  // Use Sydney-relative boundaries
+  const targetDateStr = params.date || nowSydney.toISOString().split('T')[0];
   const target = new Date(targetDateStr);
-  const startOfMonth = new Date(target.getFullYear(), target.getMonth(), 1, 0, 0, 0, 0);
-  const endOfMonth = new Date(target.getFullYear(), target.getMonth() + 1, 0, 23, 59, 59, 999);
+  const startOfMonth = getSydneyStartOfMonth(target);
+  const endOfMonth = getSydneyEndOfMonth(target);
 
   // Use Raw SQL to bypass stale Prisma Client and fetch all appointments for the month
   const rawAppointments = await prisma.$queryRawUnsafe<any[]>(`

@@ -50,11 +50,14 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   doc.setTextColor(15, 23, 42);
   doc.text("TAX INVOICE", 20, 65);
 
+  const { formatSydneyDate } = require("./dateUtils");
+  const nowSydney = new Date();
+
   // ─── INFO ───
   doc.setFontSize(10);
   doc.setTextColor(51, 65, 85);
   doc.text(`Invoice #: ${data.bookingId}`, 20, 80);
-  doc.text(`Issued: ${new Date().toLocaleDateString("en-AU")}`, 20, 85);
+  doc.text(`Issued: ${formatSydneyDate(nowSydney)}`, 20, 85);
   doc.text(`Visit: ${data.date} at ${data.time}`, 20, 90);
 
   doc.setFont("helvetica", "bold");

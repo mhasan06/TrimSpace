@@ -34,7 +34,8 @@ export default async function MyBookings() {
     barber: { name: app.barberName }
   }));
 
-  const now = new Date();
+  const { getSydneyDate } = require("@/lib/dateUtils");
+  const now = getSydneyDate();
   
   const groupList = (list: any[]) => {
     const groups: any[] = [];

@@ -14,7 +14,7 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
         const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : app.service.price;
         return [
             app.id.substring(app.id.length - 8).toUpperCase(),
-            new Date(app.startTime).toISOString().split('T')[0],
+            new Date(app.startTime).toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' }),
             app.customer.name || "Unknown",
             app.service.name,
             `$${app.service.price.toFixed(2)}`,

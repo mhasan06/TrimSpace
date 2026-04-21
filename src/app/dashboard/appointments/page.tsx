@@ -11,10 +11,13 @@ export default async function AppointmentsLedger() {
   if (!tenantId) return <div style={{ color: 'white' }}>Unauthorized</div>;
 
   // Pull every single future appointment unconditionally
+  const { getSydneyDate } = require("@/lib/dateUtils");
+  const nowSydney = getSydneyDate();
+
   const allAppointments = await prisma.appointment.findMany({
     where: { 
       tenantId,
-      startTime: { gte: new Date(new Date().setDate(new Date().getDate() - 30)) } // Show last 30 days + future
+      startTime: { gte: new Date(nowSydney.setDate(nowSydney.getDate() - 30)) } // Last 30 days in Sydney time
     },
     include: { customer: true, barber: true, service: true },
     orderBy: { startTime: 'asc' }
