@@ -37,16 +37,17 @@ export default function FeatureControl({ tenantId, enabledFeatures }: { tenantId
       <button 
         onClick={() => setIsOpen(true)}
         style={{ 
-          padding: '0.4rem 0.8rem', 
-          background: 'rgba(99, 102, 241, 0.1)', 
-          color: '#6366f1', 
-          border: '1px solid #6366f1', 
-          borderRadius: '6px', 
-          fontSize: '0.7rem', 
+          padding: '0.6rem 1rem', 
+          background: '#10b981', 
+          color: 'black', 
+          border: 'none', 
+          borderRadius: '8px', 
+          fontSize: '0.75rem', 
           fontWeight: 900, 
-          cursor: 'pointer' 
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
         }}>
-        FEATURES
+        PERMISSION CONTROL
       </button>
 
       {isOpen && (

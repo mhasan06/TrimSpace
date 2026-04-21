@@ -23,6 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <nav className={styles.nav}>
           <Link href="/admin" className={styles.navLink}>Global Metrics</Link>
           <Link href="/admin/reports" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 600 }}>Marketplace Analytics</Link>
+          <Link href="/admin/shops" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 800 }}>⚙️ Menu Access Control</Link>
           <Link href="/admin/shops" className={styles.navLink}>All Shops</Link>
           <Link href="/admin/users" className={styles.navLink}>All Users</Link>
           <Link href="/admin/payouts" className={styles.navLink}>Stripe Payouts</Link>
