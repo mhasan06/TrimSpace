@@ -45,12 +45,18 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
           {groupedData.map(group => (
             <tr key={group.id} style={{ borderBottom: '2px solid var(--border)' }}>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
+                <div style={{ fontSize: '0.7rem', background: '#6366f1', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.4rem', fontWeight: 900 }}>GROUP SESSION</div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)' }}>
-                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `REF: ${group.id.slice(-8).toUpperCase()}`}
+                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `AUTO-GROUPED SESSION`}
                 </div>
-                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.bookingGroupId ? 'Multi-service session' : 'Single booking'}</div>
+                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.id.slice(-8).toUpperCase()}</div>
               </td>
-              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>{group.customer.name}</td>
+              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>
+                {group.customer.name}
+                <div style={{ marginTop: '0.5rem' }}>
+                  <span style={{ background: '#fbbf24', color: 'black', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 900 }}>VISITS: {group.customer?._count?.appointments ?? 0}</span>
+                </div>
+              </td>
               <td style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {group.services.map((s: any) => (

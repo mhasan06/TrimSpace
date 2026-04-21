@@ -114,13 +114,27 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
                     {groupedData.map(group => (
                         <tr key={group.id} style={{ borderBottom: '2px solid var(--border)' }}>
                             <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
+                                <div style={{ fontSize: '0.7rem', background: '#6366f1', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.4rem', fontWeight: 900 }}>GROUP SESSION</div>
                                 <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)' }}>
-                                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `REF: ${group.id.slice(-8).toUpperCase()}`}
+                                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `AUTO-GROUPED SESSION`}
                                 </div>
-                                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.bookingGroupId ? 'Multi-service session' : 'Single appointment'}</div>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.id.slice(-8).toUpperCase()}</div>
                             </td>
                             <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>{new Date(group.startTime).toLocaleDateString('en-AU')}</td>
-                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>{group.customer.name}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>{group.customer.name}
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <span style={{ background: '#fbbf24', color: 'black', padding: '0.2rem 0.5rem', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 900 }}>
+                                            NEW: {(group.customer as any)?._count?.appointments ?? 0} VISITS
+                                        </span>
+                                    </div>
+                                    {(group.customer as any)?.appointments?.[0] && (
+                                        <p style={{ fontSize: '0.7rem', opacity: 1, color: '#fbbf24', fontWeight: 700, margin: 0 }}>
+                                            LAST: {new Date((group.customer as any).appointments[0].startTime).toLocaleDateString('en-AU')}
+                                        </p>
+                                    )}
+                                </div>
+                            </td>
                             <td style={{ padding: '1rem' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                     {group.services.map((s: any) => (
