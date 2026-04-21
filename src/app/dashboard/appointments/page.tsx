@@ -14,8 +14,7 @@ export default async function AppointmentsLedger() {
   const allAppointments = await prisma.appointment.findMany({
     where: { 
       tenantId,
-      status: { not: 'CANCELLED' },
-      startTime: { gte: new Date() } // Only future
+      startTime: { gte: new Date(new Date().setDate(new Date().getDate() - 30)) } // Show last 30 days + future
     },
     include: { customer: true, barber: true, service: true },
     orderBy: { startTime: 'asc' }

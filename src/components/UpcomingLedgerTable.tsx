@@ -21,8 +21,19 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
             groups.push(map.get(gid));
         }
         const g = map.get(gid);
-        g.services.push({ ...app.service, barber: app.barber, id: app.id, startTime: app.startTime, paymentStatus: app.paymentStatus, paymentMethod: app.paymentMethod });
+        const retentionFee = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : null;
+        g.services.push({ 
+          ...app.service, 
+          barber: app.barber, 
+          id: app.id, 
+          startTime: app.startTime, 
+          paymentStatus: app.paymentStatus, 
+          paymentMethod: app.paymentMethod,
+          status: app.status,
+          retentionFee
+        });
         g.totalPrice += app.service.price;
+        g.totalRetention = (g.totalRetention || 0) + (retentionFee || app.service.price);
     });
     return groups;
   };
@@ -37,7 +48,8 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
             <th>Booking Reference</th>
             <th>Client Name</th>
             <th>Session Details (Services & Barbers)</th>
-            <th>Total Revenue</th>
+            <th>Original Total</th>
+            <th>Final Take</th>
             <th>Session Date</th>
           </tr>
         </thead>
@@ -45,24 +57,23 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
           {groupedData.map(group => (
             <tr key={group.id} style={{ borderBottom: '2px solid var(--border)' }}>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
-                <div style={{ fontSize: '0.7rem', background: '#6366f1', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.4rem', fontWeight: 900 }}>GROUP SESSION</div>
+                <div style={{ fontSize: '0.7rem', background: group.services.some((s: any) => s.status === 'CANCELLED') ? '#ef4444' : '#6366f1', color: 'white', padding: '0.1rem 0.4rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.4rem', fontWeight: 900 }}>
+                  {group.services.some((s: any) => s.status === 'CANCELLED') ? 'CANCELLED SESSION' : 'ACTIVE SESSION'}
+                </div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)' }}>
-                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `AUTO-GROUPED SESSION`}
+                    {group.bookingGroupId ? `GROUP: ${group.bookingGroupId.toUpperCase()}` : `SINGLE SESSION`}
                 </div>
                 <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>{group.id.slice(-8).toUpperCase()}</div>
               </td>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 700 }}>
                 {group.customer.name}
-                <div style={{ marginTop: '0.5rem' }}>
-                  <span style={{ background: '#fbbf24', color: 'black', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.6rem', fontWeight: 900 }}>VISITS: {group.customer?._count?.appointments ?? 0}</span>
-                </div>
               </td>
               <td style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {group.services.map((s: any) => (
-                        <div key={s.id} style={{ background: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div key={s.id} style={{ background: s.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '8px', border: s.status === 'CANCELLED' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{s.name}</div>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : 'white', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
                                 <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>
                                     With <strong style={{ color: 'var(--primary)' }}>{s.barber?.name || "Any Staff"}</strong>
                                 </div>
@@ -70,30 +81,32 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
                                     <span style={{ 
                                         padding: '0.1rem 0.35rem', 
                                         borderRadius: '4px', 
-                                        background: s.paymentStatus === 'PAID' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)',
-                                        color: s.paymentStatus === 'PAID' ? '#4ade80' : '#fbbf24',
+                                        background: s.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.2)' : (s.paymentStatus === 'PAID' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(251, 191, 36, 0.1)'),
+                                        color: s.status === 'CANCELLED' ? '#ef4444' : (s.paymentStatus === 'PAID' ? '#4ade80' : '#fbbf24'),
                                         fontSize: '0.65rem',
                                         fontWeight: 800
                                     }}>
-                                        {s.paymentStatus === 'PAID' ? 'SETTLED' : 'UNPAID'}
-                                    </span>
-                                    <span style={{ marginLeft: '0.5rem', opacity: 0.4, fontSize: '0.65rem' }}>
-                                        {s.paymentMethod === 'CARD_ONLINE' ? '🌐 Online' : '💵 Cash'}
+                                        {s.status === 'CANCELLED' ? 'CANCELLED (50% FEE)' : (s.paymentStatus === 'PAID' ? 'SETTLED' : 'UNPAID')}
                                     </span>
                                 </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>${s.price.toFixed(2)}</div>
-                                <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>
-                                    {new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>
+                                    {s.status === 'CANCELLED' ? `$${s.retentionFee.toFixed(2)}` : `$${s.price.toFixed(2)}`}
+                                </div>
+                                <div style={{ fontSize: '0.6rem', opacity: 0.4, textDecoration: 'line-through' }}>
+                                    {s.status === 'CANCELLED' ? `$${s.price.toFixed(2)}` : ''}
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
               </td>
-              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '1.2rem' }}>
+              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.5, fontSize: '0.9rem' }}>
                 ${group.totalPrice.toFixed(2)}
+              </td>
+              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '1.2rem' }}>
+                ${group.totalRetention.toFixed(2)}
               </td>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.7, fontSize: '0.9rem' }}>
                 {new Date(group.startTime).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
