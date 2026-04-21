@@ -10,7 +10,7 @@ export interface InvoiceData {
   tenantABN: string;
   date: string;
   time: string;
-  services: { name: string; price: number }[];
+  services: { name: string; price: number; status?: string }[];
   totalPrice: number;
   status?: string;
   serviceName?: string;
@@ -66,17 +66,21 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   doc.text(data.customerName, 130, 85);
 
   // ─── TABLE ───
+  const netAmount = data.services.reduce((acc, s) => {
+    const itemFee = s.status === "CANCELLED" ? s.price * 0.5 : s.price;
+    return acc + itemFee;
+  }, 0);
   const isCancelled = data.status === "CANCELLED";
-  const subtotal = (data.servicePrice || data.totalPrice || 0);
-  const cancellationFee = isCancelled ? subtotal * 0.5 : 0;
-  const netAmount = isCancelled ? cancellationFee : subtotal;
 
-  const tableData = data.services.map(s => [
-      s.name,
-      `$${s.price.toFixed(2)}`,
-      isCancelled ? "50% Retention Fee" : "Standard Rate",
-      `$${(isCancelled ? s.price * 0.5 : s.price).toFixed(2)}`
-  ]);
+  const tableData = data.services.map(s => {
+      const itemCancelled = s.status === "CANCELLED";
+      return [
+          s.name,
+          `$${s.price.toFixed(2)}`,
+          itemCancelled ? "50% Retention Fee" : "Standard Rate",
+          `$${(itemCancelled ? s.price * 0.5 : s.price).toFixed(2)}`
+      ];
+  });
 
   tableData.push([
     "Priority Booking Fee",
@@ -85,14 +89,6 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
     `$${priorityFee.toFixed(2)}`
   ]);
 
-  if (isCancelled) {
-    tableData.push([
-      "Cancellation Fee Total (50%)",
-      "-",
-      "-",
-      `$${cancellationFee.toFixed(2)}`
-    ]);
-  }
 
   autoTable(doc, {
     startY: 105,

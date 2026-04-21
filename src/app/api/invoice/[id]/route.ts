@@ -42,7 +42,11 @@ export async function GET(
       tenantABN: (appointment.tenant as any).abn || '00 000 000 000',
       date: appointment.startTime.toLocaleDateString('en-AU', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
       time: appointment.startTime.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true }),
-      services: groupAppointments.map(a => ({ name: a.service.name, price: a.service.price })),
+      services: groupAppointments.map(a => ({ 
+        name: a.service.name, 
+        price: a.service.price,
+        status: a.status
+      })),
       totalPrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0),
       status: appointment.status,
       serviceName: groupAppointments.length > 1 ? `${groupAppointments.length} Services` : appointment.service.name,
