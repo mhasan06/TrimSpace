@@ -41,6 +41,9 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
+      <div style={{ background: 'red', color: 'white', padding: '1rem', textAlign: 'center', fontWeight: 900, fontSize: '2rem', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999 }}>
+        BUILD V2.1 - DEPLOYMENT TEST ACTIVE
+      </div>
       <ShopDiscovery initialTenants={allTenants} />
     </main>
   );
