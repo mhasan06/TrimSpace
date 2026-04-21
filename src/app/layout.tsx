@@ -34,6 +34,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Providers>
           <NavHeader />
           {children}
+          <div style={{ position: 'fixed', bottom: '10px', right: '10px', fontSize: '10px', opacity: 0.2, zIndex: 9999, pointerEvents: 'none', color: 'white' }}>
+            BUILD V2.1 - ACTIVE
+          </div>
         </Providers>
       </body>
     </html>
