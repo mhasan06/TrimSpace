@@ -29,6 +29,11 @@ export async function getShopCustomers(tenantId: string) {
     include: {
         _count: {
             select: { appointments: true }
+        },
+        appointments: {
+            where: { tenantId },
+            orderBy: { startTime: 'desc' },
+            take: 1
         }
     }
   });

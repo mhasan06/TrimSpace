@@ -70,12 +70,21 @@ export default function CustomerManager({ initialCustomers, tenantId, isAdmin }:
                                     ) : null}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <span style={{ background: 'var(--primary)', color: 'black', padding: '0.2rem 0.6rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 800 }}>
-                                        {c._count.appointments}
-                                    </span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <span style={{ background: 'var(--primary)', color: 'black', padding: '0.2rem 0.5rem', borderRadius: '50px', fontSize: '0.7rem', fontWeight: 900 }}>
+                                                {c._count.appointments} VISITS
+                                            </span>
+                                        </div>
+                                        {(c as any).appointments?.[0] && (
+                                            <p style={{ fontSize: '0.7rem', opacity: 0.6 }}>
+                                                Last: {new Date((c as any).appointments[0].startTime).toLocaleDateString('en-AU')}
+                                            </p>
+                                        )}
+                                    </div>
                                 </td>
-                                <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
-                                    {new Date(c.createdAt).toLocaleDateString()}
+                                <td style={{ padding: '1rem', fontSize: '0.8rem', opacity: 0.7 }}>
+                                    {new Date(c.createdAt).toLocaleDateString('en-AU')}
                                 </td>
                                 <td style={{ padding: '1rem' }}>
                                     <span style={{ 
