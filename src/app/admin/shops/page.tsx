@@ -10,7 +10,7 @@ export default async function AllShopsPage() {
     SELECT 
       t.*,
       (SELECT count(*) FROM "Appointment" a WHERE a."tenantId" = t.id) as "appointmentCount",
-      (SELECT COALESCE(SUM(s.price), 0) FROM "Appointment" a JOIN "Service" s ON a."serviceId" = s.id WHERE a."tenantId" = t.id AND a."paymentStatus" = 'PAID') as "grossRevenue",
+      (SELECT COALESCE(SUM("amountPaidStripe" + "amountPaidGift"), 0) FROM "Appointment" a WHERE a."tenantId" = t.id AND (a."paymentStatus" = 'PAID' OR a."paymentStatus" = 'PARTIAL_REFUNDED')) as "grossRevenue",
       (SELECT json_agg(u.*) FROM "User" u WHERE u."tenantId" = t.id AND u.role = 'BARBER') as "barberUsers"
     FROM "Tenant" t
     ORDER BY t."createdAt" DESC
