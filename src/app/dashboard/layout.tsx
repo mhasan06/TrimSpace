@@ -45,7 +45,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
   });
   const terminology = getTerminology(tenant?.category);
 
-  const enabledFeatures = (tenant?.enabledFeatures as string[]) || ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT"];
+  // DEBUG: Log the features being loaded
+  console.log(`DEBUG: Loading dashboard for tenant ${context.tenantId}. Features:`, tenant?.enabledFeatures);
+
+  const rawFeatures = tenant?.enabledFeatures as any;
+  const enabledFeatures = (Array.isArray(rawFeatures) && rawFeatures.length > 0) 
+    ? rawFeatures 
+    : ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT"];
 
   return (
     <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
