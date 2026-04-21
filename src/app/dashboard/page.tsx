@@ -67,10 +67,20 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     endTime: app.endTime.toISOString()
   }));
 
-  // 2. Trend Analysis (Weekly Progress)
-  const now = new Date();
-  const startOfThisWeek = new Date(now);
-  startOfThisWeek.setDate(now.getDate() - now.getDay());
+  // 2. Today's Stats (Sydney context)
+  const startOfToday = new Date(nowSydney);
+  startOfToday.setHours(0,0,0,0);
+  const endOfToday = new Date(nowSydney);
+  endOfToday.setHours(23,59,59,999);
+
+  const [todayStats]: any[] = await Promise.all([
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday}`
+  ]);
+  const todayRev = Number(todayStats[0]?.revenue || 0);
+
+  // 3. Trend Analysis (Weekly Progress)
+  const startOfThisWeek = new Date(nowSydney);
+  startOfThisWeek.setDate(nowSydney.getDate() - nowSydney.getDay());
   startOfThisWeek.setHours(0,0,0,0);
 
   const startOfLastWeek = new Date(startOfThisWeek);
@@ -85,17 +95,20 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const lastWeekRev = Number(lastWeekStats[0]?.revenue || 0);
   const weekProgress = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
 
-  // 3. Monthly Progress
-  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  // 4. Monthly & YTD Progress
+  const startOfThisMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth(), 1);
+  const startOfLastMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth() - 1, 1);
+  const startOfThisYear = new Date(nowSydney.getFullYear(), 0, 1);
   
-  const [thisMonthStats, lastMonthStats]: any[] = await Promise.all([
+  const [thisMonthStats, lastMonthStats, ytdStats]: any[] = await Promise.all([
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth}`
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth}`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}`
   ]);
 
   const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
   const lastMonthRev = Number(lastMonthStats[0]?.revenue || 0);
+  const ytdRev = Number(ytdStats[0]?.revenue || 0);
   const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
   // 4. Staff Leadership Data (Past 30 Days)
@@ -193,11 +206,16 @@ export default async function DashboardOverview({ searchParams }: { searchParams
         </div>
       </header>
 
-      {/* Main Stats with Trends */}
+      {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
+        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>
+           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Today's Earnings</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--primary)', fontSize: '2.2rem' }}>${todayRev.toFixed(2)}</p>
+           <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '0.5rem' }}>Live Sydney Time</p>
+        </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.8rem', textTransform: 'uppercase' }}>Weekly Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--primary)' }}>${thisWeekRev.toFixed(0)}</p>
+           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Weekly Progress</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>${thisWeekRev.toFixed(0)}</p>
            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444' }}>
                  {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}%
@@ -206,8 +224,8 @@ export default async function DashboardOverview({ searchParams }: { searchParams
            </div>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.8rem', textTransform: 'uppercase' }}>Monthly Outlook</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--secondary)' }}>${thisMonthRev.toFixed(0)}</p>
+           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>MTD Progress</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--secondary)', fontSize: '2.2rem' }}>${thisMonthRev.toFixed(0)}</p>
            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444' }}>
                  {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}%
@@ -215,15 +233,15 @@ export default async function DashboardOverview({ searchParams }: { searchParams
               <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>vs last month</span>
            </div>
         </div>
-        <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.8rem', textTransform: 'uppercase' }}>Active {terminology.staffLabelPlural}</h3>
-           <p className={styles.statNumber} style={{ color: 'white' }}>{barbers?.length || 0}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>Team Capacity</p>
+        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
+           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Yearly Total (YTD)</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--accent)', fontSize: '2.2rem' }}>${ytdRev.toFixed(0)}</p>
+           <p style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '0.5rem' }}>Current Fiscal Year</p>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ opacity: 0.8, fontSize: '0.8rem', textTransform: 'uppercase' }}>Efficiency</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--accent)' }}>94%</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>Booking rate</p>
+           <h3 style={{ opacity: 0.8, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Active {terminology.staffLabelPlural}</h3>
+           <p className={styles.statNumber} style={{ color: 'white', fontSize: '2.2rem' }}>{barbers?.length || 0}</p>
+           <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '0.5rem' }}>Team Capacity</p>
         </div>
       </div>
 

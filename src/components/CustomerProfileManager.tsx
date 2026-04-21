@@ -23,6 +23,7 @@ export default function CustomerProfileManager({
   const [suburb, setSuburb] = useState(user.suburb || "");
   const [state, setState] = useState(user.state || "");
   const [gender, setGender] = useState(user.gender || "");
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   
@@ -49,6 +50,7 @@ export default function CustomerProfileManager({
         suburb,
         state,
         gender,
+        avatarUrl,
         ...(password ? { password } : {})
       });
       
@@ -90,6 +92,11 @@ export default function CustomerProfileManager({
           <div>
             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Email Address</label>
             <input type="email" value={user.email} disabled style={{ width: '100%', padding: '1rem', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 600, color: '#64748b', cursor: 'not-allowed' }} />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Profile Picture URL</label>
+            <input type="text" value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 600 }} />
           </div>
 
           <div>

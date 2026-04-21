@@ -4,9 +4,12 @@ import styles from "../app/dashboard/page.module.css";
 
 interface UpcomingLedgerTableProps {
   appointments: any[];
+  currentPeriod?: string;
+  startDate?: Date;
+  endDate?: Date;
 }
 
-export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTableProps) {
+export default function UpcomingLedgerTable({ appointments, currentPeriod, startDate, endDate }: UpcomingLedgerTableProps) {
   const groupList = (list: any[]) => {
     const groups: any[] = [];
     const map = new Map();
@@ -16,7 +19,8 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
             map.set(gid, { 
                 ...app, 
                 services: [], 
-                totalPrice: 0
+                totalPrice: 0,
+                totalRetention: 0
             });
             groups.push(map.get(gid));
         }
@@ -33,15 +37,67 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
           retentionFee
         });
         g.totalPrice += app.service.price;
-        g.totalRetention = (g.totalRetention || 0) + (retentionFee || app.service.price);
+        g.totalRetention += (retentionFee !== null ? retentionFee : app.service.price);
     });
     return groups;
   };
 
   const groupedData = groupList(appointments);
 
+  const handlePeriodChange = (p: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', p);
+    url.searchParams.delete('start');
+    url.searchParams.delete('end');
+    window.location.href = url.toString();
+  };
+
+  const handleDateChange = (start: string, end: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('period', 'custom');
+    url.searchParams.set('start', start);
+    url.searchParams.set('end', end);
+    window.location.href = url.toString();
+  };
+
   return (
-    <div className={`${styles.tableContainer} glass`}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {['week', 'month', 'year'].map(p => (
+            <button 
+              key={p}
+              onClick={() => handlePeriodChange(p)}
+              style={{ 
+                background: currentPeriod === p || (!currentPeriod && p === 'week') ? 'var(--primary)' : 'rgba(255,255,255,0.05)', 
+                color: currentPeriod === p || (!currentPeriod && p === 'week') ? 'black' : 'white',
+                border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem' 
+              }}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Custom Range:</span>
+          <input 
+            type="date" 
+            defaultValue={startDate?.toISOString().split('T')[0]} 
+            onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px' }}
+          />
+          <span style={{ opacity: 0.3 }}>to</span>
+          <input 
+            type="date" 
+            defaultValue={endDate?.toISOString().split('T')[0]} 
+            onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.5rem', borderRadius: '8px' }}
+          />
+        </div>
+      </div>
+
+      <div className={`${styles.tableContainer} glass`}>
+
       <table className={styles.table}>
         <thead>
           <tr>
@@ -122,6 +178,7 @@ export default function UpcomingLedgerTable({ appointments }: UpcomingLedgerTabl
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

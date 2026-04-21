@@ -19,6 +19,7 @@ export default function CustomerDashboardClient({
 }: any) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("appointments");
+    const [viewingInvoice, setViewingInvoice] = useState<any>(null);
 
     const filteredRows = (() => {
         if (activeTab === "appointments") return upcoming;
@@ -43,6 +44,105 @@ export default function CustomerDashboardClient({
                     user={user} 
                     onClose={() => setIsProfileOpen(false)} 
                 />
+            )}
+
+            {viewingInvoice && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+                    <div className="printable-invoice" style={{ background: 'white', width: '100%', maxWidth: '800px', borderRadius: '24px', padding: '3rem', position: 'relative', maxHeight: '90vh', overflowY: 'auto', color: '#1e293b' }}>
+                        <button onClick={() => setViewingInvoice(null)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: '#f1f5f9', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.2rem' }} className="no-print">✕</button>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f1f5f9', paddingBottom: '2rem', marginBottom: '2rem' }}>
+                            <div>
+                                <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#6366f1', margin: 0 }}>TAX INVOICE</h2>
+                                <p style={{ margin: '0.5rem 0', fontWeight: 700, opacity: 0.6 }}>#{viewingInvoice.bookingGroupId || viewingInvoice.id.slice(-8).toUpperCase()}</p>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <h3 style={{ margin: 0, fontWeight: 900 }}>{viewingInvoice.tenant.name}</h3>
+                                <p style={{ margin: '0.3rem 0', fontSize: '0.85rem', opacity: 0.6 }}>{viewingInvoice.tenant.address}</p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
+                            <div>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Billed To</p>
+                                <p style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>{user.name}</p>
+                                <p style={{ margin: '0.2rem 0', opacity: 0.6 }}>{user.email}</p>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <p style={{ fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Session Date</p>
+                                <p style={{ margin: 0, fontWeight: 800 }}>{new Date(viewingInvoice.startTime).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                <p style={{ margin: '0.2rem 0', opacity: 0.6 }}>{new Date(viewingInvoice.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}</p>
+                            </div>
+                        </div>
+
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                                    <th style={{ textAlign: 'left', padding: '1rem 0', fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Service Details</th>
+                                    <th style={{ textAlign: 'center', padding: '1rem 0', fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Status</th>
+                                    <th style={{ textAlign: 'right', padding: '1rem 0', fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {viewingInvoice.services.map((s: any, i: number) => {
+                                    const isCancelled = s.status === 'CANCELLED' || viewingInvoice.status === 'CANCELLED';
+                                    const finalPrice = isCancelled ? (s.cancellationFee || s.price * 0.5) : s.price;
+                                    return (
+                                        <tr key={i} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                            <td style={{ padding: '1.2rem 0' }}>
+                                                <div style={{ fontWeight: 800 }}>{s.name}</div>
+                                                {isCancelled && <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>50% Retention Fee Applied</div>}
+                                            </td>
+                                            <td style={{ textAlign: 'center', padding: '1.2rem 0' }}>
+                                                <span style={{ fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.6rem', borderRadius: '6px', background: isCancelled ? '#fee2e2' : '#f0fdf4', color: isCancelled ? '#ef4444' : '#16a34a' }}>
+                                                    {isCancelled ? 'CANCELLED' : 'COMPLETED'}
+                                                </span>
+                                            </td>
+                                            <td style={{ textAlign: 'right', padding: '1.2rem 0', fontWeight: 800 }}>
+                                                <div style={{ textDecoration: isCancelled ? 'line-through' : 'none', opacity: isCancelled ? 0.4 : 1 }}>${s.price.toFixed(2)}</div>
+                                                {isCancelled && <div style={{ color: '#ef4444' }}>${finalPrice.toFixed(2)}</div>}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+
+                        <div style={{ marginLeft: 'auto', width: '300px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6 }}>
+                                <span>Original Total</span>
+                                <span>${viewingInvoice.totalPrice.toFixed(2)}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontWeight: 900, fontSize: '1.2rem', borderTop: '2px solid #f1f5f9', marginTop: '1rem', paddingTop: '1rem', color: '#6366f1' }}>
+                                <span>Total Paid</span>
+                                <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift).toFixed(2)}</span>
+                            </div>
+                            {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
+                                <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #6366f1' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#6366f1' }}>
+                                        <span>Estimated Refund</span>
+                                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift - viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0)).toFixed(2)}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.65rem', margin: '0.5rem 0 0', opacity: 0.5 }}>Processed automatically via original payment method.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="no-print" style={{ marginTop: '3rem', display: 'flex', gap: '1rem' }}>
+                            <button onClick={() => window.print()} style={{ flex: 1, background: '#6366f1', color: 'white', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Print Now</button>
+                            <button onClick={() => setViewingInvoice(null)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer' }}>Close Preview</button>
+                        </div>
+
+                        <style>{`
+                            @media print {
+                                .no-print { display: none !important; }
+                                body * { visibility: hidden; }
+                                .printable-invoice, .printable-invoice * { visibility: visible; }
+                                .printable-invoice { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+                            }
+                        `}</style>
+                    </div>
+                </div>
             )}
 
             {/* ─── PROFILE COMMAND CARD ─── */}
@@ -92,11 +192,7 @@ export default function CustomerDashboardClient({
                         <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#334155', wordBreak: 'break-all' }}>{user.email}</p>
                     </div>
                 </div>
-
-          <div style={{ width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-              <CustomerLogoutButton />
-          </div>
-      </section>
+            </section>
 
             {/* ─── MAIN ANALYTICS & LIST ─── */}
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -216,16 +312,31 @@ export default function CustomerDashboardClient({
                                                 <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
                                             </div>
                                             <div>
-                                                <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>Group Session • {group.tenant.name}</h4>
-                                                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>{group.services.length} services booked together</p>
+                                                <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>
+                                                    {group.services.length > 1 ? "Group Booking" : "Single Booking"} • {group.tenant.name}
+                                                </h4>
+                                                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>{group.services.length} services booked</p>
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
                                             <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
                                                 <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
                                             </div>
-                                            <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
-                                            {group.bookingGroupId && (
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <InvoiceButton appointmentId={group.id} bookingId={group.bookingGroupId || group.id.substring(group.id.length - 8)} />
+                                                <button 
+                                                    onClick={() => setViewingInvoice(group)}
+                                                    style={{ 
+                                                        background: '#ffffff', border: '1px solid #e2e8f0', color: '#6366f1', 
+                                                        padding: '0.6rem 0.8rem', borderRadius: '12px', cursor: 'pointer',
+                                                        display: 'flex', alignItems: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                                    }}
+                                                    title="View & Print Invoice"
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                                </button>
+                                            </div>
+                                            {group.bookingGroupId && group.services.length > 1 && (
                                                 <CancelButton 
                                                     appointmentId={group.bookingGroupId} 
                                                     amountPaidStripe={group.totalStripe} 
@@ -256,15 +367,13 @@ export default function CustomerDashboardClient({
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    {group.services.length > 1 && (
-                                                        <CancelButton 
-                                                            appointmentId={service.id} 
-                                                            amountPaidStripe={Number(group.totalStripe / group.services.length)} 
-                                                            amountPaidGift={Number(group.totalGift / group.services.length)} 
-                                                            label="Remove"
-                                                            small
-                                                        />
-                                                    )}
+                                                    <CancelButton 
+                                                        appointmentId={service.id} 
+                                                        amountPaidStripe={Number(group.totalStripe / group.services.length)} 
+                                                        amountPaidGift={Number(group.totalGift / group.services.length)} 
+                                                        label="Cancel"
+                                                        small
+                                                    />
                                                 </div>
                                             );
                                         })}
@@ -279,7 +388,12 @@ export default function CustomerDashboardClient({
                         ) : (
                             <>
                                 {filteredRows.length > 0 ? (
-                                    <SessionHistoryTable rows={filteredRows.slice(0, 10).map((g: any) => ({
+                                    <SessionHistoryTable 
+                                        onPrint={(row: any) => {
+                                            const originalGroup = filteredRows.find((g: any) => g.id === row.id);
+                                            setViewingInvoice(originalGroup);
+                                        }}
+                                        rows={filteredRows.slice(0, 10).map((g: any) => ({
                                             id: g.id,
                                             startTime: g.startTime.toISOString ? g.startTime.toISOString() : g.startTime,
                                             endTime: g.endTime.toISOString ? g.endTime.toISOString() : g.endTime,
