@@ -41,7 +41,7 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
     const groups: any[] = [];
     const map = new Map();
     list.forEach(app => {
-        const gid = app.bookingGroupId || `single_${app.id}`;
+    const gid = app.bookingGroupId || `${app.tenantId}_${new Date(app.startTime).getTime()}`;
         if (!map.has(gid)) {
             map.set(gid, { 
                 ...app, 
