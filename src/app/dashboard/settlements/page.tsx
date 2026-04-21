@@ -14,7 +14,10 @@ export default async function SettlementsPage() {
   const appointments = await prisma.appointment.findMany({
     where: { 
         tenantId,
-        paymentStatus: { in: ['PAID', 'PARTIAL_REFUNDED'] }
+        OR: [
+          { paymentStatus: { in: ['PAID', 'PARTIAL_REFUNDED'] } },
+          { status: 'CANCELLED' }
+        ]
     },
     include: { service: true, customer: true },
     orderBy: { startTime: 'desc' }
