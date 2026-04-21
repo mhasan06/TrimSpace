@@ -199,7 +199,9 @@ export async function triggerWeeklyRunAction() {
       // LOOKUP DATE-AWARE FEE
       const feeScale = await getEffectiveFeeForDate(batch.startDate, settings);
       
-      const priorityFeeTotal = batch.apps.length * 0.50;
+      // Only sum priority fees for active sessions (cancellations don't pay priority fee)
+      const priorityFeeTotal = batch.apps.reduce((acc, a) => acc + (a.status === 'CANCELLED' ? 0 : 0.50), 0);
+      
       // Use actual take (service price OR cancellation fee)
       const baseGross = batch.apps.reduce((acc, a) => {
           const actualServiceRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
@@ -273,11 +275,12 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
     // Add Priority Fee to each appointment for the report
     const appsWithFees = appointments.map(a => {
       const actualRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+      const actualPriority = a.status === 'CANCELLED' ? 0 : 0.50;
       return {
         ...a,
-        priorityFee: 0.50,
+        priorityFee: actualPriority,
         actualServicePrice: actualRev,
-        totalWithFee: actualRev + 0.50
+        totalWithFee: actualRev + actualPriority
       };
     });
     const settlementRows = await prisma.$queryRawUnsafe<any[]>(`SELECT s.*, t.name as "shopName", t.address as "shopAddress" FROM "Settlement" s JOIN "Tenant" t ON s."tenantId" = t.id WHERE s.id = $1 LIMIT 1`, settlementId);
@@ -318,11 +321,12 @@ export async function getShopSettlementReportAction(settlementId: string) {
     // Add Priority Fee to each appointment for the report
     const appsWithFees = appointments.map(a => {
       const actualRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+      const actualPriority = a.status === 'CANCELLED' ? 0 : 0.50;
       return {
         ...a,
-        priorityFee: 0.50,
+        priorityFee: actualPriority,
         actualServicePrice: actualRev,
-        totalWithFee: actualRev + 0.50
+        totalWithFee: actualRev + actualPriority
       };
     });
 

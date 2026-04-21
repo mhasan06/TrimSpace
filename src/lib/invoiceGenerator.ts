@@ -70,7 +70,11 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
     const itemFee = s.status === "CANCELLED" ? s.price * 0.5 : s.price;
     return acc + itemFee;
   }, 0);
+  
+  const originalTotal = data.services.reduce((acc, s) => acc + s.price, 0);
+  const refundAmount = originalTotal - netAmount;
   const isCancelled = data.status === "CANCELLED";
+  const showPriority = !isCancelled; // Only show if not fully cancelled
 
   const tableData = data.services.map(s => {
       const itemCancelled = s.status === "CANCELLED";
@@ -82,13 +86,14 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
       ];
   });
 
-  tableData.push([
-    "Priority Booking Fee",
-    `$${priorityFee.toFixed(2)}`,
-    "0%",
-    `$${priorityFee.toFixed(2)}`
-  ]);
-
+  if (showPriority) {
+    tableData.push([
+      "Priority Booking Fee",
+      `$${priorityFee.toFixed(2)}`,
+      "Standard Rate",
+      `$${priorityFee.toFixed(2)}`
+    ]);
+  }
 
   autoTable(doc, {
     startY: 105,
@@ -108,14 +113,20 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   const finalY = (doc as any).lastAutoTable.finalY + 15;
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  const grandTotal = netAmount + priorityFee;
+  const grandTotal = netAmount + (showPriority ? priorityFee : 0);
   doc.text(`Total Charged: $${grandTotal.toFixed(2)}`, 190, finalY, { align: "right" });
+
+  if (refundAmount > 0) {
+    doc.setFontSize(10);
+    doc.setTextColor(150, 0, 0);
+    doc.text(`Estimated Refund: $${refundAmount.toFixed(2)}`, 190, finalY + 8, { align: "right" });
+  }
 
   if (isCancelled) {
      doc.setFontSize(10);
      doc.setFont("helvetica", "italic");
      doc.setTextColor(150, 0, 0);
-     doc.text("* This booking was cancelled. A 50% cancellation fee was applied.", 20, finalY + 10);
+     doc.text("* This booking was cancelled. A 50% cancellation fee was applied.", 20, finalY + 20);
   }
   
   // Reset color for footer
