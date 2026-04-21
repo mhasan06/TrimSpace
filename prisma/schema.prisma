@@ -23,7 +23,7 @@ model Tenant {
   galleryImages String[] @default([])
   customerPhotos String[] @default([])
   description String? @db.Text
-  enabledFeatures Json? @default("[\"OVERVIEW\", \"SERVICES\", \"CUSTOMERS\", \"ROSTER\", \"REPORTS\", \"SETTLEMENTS\", \"SETTINGS\"]")
+  enabledFeatures Json? @default("[\"OVERVIEW\", \"LEDGER\", \"COMMS\", \"REPORTS\", \"SERVICES\", \"ROSTER\", \"CUSTOMERS\", \"SETTINGS\", \"SUPPORT\", \"PAYMENTS\"]")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
