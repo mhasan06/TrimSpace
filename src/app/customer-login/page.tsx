@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./page.module.css";
 import ForgotPasswordModal from "@/components/ForgotPasswordModal";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 export default function CustomerLogin() {
   const router = useRouter();
@@ -89,6 +90,9 @@ export default function CustomerLogin() {
             {isLoading ? 'Signing In...' : 'Log In to TrimSpace'}
           </button>
         </form>
+
+        <SocialLoginButtons />
+
         <p className={styles.footer}>
           New here? <Link href="/register" className={styles.link}>Create an account</Link>
         </p>

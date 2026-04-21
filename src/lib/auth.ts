@@ -2,6 +2,8 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -51,15 +53,60 @@ export const authOptions: NextAuthOptions = {
         }
         return null;
       }
-    })
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID || "",
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "",
+    }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" || account?.provider === "facebook") {
+        if (!user.email) return false;
+        
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email }
+        });
+
+        if (!existingUser) {
+          // ONLY CUSTOMERS can use social login
+          await prisma.user.create({
+            data: {
+              email: user.email,
+              name: user.name,
+              role: "CUSTOMER",
+              isActive: true
+            }
+          });
+        } else if (existingUser.isActive === false) {
+          return false; // Block disabled accounts
+        }
+      }
+      return true;
+    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as any).role;
         token.tenantId = (user as any).tenantId;
         token.tenantName = (user as any).tenantName;
         token.id = user.id;
+      }
+
+      // SOCIAL LOGIN ENRICHMENT: Fetch missing data if social login
+      if (!token.role) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email! },
+          select: { id: true, role: true, tenantId: true }
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          token.tenantId = dbUser.tenantId;
+        }
       }
       return token;
     },

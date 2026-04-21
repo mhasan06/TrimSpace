@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import ShopDiscovery from "@/components/ShopDiscovery";
 
 export default async function Home() {
-  // BUILD_PING_VERIFY_DEPLOY_SYNC_1025
   // 1. Fetch real tenants
   const realTenants = await prisma.tenant.findMany({
     orderBy: { createdAt: 'desc' }
@@ -41,9 +40,6 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
-      <div style={{ background: 'red', color: 'white', padding: '1rem', textAlign: 'center', fontWeight: 900, fontSize: '2rem', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 99999 }}>
-        BUILD V2.1 - DEPLOYMENT TEST ACTIVE
-      </div>
       <ShopDiscovery initialTenants={allTenants} />
     </main>
   );

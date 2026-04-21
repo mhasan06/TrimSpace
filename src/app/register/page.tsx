@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from "react";
 import { registerAction } from "./actions";
 import { useFormStatus } from "react-dom";
 import { useSearchParams } from "next/navigation";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 
 function RegisterContent() {
   const searchParams = useSearchParams();
@@ -69,6 +70,12 @@ function RegisterContent() {
             </div>
             <SubmitButton />
           </form>
+        )}
+
+        {!isBusiness && !formState?.success && (
+          <div style={{ marginTop: '1.5rem' }}>
+            <SocialLoginButtons />
+          </div>
         )}
       </main>
     </div>
