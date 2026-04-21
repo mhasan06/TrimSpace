@@ -64,6 +64,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
       <aside className={`${styles.sidebar} glass`}>
         <div style={{ marginBottom: '2rem' }}>
+          <div style={{ fontSize: '0.6rem', background: 'var(--primary)', color: 'black', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.5rem' }}>V2.1 - ACTIVE</div>
           <h2 style={{ fontSize: '1.2rem', color: 'var(--foreground)' }}>Business Dashboard</h2>
           <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>{terminology.industryIcon} {tenant?.category || 'BARBER'}</p>
         </div>
