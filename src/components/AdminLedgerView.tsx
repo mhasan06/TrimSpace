@@ -242,6 +242,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                   <th>Service Date</th>
                                   <th>Customer</th>
                                   <th>Service Description</th>
+                                  <th>Service Fees</th>
                                   <th>Status</th>
                                   <th>Gross Revenue</th>
                                   <th>Platform Fee</th>
@@ -259,6 +260,9 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                     <td style={{ fontWeight: 600 }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
                                     <td style={{ fontWeight: 700 }}>{event.customer}</td>
                                     <td>{event.serviceName}</td>
+                                    <td style={{ fontWeight: 600 }}>
+                                      ${event.type === 'CANCELLATION_FEE' ? event.cancellationAmount.toFixed(2) : event.servicePrice.toFixed(2)}
+                                    </td>
                                     <td>
                                       <span style={{ 
                                         fontSize: '0.65rem', 
