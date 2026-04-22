@@ -66,7 +66,9 @@ export default async function MyBookings() {
         startTime: app.startTime,
         endTime: app.endTime,
         status: app.status,
-        cancellationFee: app.cancellationFee
+        cancellationFee: app.cancellationFee,
+        amountPaidStripe: Number(app.amountPaidStripe || 0),
+        amountPaidGift: Number(app.amountPaidGift || 0)
       });
       g.totalPrice += app.service.price;
       g.ids.push(app.id);

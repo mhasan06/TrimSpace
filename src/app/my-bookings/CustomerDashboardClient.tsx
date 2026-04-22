@@ -337,11 +337,11 @@ export default function CustomerDashboardClient({
                                                     VIEW
                                                 </button>
                                             </div>
-                                            {group.bookingGroupId && group.services.length > 1 && (
+                                            {group.bookingGroupId && group.services.filter((s: any) => s.status !== 'CANCELLED').length > 1 && (
                                                 <CancelButton 
                                                     appointmentId={group.bookingGroupId} 
-                                                    amountPaidStripe={group.totalStripe} 
-                                                    amountPaidGift={group.totalGift} 
+                                                    amountPaidStripe={group.services.filter((s: any) => s.status !== 'CANCELLED').reduce((acc: number, s: any) => acc + s.amountPaidStripe, 0)} 
+                                                    amountPaidGift={group.services.filter((s: any) => s.status !== 'CANCELLED').reduce((acc: number, s: any) => acc + s.amountPaidGift, 0)} 
                                                     label="Cancel All"
                                                 />
                                             )}
@@ -372,8 +372,8 @@ export default function CustomerDashboardClient({
                                                     {service.status !== 'CANCELLED' && (
                                                         <CancelButton 
                                                             appointmentId={service.id} 
-                                                            amountPaidStripe={Number(group.totalStripe / group.services.length)} 
-                                                            amountPaidGift={Number(group.totalGift / group.services.length)} 
+                                                            amountPaidStripe={service.amountPaidStripe} 
+                                                            amountPaidGift={service.amountPaidGift} 
                                                             label="Cancel"
                                                             small
                                                         />
