@@ -9,7 +9,7 @@ export default async function AppointmentsLedger({ searchParams }: { searchParam
   const tenantId = (session?.user as any)?.tenantId;
   const params = await searchParams;
 
-  if (!tenantId) return <div style={{ color: 'white' }}>Unauthorized</div>;
+  if (!tenantId) return <div style={{ color: 'var(--foreground)', padding: '2rem' }}>Unauthorized Access</div>;
 
   const { getSydneyDate } = require("@/lib/dateUtils");
   const nowSydney = getSydneyDate();

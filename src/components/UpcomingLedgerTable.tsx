@@ -80,11 +80,12 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                   key={p}
                   onClick={() => handlePeriodChange(p)}
                   style={{ 
-                    background: isActive ? 'var(--primary)' : 'rgba(255,255,255,0.08)', 
-                    color: isActive ? 'black' : 'rgba(255,255,255,0.8)',
-                    border: isActive ? 'none' : '1px solid rgba(255,255,255,0.1)', 
+                    background: isActive ? 'var(--primary)' : 'rgba(0,0,0,0.05)', 
+                    color: isActive ? 'black' : 'var(--foreground)',
+                    border: isActive ? 'none' : '1px solid var(--border)', 
                     padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    opacity: isActive ? 1 : 0.6
                   }}
                 >
                   {p}
@@ -99,14 +100,14 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
             type="date" 
             defaultValue={startDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
+            style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
-          <span style={{ opacity: 0.5, color: 'white', fontWeight: 900 }}>to</span>
+          <span style={{ opacity: 0.5, color: 'var(--foreground)', fontWeight: 900 }}>to</span>
           <input 
             type="date" 
             defaultValue={endDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
+            style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
         </div>
       </div>
@@ -155,10 +156,10 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
               <td style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {group.services.map((s: any) => (
-                        <div key={s.id} style={{ background: s.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '8px', border: s.status === 'CANCELLED' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div key={s.id} style={{ background: s.status === 'CANCELLED' ? 'rgba(239, 68, 68, 0.05)' : 'rgba(0,0,0,0.02)', padding: '0.8rem', borderRadius: '8px', border: s.status === 'CANCELLED' ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : 'white', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
-                                <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>
+                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : 'var(--foreground)', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
+                                <div style={{ fontSize: '0.7rem', opacity: 0.6, color: 'var(--foreground)' }}>
                                     With <strong style={{ color: 'var(--primary)' }}>{s.barber?.name || "Any Staff"}</strong>
                                 </div>
                                 <div style={{ fontSize: '0.7rem', marginTop: '0.2rem' }}>
