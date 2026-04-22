@@ -56,8 +56,6 @@ export default async function FinancialLedgerPage() {
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
       grossAmount: gross,
-      platformFee: platformGain - priorityFee, // Show commission separately in breakdown? 
-      // Actually let's use the UI breakdown correctly
       platformFee: platformGain - priorityFee, // This is commission
       stripeFee: stripeFee,
       tax: gross * 0.1, // Assuming 10% GST included
