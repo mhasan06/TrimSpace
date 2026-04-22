@@ -104,12 +104,13 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfLastMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth() - 1, 1);
   const startOfThisYear = new Date(nowSydney.getFullYear(), 0, 1);
   
-  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats, ytdCancelledStats]: any[] = await Promise.all([
+  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats, ytdCancelledStats, uniqueCustomers]: any[] = await Promise.all([
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status != 'CANCELLED'`,
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth} AND status != 'CANCELLED'`,
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status != 'CANCELLED'`,
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status = 'CANCELLED'`
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status = 'CANCELLED'`,
+    prisma.$queryRaw`SELECT COUNT(DISTINCT "customerId") as count FROM "Appointment" WHERE "tenantId" = ${tenantId}`
   ]);
 
   const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
@@ -117,6 +118,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const ytdRev = Number(ytdStats[0]?.revenue || 0);
   const thisMonthCancelledRev = Number(thisMonthCancelledStats[0]?.revenue || 0);
   const ytdCancelledRev = Number(ytdCancelledStats[0]?.revenue || 0);
+  const uniqueCustomerCount = Number(uniqueCustomers[0]?.count || 0);
   const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
   // 4. Staff Leadership Data (Past 30 Days)
@@ -263,6 +265,11 @@ export default async function DashboardOverview({ searchParams }: { searchParams
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
            <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>{barbers?.length || 0}</p>
            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Team Capacity</p>
+        </div>
+        <div className={`${styles.statCard} glass`}>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Total Unique Customers</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>{uniqueCustomerCount}</p>
+           <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Lifetime Client Base</p>
         </div>
       </div>
 
