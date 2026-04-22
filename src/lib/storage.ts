@@ -1,7 +1,8 @@
 export async function uploadFile(bucket: string, path: string, blob: any, contentType: string): Promise<string> {
   const { createClient } = require('@supabase/supabase-js');
   const sUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const sKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  const sKey = (process.env.SUPABASE_ADMIN_KEY || '').trim();
+  console.log(`[Storage] Key Length: ${sKey.length}`);
   const client = createClient(sUrl, sKey);
 
   // Auto-create bucket if it doesn't exist
