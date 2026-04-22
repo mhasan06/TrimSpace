@@ -44,9 +44,18 @@ export default function NavHeader() {
         
         {session ? (
           <>
-            <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--foreground)', opacity: 0.8 }}>
-              {displayName}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--primary)' }}>
+                <img 
+                  src={(session?.user as any)?.avatarUrl || `https://ui-avatars.com/api/?name=${session?.user?.name}&background=6366f1&color=fff`} 
+                  alt="avatar" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
+              </div>
+              <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)', opacity: 0.8 }}>
+                {displayName.split(': ')[1] || displayName}
+              </span>
+            </div>
             
             {(role === "BARBER" || (role === "ADMIN" && (session?.user as any)?.tenantId)) && (
               <a href="/dashboard" style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--primary)', textDecoration: 'none' }}>Dashboard</a>
