@@ -104,17 +104,19 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfLastMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth() - 1, 1);
   const startOfThisYear = new Date(nowSydney.getFullYear(), 0, 1);
   
-  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats]: any[] = await Promise.all([
+  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats, ytdCancelledStats]: any[] = await Promise.all([
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status != 'CANCELLED'`,
     prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED'`
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status = 'CANCELLED'`
   ]);
 
   const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
   const lastMonthRev = Number(lastMonthStats[0]?.revenue || 0);
   const ytdRev = Number(ytdStats[0]?.revenue || 0);
   const thisMonthCancelledRev = Number(thisMonthCancelledStats[0]?.revenue || 0);
+  const ytdCancelledRev = Number(ytdCancelledStats[0]?.revenue || 0);
   const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
   // 4. Staff Leadership Data (Past 30 Days)
@@ -251,8 +253,11 @@ export default async function DashboardOverview({ searchParams }: { searchParams
         </div>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${ytdRev.toFixed(0)}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Current Fiscal Year</p>
+           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(ytdRev + ytdCancelledRev).toFixed(0)}</p>
+           <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
+              <span style={{ color: '#10b981' }}>Svc: ${ytdRev.toFixed(0)}</span>
+              <span style={{ color: '#ef4444' }}>Can: ${ytdCancelledRev.toFixed(0)}</span>
+           </div>
         </div>
         <div className={`${styles.statCard} glass`}>
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
