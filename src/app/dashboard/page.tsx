@@ -260,7 +260,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Team Capacity</p>
         </div>
       </div>
- </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
         <WeeklyCalendar weekData={outlook} currentDay={targetDateStr} />
