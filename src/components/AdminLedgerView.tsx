@@ -234,32 +234,45 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                   <tr>
                     <td colSpan={7} style={{ padding: '0 2rem 2rem 2rem', background: 'rgba(255,255,255,0.01)' }}>
                       <div className="glass" style={{ borderRadius: '16px', padding: '1rem', marginTop: '-1rem' }}>
-                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.7rem', textTransform: 'uppercase' }}>
-                                  <th style={{ padding: '1rem' }}>Date</th>
-                                  <th>Client</th>
-                                  <th>Service</th>
+                               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                  <th style={{ padding: '1rem' }}>REF ID</th>
+                                  <th>Transaction Date</th>
+                                  <th>Service Date</th>
+                                  <th>Customer</th>
+                                  <th>Service Description</th>
                                   <th>Status</th>
-                                  <th>Gross</th>
-                                  <th>Platform</th>
-                                  <th>Stripe</th>
-                                  <th style={{ textAlign: 'right' }}>Shop Net</th>
+                                  <th>Gross Revenue</th>
+                                  <th>Platform Fee</th>
+                                  <th>Stripe Fee</th>
+                                  <th style={{ textAlign: 'right' }}>Merchant Payout</th>
                                </tr>
                             </thead>
                             <tbody>
                                {data.events.map((event: any) => (
-                                 <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.85rem' }}>
-                                    <td style={{ padding: '0.8rem' }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
+                                 <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.8rem' }}>
+                                    <td style={{ padding: '1rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '0.7rem' }}>
+                                      {event.id.slice(-8).toUpperCase()}
+                                    </td>
+                                    <td style={{ opacity: 0.7 }}>{new Date(event.date).toLocaleDateString()}</td>
+                                    <td style={{ fontWeight: 600 }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
                                     <td style={{ fontWeight: 700 }}>{event.customer}</td>
                                     <td>{event.serviceName}</td>
                                     <td>
-                                      <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>{event.type}</span>
+                                      <span style={{ 
+                                        fontSize: '0.65rem', 
+                                        background: event.type === 'CANCELLATION_FEE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                        color: event.type === 'CANCELLATION_FEE' ? '#ef4444' : '#10b981',
+                                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 900
+                                      }}>
+                                        {event.type.replace('_', ' ')}
+                                      </span>
                                     </td>
                                     <td style={{ fontWeight: 700 }}>${event.grossAmount.toFixed(2)}</td>
-                                    <td style={{ color: 'var(--secondary)' }}>${event.netPlatform.toFixed(2)}</td>
-                                    <td style={{ opacity: 0.6 }}>${event.processingFee.toFixed(2)}</td>
-                                    <td style={{ textAlign: 'right', fontWeight: 900, color: 'var(--primary)' }}>${event.netPayable.toFixed(2)}</td>
+                                    <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>+${event.netPlatform.toFixed(2)}</td>
+                                    <td style={{ opacity: 0.6 }}>-${event.processingFee.toFixed(2)}</td>
+                                    <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
                                  </tr>
                                ))}
                             </tbody>
