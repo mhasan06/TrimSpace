@@ -246,7 +246,6 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                          </div>
                       </div>
                     </td>
- </td>
                     <td>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1.5rem', fontSize: '0.75rem' }}>
                         <span style={{ opacity: 0.6 }}>Gross Revenue:</span>
