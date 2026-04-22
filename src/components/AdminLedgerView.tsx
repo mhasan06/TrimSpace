@@ -261,7 +261,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                     <td style={{ fontWeight: 700 }}>{event.customer}</td>
                                     <td>{event.serviceName}</td>
                                     <td style={{ fontWeight: 600 }}>
-                                      ${event.type === 'CANCELLATION_FEE' ? event.cancellationAmount.toFixed(2) : event.servicePrice.toFixed(2)}
+                                      ${event.servicePrice.toFixed(2)}
                                     </td>
                                     <td>
                                       <span style={{ 
