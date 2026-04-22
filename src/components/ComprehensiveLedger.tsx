@@ -37,6 +37,18 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
     platform: acc.platform + curr.netPlatform
   }), { gross: 0, net: 0, platform: 0 });
 
+  // Group events by day
+  const groupedByDay = filteredData.reduce((acc: any, event) => {
+    const day = new Date(event.serviceDate).toDateString();
+    if (!acc[day]) acc[day] = { events: [], totals: { gross: 0, net: 0 } };
+    acc[day].events.push(event);
+    acc[day].totals.gross += event.grossAmount;
+    acc[day].totals.net += event.netPayable;
+    return acc;
+  }, {});
+
+  const dayEntries = Object.entries(groupedByDay).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Summary Header */}
@@ -86,56 +98,73 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
         ))}
       </div>
 
-      {/* Table */}
-      <div className={`${styles.tableContainer} glass`}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Event Details</th>
-              <th>Status / Dates</th>
-              <th>Financial Breakdown</th>
-              <th style={{ textAlign: 'right' }}>Net Payout</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map(event => (
-              <tr key={event.id}>
-                <td>
-                  <div style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.05)', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.4rem' }}>{event.type}</div>
-                  <div style={{ fontWeight: 800 }}>{event.customer}</div>
-                  <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>REF: {event.id.slice(-8).toUpperCase()}</div>
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                    <span style={{ 
-                      width: '8px', height: '8px', borderRadius: '50%', 
-                      background: event.status === 'SETTLED' ? '#10b981' : (event.status === 'FAILED' ? '#ef4444' : '#f59e0b') 
-                    }}></span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>{event.status}</span>
-                  </div>
-                  <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>Service: {new Date(event.serviceDate).toLocaleDateString()}</div>
-                  <div style={{ fontSize: '0.7rem', opacity: 0.4 }}>Created: {new Date(event.date).toLocaleDateString()}</div>
-                </td>
-                <td>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem', fontSize: '0.75rem' }}>
-                    <span style={{ opacity: 0.6 }}>Gross:</span>
-                    <span style={{ fontWeight: 800 }}>${event.grossAmount.toFixed(2)}</span>
-                    <span style={{ opacity: 0.6 }}>Platform Fee:</span>
-                    <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.platformFee.toFixed(2)}</span>
-                    <span style={{ opacity: 0.6 }}>Stripe Fee:</span>
-                    <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.stripeFee.toFixed(2)}</span>
-                    <span style={{ opacity: 0.6 }}>GST (10%):</span>
-                    <span style={{ fontWeight: 800 }}>${event.tax.toFixed(2)}</span>
-                  </div>
-                </td>
-                <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)' }}>
-                    ${event.netPayable.toFixed(2)}
-                  </div>
-                  <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>Platform Gain: ${event.netPlatform.toFixed(2)}</div>
-                </td>
-              </tr>
-            ))}
+      {/* Grouped Table View */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {dayEntries.map(([day, data]: [string, any]) => (
+          <div key={day} className="glass" style={{ borderRadius: '20px', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(0,0,0,0.02)', padding: '1.2rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+              <div>
+                <span style={{ fontSize: '1rem', fontWeight: 900 }}>{day}</span>
+                <span style={{ marginLeft: '1rem', fontSize: '0.75rem', opacity: 0.5, fontWeight: 700 }}>DAILY BATCH</span>
+              </div>
+              <div style={{ display: 'flex', gap: '2rem' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Gross</p>
+                  <p style={{ fontWeight: 800 }}>${data.totals.gross.toFixed(2)}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Net Payout</p>
+                  <p style={{ fontWeight: 900, color: 'var(--primary)' }}>${data.totals.net.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+            <table className={styles.table}>
+              <thead>
+                <tr style={{ background: 'transparent' }}>
+                  <th style={{ width: '30%' }}>Event Details</th>
+                  <th style={{ width: '20%' }}>Status</th>
+                  <th style={{ width: '30%' }}>Financial Breakdown</th>
+                  <th style={{ textAlign: 'right' }}>Net Payout</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.events.map((event: any) => (
+                  <tr key={event.id}>
+                    <td>
+                      <div style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.05)', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.4rem' }}>{event.type}</div>
+                      <div style={{ fontWeight: 800 }}>{event.customer}</div>
+                      <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>REF: {event.id.slice(-8).toUpperCase()}</div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                        <span style={{ 
+                          width: '8px', height: '8px', borderRadius: '50%', 
+                          background: event.status === 'SETTLED' ? '#10b981' : (event.status === 'FAILED' ? '#ef4444' : '#f59e0b') 
+                        }}></span>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>{event.status}</span>
+                      </div>
+                      <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>{new Date(event.serviceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1.5rem', fontSize: '0.75rem' }}>
+                        <span style={{ opacity: 0.6 }}>Gross:</span>
+                        <span style={{ fontWeight: 800 }}>${event.grossAmount.toFixed(2)}</span>
+                        <span style={{ opacity: 0.6 }}>Fees:</span>
+                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${(event.platformFee + event.stripeFee).toFixed(2)}</span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary)' }}>
+                        ${event.netPayable.toFixed(2)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
             {filteredData.length === 0 && (
               <tr>
                 <td colSpan={4} style={{ textAlign: 'center', padding: '4rem', opacity: 0.4, fontStyle: 'italic' }}>
