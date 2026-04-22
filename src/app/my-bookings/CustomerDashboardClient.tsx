@@ -11,7 +11,8 @@ import CancelButton from "@/components/CancelButton";
 export default function CustomerDashboardClient({ 
     user, 
     upcoming, 
-    past, 
+    completed,
+    cancelled,
     userReviewIds,
     completedCount,
     cancelledCount,
@@ -23,7 +24,8 @@ export default function CustomerDashboardClient({
 
     const filteredRows = (() => {
         if (activeTab === "appointments") return upcoming;
-        if (activeTab === "completed") return past;
+        if (activeTab === "completed") return completed;
+        if (activeTab === "cancelled") return cancelled;
         return [];
     })();
 
@@ -300,11 +302,22 @@ export default function CustomerDashboardClient({
                         >
                             Completed
                         </button>
+                        <button 
+                            onClick={() => setActiveTab("cancelled")}
+                            style={{ 
+                                background: 'none', border: 'none', padding: '1rem 0', 
+                                borderBottom: activeTab === "cancelled" ? '3px solid #6366f1' : '3px solid transparent', 
+                                color: activeTab === "cancelled" ? '#1e293b' : '#94a3b8', 
+                                fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
+                            }}
+                        >
+                            Cancelled
+                        </button>
                     </nav>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        {activeTab === "appointments" ? (
-                            upcoming.length > 0 ? upcoming.map((group: any) => (
+                        {filteredRows.length > 0 ? (
+                            filteredRows.map((group: any) => (
                                 <div key={group.id} style={{ 
                                     background: '#f8fafc', borderRadius: '32px', padding: '1.5rem', 
                                     border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '1rem' 
@@ -337,7 +350,7 @@ export default function CustomerDashboardClient({
                                                     VIEW
                                                 </button>
                                             </div>
-                                            {group.bookingGroupId && group.services.filter((s: any) => s.status !== 'CANCELLED').length > 1 && (
+                                            {activeTab === 'appointments' && group.bookingGroupId && group.services.filter((s: any) => s.status !== 'CANCELLED').length > 1 && (
                                                 <CancelButton 
                                                     appointmentId={group.bookingGroupId} 
                                                     amountPaidStripe={group.services.filter((s: any) => s.status !== 'CANCELLED').reduce((acc: number, s: any) => acc + s.amountPaidStripe, 0)} 
@@ -360,16 +373,16 @@ export default function CustomerDashboardClient({
                                                     boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
                                                 }}>
                                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: service.status === 'CANCELLED' ? '#ef4444' : '#6366f1' }}></div>
+                                                        <div style={{ width: '4px', height: '24px', background: service.status === 'CANCELLED' ? '#ef4444' : '#6366f1', borderRadius: '2px' }} />
                                                         <div>
-                                                            <span style={{ fontWeight: 800, color: service.status === 'CANCELLED' ? '#ef4444' : '#1e293b', fontSize: '0.9rem', textDecoration: service.status === 'CANCELLED' ? 'line-through' : 'none' }}>{service.name}</span>
-                                                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>
-                                                                {sDate} at {sTime} • ${service.price.toFixed(2)}
+                                                            <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{sDate} • {sTime}</p>
+                                                            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>
+                                                                {service.name}
                                                                 {service.status === 'CANCELLED' && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(CANCELLED)</span>}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    {service.status !== 'CANCELLED' && (
+                                                    {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
                                                         <CancelButton 
                                                             appointmentId={service.id} 
                                                             amountPaidStripe={service.amountPaidStripe} 
@@ -383,45 +396,12 @@ export default function CustomerDashboardClient({
                                         })}
                                     </div>
                                 </div>
-                            )) : (
-                                <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
-                                    <p style={{ color: '#94a3b8', fontWeight: 700 }}>No active appointments found.</p>
-                                </div>
-                            )
+                            ))
                         ) : (
-                            <>
-                                {filteredRows.length > 0 ? (
-                                    <SessionHistoryTable 
-                                        onPrint={(row: any) => {
-                                            const originalGroup = filteredRows.find((g: any) => g.id === row.id);
-                                            setViewingInvoice(originalGroup);
-                                        }}
-                                        rows={filteredRows.slice(0, 10).map((g: any) => ({
-                                            id: g.id,
-                                            startTime: g.startTime.toISOString ? g.startTime.toISOString() : g.startTime,
-                                            endTime: g.endTime.toISOString ? g.endTime.toISOString() : g.endTime,
-                                            tenantName: g.tenant.name,
-                                            tenantSlug: g.tenant.slug,
-                                            tenantAddress: g.tenant.address,
-                                            serviceName: g.services.map((s: any) => s.name).join(", "),
-                                            servicePrice: g.totalPrice,
-                                            status: g.status,
-                                            paymentStatus: g.paymentStatus,
-                                            paymentMethod: g.paymentMethod,
-                                            amountPaidStripe: g.totalStripe,
-                                            amountPaidGift: g.totalGift,
-                                            barberName: g.barber?.name,
-                                            invoiceUrl: g.invoiceUrl,
-                                            hasReview: userReviewIds.includes(g.id)
-                                    }))} />
-                                ) : (
-                                    <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-                                        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-                                        <p style={{ color: '#94a3b8', fontWeight: 700 }}>No bookings found in this category.</p>
-                                    </div>
-                                )}
-                            </>
+                            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
+                                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📅</div>
+                                <p style={{ color: '#94a3b8', fontWeight: 700 }}>No {activeTab} bookings found.</p>
+                            </div>
                         )}
                     </div>
                 </div>

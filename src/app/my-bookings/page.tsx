@@ -84,7 +84,9 @@ export default async function MyBookings() {
   });
 
   const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now));
-  const past = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
+  const pastGroups = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
+  const completedGroups = pastGroups.filter(g => g.services.some(s => s.status !== 'CANCELLED'));
+  const cancelledGroups = pastGroups.filter(g => g.services.every(s => s.status === 'CANCELLED'));
 
   const completedCount = mappedAppointments.filter(a => a.status === 'COMPLETED' || (new Date(a.startTime) < now && a.status !== 'CANCELLED')).length;
   const cancelledCount = mappedAppointments.filter(a => a.status === 'CANCELLED').length;
@@ -108,7 +110,8 @@ export default async function MyBookings() {
             avatarUrl: dbUser?.avatarUrl
         }}
         upcoming={upcoming}
-        past={past}
+        completed={completedGroups}
+        cancelled={cancelledGroups}
         favorites={favorites.map(f => f.tenant)}
         userReviewIds={userReviewIds}
         completedCount={completedCount}
