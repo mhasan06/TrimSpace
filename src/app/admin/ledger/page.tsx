@@ -9,7 +9,7 @@ export default async function AdminLedgerPage() {
     include: {
       customer: true,
       service: true,
-      shop: true, // Need shop name for admin view
+      tenant: true, // Need shop name for admin view
     },
     orderBy: {
       startTime: 'desc',
@@ -46,7 +46,7 @@ export default async function AdminLedgerPage() {
       type: isCancelled ? 'CANCELLATION_FEE' : 'BOOKING_PAYMENT',
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
-      shopName: app.shop.name,
+      shopName: app.tenant.name,
       shopId: app.shopId,
       serviceName: app.service.name,
       servicePrice: servicePrice,
