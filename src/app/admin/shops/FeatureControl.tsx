@@ -12,6 +12,7 @@ const ALL_FEATURES = [
   { id: "ROSTER", label: "Staff Roster" },
   { id: "CUSTOMERS", label: "Customer Directory" },
   { id: "SETTINGS", label: "Shop Settings" },
+  { id: "MARKETING", label: "Marketing Kit" },
   { id: "SUPPORT", label: "Contact Support" },
 ];
 

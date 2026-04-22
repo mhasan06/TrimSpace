@@ -51,7 +51,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const rawFeatures = tenant?.enabledFeatures as any;
   const enabledFeatures = (Array.isArray(rawFeatures) && rawFeatures.length > 0) 
     ? rawFeatures 
-    : ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT"];
+    : ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT", "MARKETING"];
 
   return (
     <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
@@ -77,6 +77,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </>
           )}
           {enabledFeatures.includes("COMMS") && <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>}
+          {enabledFeatures.includes("MARKETING") && <Link href="/dashboard/marketing" className={styles.navLink} style={{ color: '#fbbf24', fontWeight: 800 }}>✨ Marketing Kit</Link>}
           {enabledFeatures.includes("REPORTS") && <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>}
           {enabledFeatures.includes("SERVICES") && <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>}
           {enabledFeatures.includes("ROSTER") && <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>}
