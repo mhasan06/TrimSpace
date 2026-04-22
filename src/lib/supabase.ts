@@ -5,10 +5,5 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 // We use the Service Role key on the server to bypass RLS for automated uploads
 export const supabaseAdmin = (supabaseUrl && supabaseKey) 
-  ? createClient(supabaseUrl, supabaseKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+  ? createClient(supabaseUrl, supabaseKey)
   : null;
