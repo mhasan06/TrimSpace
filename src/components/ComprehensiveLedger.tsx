@@ -99,15 +99,18 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', background: 'rgba(0,0,0,0.03)', padding: '2rem', borderRadius: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                <span style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                  {selectedEvent.serviceName} 
-                  <span style={{ opacity: 0.5, fontWeight: 500, marginLeft: '0.4rem', fontSize: '0.8rem' }}>
-                    ({selectedEvent.type === 'CANCELLATION_FEE' ? 'Cancellation Retention' : 'Service Fee'})
-                  </span>
-                </span>
-                <span style={{ fontWeight: 800 }}>${selectedEvent.type === 'CANCELLATION_FEE' ? selectedEvent.cancellationAmount.toFixed(2) : selectedEvent.servicePrice.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ opacity: 0.6 }}>Original Service Price</span>
+                <span style={{ fontWeight: 800 }}>${selectedEvent.servicePrice.toFixed(2)}</span>
               </div>
+
+              {selectedEvent.type === 'CANCELLATION_FEE' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#f59e0b' }}>
+                  <span style={{ opacity: 0.8 }}>Cancellation Retention</span>
+                  <span style={{ fontWeight: 800 }}>-${(selectedEvent.servicePrice - selectedEvent.cancellationAmount).toFixed(2)}</span>
+                </div>
+              )}
+              
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                 <span style={{ opacity: 0.6 }}>Priority Booking Fee</span>
                 <span style={{ fontWeight: 800 }}>+${selectedEvent.priorityFee.toFixed(2)}</span>
