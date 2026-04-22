@@ -1,0 +1,402 @@
+"use client";
+
+import { useState } from "react";
+import styles from "../app/dashboard/page.module.css";
+
+interface AdminLedgerEvent {
+  id: string;
+  bookingId: string;
+  date: string;
+  serviceDate: string;
+  type: 'BOOKING_PAYMENT' | 'CANCELLATION_FEE' | 'REFUND' | 'PAYOUT' | 'ADJUSTMENT';
+  status: 'PENDING' | 'SETTLED' | 'REFUNDED' | 'FAILED';
+  customer: string;
+  shopName: string;
+  shopId: string;
+  serviceName: string;
+  servicePrice: number;
+  cancellationAmount: number;
+  grossAmount: number;
+  commissionFee: number;
+  processingFee: number;
+  priorityFee: number;
+  tax: number;
+  netPayable: number;
+  netPlatform: number;
+  isFuture: boolean;
+}
+
+export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
+  const [activeTab, setActiveTab] = useState<'settled' | 'future'>('settled');
+  const [selectedEvent, setSelectedEvent] = useState<AdminLedgerEvent | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [selectedShopId, setSelectedShopId] = useState<string>("all");
+  const [isTriggering, setIsTriggering] = useState(false);
+
+  // Get unique shops for the filter
+  const shops = Array.from(new Set(data.map(e => JSON.stringify({ id: e.shopId, name: e.shopName }))))
+    .map(s => JSON.parse(s))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const filteredData = data.filter(event => {
+    const eventDate = new Date(event.serviceDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isBeforeToday = eventDate < today;
+
+    // Base Tab Filter
+    if (activeTab === 'settled') {
+      if (!isBeforeToday) return false;
+      if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
+      if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
+    } else {
+      if (isBeforeToday) return false;
+    }
+    
+    // Shop Filter
+    if (selectedShopId !== "all" && eventDate && event.shopId !== selectedShopId) return false;
+
+    return true;
+  });
+
+  const totals = filteredData.reduce((acc, curr) => ({
+    gross: acc.gross + curr.grossAmount,
+    net: acc.net + curr.netPayable,
+    platform: acc.platform + curr.netPlatform
+  }), { gross: 0, net: 0, platform: 0 });
+
+  const handleTriggerSettlement = async () => {
+    setIsTriggering(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    alert("Daily Settlement Run Triggered Successfully for all eligible shops!");
+    setIsTriggering(false);
+  };
+
+  // Group events by day
+  const groupedByDay = filteredData.reduce((acc: any, event) => {
+    const day = new Date(event.serviceDate).toDateString();
+    if (!acc[day]) acc[day] = { events: [], totals: { gross: 0, platform: 0 } };
+    acc[day].events.push(event);
+    acc[day].totals.gross += event.grossAmount;
+    acc[day].totals.platform += event.netPlatform;
+    return acc;
+  }, {});
+
+  const dayEntries = Object.entries(groupedByDay).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {/* Modal Backdrop */}
+      {selectedEvent && (
+        <div 
+          onClick={() => setSelectedEvent(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '2rem'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            className="glass"
+            style={{
+              width: '100%', maxWidth: '500px', padding: '2.5rem', borderRadius: '32px',
+              border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+              position: 'relative'
+            }}
+          >
+            <button 
+              onClick={() => setSelectedEvent(null)}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'var(--foreground)', cursor: 'pointer', fontSize: '1.2rem', opacity: 0.5 }}
+            >
+              ✕
+            </button>
+
+            <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', opacity: 0.5, marginBottom: '1rem', letterSpacing: '0.1em' }}>Admin Transaction Audit</div>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>{selectedEvent.serviceName}</h2>
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, marginTop: '0.2rem', color: 'var(--secondary)' }}>SHOP: {selectedEvent.shopName}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <span style={{ fontWeight: 700 }}>{selectedEvent.customer}</span>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--foreground)', opacity: 0.3 }}></span>
+                <span style={{ opacity: 0.6, fontSize: '0.9rem' }}>{new Date(selectedEvent.serviceDate).toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', background: 'rgba(0,0,0,0.03)', padding: '2rem', borderRadius: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ opacity: 0.6 }}>Original Service Price</span>
+                <span style={{ fontWeight: 800 }}>${selectedEvent.servicePrice.toFixed(2)}</span>
+              </div>
+
+              {selectedEvent.type === 'CANCELLATION_FEE' && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#f59e0b' }}>
+                  <span style={{ opacity: 0.8 }}>Cancellation Retention</span>
+                  <span style={{ fontWeight: 800 }}>-${(selectedEvent.servicePrice - selectedEvent.cancellationAmount).toFixed(2)}</span>
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ opacity: 0.6 }}>Priority Booking Fee</span>
+                <span style={{ fontWeight: 800 }}>+${selectedEvent.priorityFee.toFixed(2)}</span>
+              </div>
+              
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 900 }}>
+                <span style={{ opacity: 0.7 }}>Gross Amount Collected</span>
+                <span>${selectedEvent.grossAmount.toFixed(2)}</span>
+              </div>
+
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
+                <span style={{ opacity: 0.8, color: 'var(--secondary)', fontWeight: 800 }}>Platform Revenue</span>
+                <span style={{ fontWeight: 800 }}>+${selectedEvent.netPlatform.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
+                <span style={{ opacity: 0.8 }}>Stripe Processing</span>
+                <span style={{ fontWeight: 800 }}>-${selectedEvent.processingFee.toFixed(2)}</span>
+              </div>
+
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                   <span style={{ fontWeight: 900, fontSize: '1rem' }}>Final Merchant Share</span>
+                   <span style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700 }}>DUE FOR SETTLEMENT</span>
+                </div>
+                <span style={{ fontWeight: 900, fontSize: '2rem', color: 'var(--primary)' }}>${selectedEvent.netPayable.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.4, textAlign: 'center', fontWeight: 600 }}>
+              REFERENCE: {selectedEvent.id.toUpperCase()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Action Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0 }}>Financial Command Center</h1>
+          <p style={{ opacity: 0.6, fontSize: '1rem' }}>Global settlement monitoring and batch processing.</p>
+        </div>
+        <button
+          onClick={handleTriggerSettlement}
+          disabled={isTriggering}
+          style={{
+            background: 'var(--secondary)', color: 'white', border: 'none',
+            padding: '1.2rem 2.5rem', borderRadius: '16px', fontWeight: 900,
+            cursor: isTriggering ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+            boxShadow: '0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)',
+            opacity: isTriggering ? 0.7 : 1
+          }}
+        >
+          {isTriggering ? 'Processing Batch...' : '🚀 Trigger Daily Settlement Run'}
+        </button>
+      </div>
+
+      {/* Summary Header */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--primary)' }}>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Global Gross Volume</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.gross.toFixed(2)}</div>
+        </div>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--secondary)' }}>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Global Platform Revenue</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.platform.toFixed(2)}</div>
+        </div>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981' }}>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Total Merchant Payouts</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
+        </div>
+      </div>
+
+      {/* Tabs & Filters */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+          {[
+            { id: 'settled', label: 'Historical Settlements', icon: '✅', sub: 'Past batches and finalized revenue' },
+            { id: 'future', label: 'Platform Pipeline', icon: '📅', sub: 'Expected revenue across all shops' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                color: activeTab === tab.id ? 'white' : 'var(--foreground)',
+                border: 'none',
+                padding: '1rem 2rem',
+                borderRadius: '16px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '0.2rem',
+                transition: 'all 0.2s',
+                opacity: activeTab === tab.id ? 1 : 0.6,
+                flex: 1,
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
+                 <span>{tab.icon}</span> {tab.label}
+              </div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Command Filters:</span>
+          
+          <select 
+            value={selectedShopId} 
+            onChange={(e) => setSelectedShopId(e.target.value)}
+            style={{ 
+              background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
+              border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
+              fontWeight: 700, outline: 'none', cursor: 'pointer', minWidth: '200px'
+            }}
+          >
+            <option value="all">All Merchants</option>
+            {shops.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+
+          {activeTab === 'settled' && (
+            <>
+              <select 
+                value={selectedYear} 
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{ 
+                  background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
+                  border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
+                  fontWeight: 700, outline: 'none', cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Years</option>
+                {[2024, 2025, 2026].map(y => <option key={y} value={y.toString()}>{y}</option>)}
+              </select>
+
+              <select 
+                value={selectedMonth} 
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                style={{ 
+                  background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
+                  border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
+                  fontWeight: 700, outline: 'none', cursor: 'pointer'
+                }}
+              >
+                <option value="all">All Months</option>
+                {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, i) => (
+                  <option key={m} value={i.toString()}>{m}</option>
+                ))}
+              </select>
+            </>
+          )}
+
+          <button 
+            onClick={() => { setSelectedYear("all"); setSelectedMonth("all"); setSelectedShopId("all"); }}
+            style={{ 
+              background: 'transparent', border: '1px dashed var(--border)', 
+              padding: '0.6rem 1.2rem', borderRadius: '12px', fontSize: '0.75rem',
+              fontWeight: 700, cursor: 'pointer', opacity: 0.6
+            }}
+          >
+            Reset All
+          </button>
+        </div>
+      </div>
+
+      {/* Grouped Table View */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        {dayEntries.map(([day, data]: [string, any]) => (
+          <div key={day} className="glass" style={{ borderRadius: '20px', overflow: 'hidden' }}>
+            <div style={{ background: 'rgba(0,0,0,0.02)', padding: '1.2rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
+              <div>
+                <span style={{ fontSize: '1rem', fontWeight: 900 }}>{day}</span>
+                <span style={{ marginLeft: '1rem', fontSize: '0.75rem', opacity: 0.5, fontWeight: 700 }}>GLOBAL SETTLEMENT BATCH</span>
+              </div>
+              <div style={{ display: 'flex', gap: '2rem' }}>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Global Gross</p>
+                  <p style={{ fontWeight: 800 }}>${data.totals.gross.toFixed(2)}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.1rem' }}>Platform Take</p>
+                  <p style={{ fontWeight: 900, color: 'var(--secondary)' }}>${data.totals.platform.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+            <table className={styles.table}>
+              <thead>
+                <tr style={{ background: 'transparent' }}>
+                  <th style={{ width: '25%' }}>Shop & Customer</th>
+                  <th style={{ width: '20%' }}>Event Details</th>
+                  <th style={{ width: '15%' }}>Status</th>
+                  <th style={{ width: '25%' }}>Admin Breakdown</th>
+                  <th style={{ textAlign: 'right' }}>Shop Payout</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.events.map((event: AdminLedgerEvent) => (
+                  <tr key={event.id}>
+                    <td>
+                      <div style={{ fontWeight: 900, color: 'var(--secondary)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{event.shopName}</div>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', marginTop: '0.1rem' }}>{event.customer}</div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.7rem', fontWeight: 800, opacity: 0.7 }}>{event.serviceName}</div>
+                      <div 
+                        onClick={() => setSelectedEvent(event)}
+                        style={{ fontSize: '0.65rem', opacity: 0.4, cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        REF: {event.id.slice(-8).toUpperCase()}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ 
+                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem', 
+                        padding: '0.2rem 0.6rem', borderRadius: '6px',
+                        background: event.type === 'CANCELLATION_FEE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        color: event.type === 'CANCELLATION_FEE' ? '#ef4444' : '#10b981',
+                        fontSize: '0.65rem', fontWeight: 900
+                      }}>
+                        {event.type === 'CANCELLATION_FEE' ? 'CANCELLED' : 'COMPLETED'}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.75rem' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ opacity: 0.5 }}>Platform:</span>
+                            <span style={{ fontWeight: 700, color: 'var(--secondary)' }}>+${event.netPlatform.toFixed(2)}</span>
+                         </div>
+                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <span style={{ opacity: 0.5 }}>Stripe:</span>
+                            <span style={{ fontWeight: 700 }}>-${event.processingFee.toFixed(2)}</span>
+                         </div>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--primary)' }}>
+                        ${event.netPayable.toFixed(2)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

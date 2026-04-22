@@ -28,6 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/shops" className={styles.navLink}>All Shops</Link>
           <Link href="/admin/users" className={styles.navLink}>All Users</Link>
           <Link href="/admin/payouts" className={styles.navLink}>Stripe Payouts</Link>
+          <Link href="/admin/ledger" className={styles.navLink} style={{ color: 'var(--secondary)', fontWeight: 900 }}>🚀 Financial Command Center</Link>
           <Link href="/admin/finance" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 600 }}>Financial Reporting</Link>
           <Link href="/admin/alerts" className={styles.navLink} style={{ marginTop: 'auto', color: '#ff4444' }}>System Alerts</Link>
         </nav>
