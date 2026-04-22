@@ -85,7 +85,10 @@ export default function CustomerDashboardClient({
                             <tbody>
                                 {viewingInvoice.services.map((s: any, i: number) => {
                                     const isCancelled = s.status === 'CANCELLED' || viewingInvoice.status === 'CANCELLED';
-                                    const finalPrice = isCancelled ? (s.cancellationFee || s.price * 0.5) : s.price;
+                                    const finalPrice = isCancelled ? (s.price * 0.5) : s.price;
+                                    const isFuture = new Date(s.startTime) > new Date();
+                                    const statusText = isCancelled ? 'CANCELLED' : (isFuture ? 'BOOKED' : 'COMPLETED');
+                                    
                                     return (
                                         <tr key={i} style={{ borderBottom: '1px solid #f8fafc' }}>
                                             <td style={{ padding: '1.2rem 0' }}>
@@ -93,8 +96,8 @@ export default function CustomerDashboardClient({
                                                 {isCancelled && <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700 }}>50% Retention Fee Applied</div>}
                                             </td>
                                             <td style={{ textAlign: 'center', padding: '1.2rem 0' }}>
-                                                <span style={{ fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.6rem', borderRadius: '6px', background: isCancelled ? '#fee2e2' : '#f0fdf4', color: isCancelled ? '#ef4444' : '#16a34a' }}>
-                                                    {isCancelled ? 'CANCELLED' : 'COMPLETED'}
+                                                <span style={{ fontSize: '0.7rem', fontWeight: 900, padding: '0.2rem 0.6rem', borderRadius: '6px', background: isCancelled ? '#fee2e2' : (isFuture ? '#e0f2fe' : '#f0fdf4'), color: isCancelled ? '#ef4444' : (isFuture ? '#0369a1' : '#16a34a') }}>
+                                                    {statusText}
                                                 </span>
                                             </td>
                                             <td style={{ textAlign: 'right', padding: '1.2rem 0', fontWeight: 800 }}>
@@ -110,7 +113,7 @@ export default function CustomerDashboardClient({
                         <div style={{ marginLeft: 'auto', width: '320px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6, fontSize: '0.85rem' }}>
                                 <span>Services Subtotal</span>
-                                <span>${(viewingInvoice.totalPrice - 0.50).toFixed(2)}</span>
+                                <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + s.price, 0)).toFixed(2)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6, fontSize: '0.85rem' }}>
                                 <span>Priority Booking Fee</span>
@@ -118,21 +121,21 @@ export default function CustomerDashboardClient({
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', fontWeight: 900, borderTop: '1px solid #f1f5f9', marginTop: '0.5rem' }}>
                                 <span>Total Paid</span>
-                                <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift).toFixed(2)}</span>
+                                <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift + viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.cancellationFee || 0), 0)).toFixed(2)}</span>
                             </div>
                             
                             {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
                                 <div style={{ marginTop: '1.5rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '18px', border: '1px dashed #6366f1' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', opacity: 0.6 }}>
                                         <span>Final Session Cost</span>
-                                        <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0) + 0.50).toFixed(2)}</span>
+                                        <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.price * 0.5) : s.price), 0) + 0.50).toFixed(2)}</span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: '#6366f1', fontSize: '1.1rem' }}>
                                         <span>Estimated Refund</span>
-                                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift - (viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0) + 0.50)).toFixed(2)}</span>
+                                        <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.cancellationFee || 0), 0)).toFixed(2)}</span>
                                     </div>
                                     <p style={{ fontSize: '0.65rem', margin: '0.8rem 0 0', opacity: 0.5, lineHeight: '1.4' }}>
-                                        Refund includes original payment minus 50% retention on cancelled items and the non-refundable booking fee.
+                                        Refund represents the 50% returned portion of cancelled services processed to your original payment method.
                                     </p>
                                 </div>
                             )}
