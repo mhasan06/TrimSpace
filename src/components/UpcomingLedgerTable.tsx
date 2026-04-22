@@ -71,7 +71,7 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
           <div style={{ display: 'flex', gap: '0.6rem' }}>
             {['week', 'month', 'year'].map(p => {
               const isActive = currentPeriod === p || (!currentPeriod && p === 'week');
@@ -80,9 +80,9 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                   key={p}
                   onClick={() => handlePeriodChange(p)}
                   style={{ 
-                    background: isActive ? 'var(--primary)' : 'rgba(0,0,0,0.05)', 
-                    color: isActive ? 'black' : 'var(--foreground)',
-                    border: isActive ? 'none' : '1px solid var(--border)', 
+                    background: isActive ? '#6366f1' : 'rgba(0,0,0,0.05)', 
+                    color: isActive ? 'white' : '#64748b',
+                    border: isActive ? 'none' : '1px solid #e2e8f0', 
                     padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem',
                     transition: 'all 0.2s',
                     opacity: isActive ? 1 : 0.6
@@ -95,19 +95,19 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
           <input 
             type="date" 
             defaultValue={startDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
-            style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
+            style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
-          <span style={{ opacity: 0.5, color: 'var(--foreground)', fontWeight: 900 }}>to</span>
+          <span style={{ opacity: 0.5, color: '#64748b', fontWeight: 900 }}>to</span>
           <input 
             type="date" 
             defaultValue={endDate?.toISOString().split('T')[0]} 
             onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
-            style={{ background: 'var(--background)', border: '1px solid var(--border)', color: 'var(--foreground)', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
+            style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
           />
         </div>
       </div>
