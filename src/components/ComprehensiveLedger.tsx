@@ -11,6 +11,7 @@ interface LedgerEvent {
   type: 'BOOKING_PAYMENT' | 'CANCELLATION_FEE' | 'REFUND' | 'PAYOUT' | 'ADJUSTMENT';
   status: 'PENDING' | 'SETTLED' | 'REFUNDED' | 'FAILED';
   customer: string;
+  serviceName: string;
   grossAmount: number;
   commissionFee: number;
   processingFee: number;
@@ -22,7 +23,8 @@ interface LedgerEvent {
 }
 
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
-  const [activeTab, setActiveTab] = useState<'settled' | 'pending' | 'future' | 'adjustments'>('settled');
+  const [activeTab, setActiveTab] = useState<'settled' | 'future'>('settled');
+  const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
 
   const filteredData = data.filter(event => {
     const eventDate = new Date(event.serviceDate);
@@ -56,6 +58,79 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {/* Modal Backdrop */}
+      {selectedEvent && (
+        <div 
+          onClick={() => setSelectedEvent(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+            zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '2rem'
+          }}
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            className="glass"
+            style={{
+              width: '100%', maxWidth: '500px', padding: '2.5rem', borderRadius: '32px',
+              border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+              position: 'relative'
+            }}
+          >
+            <button 
+              onClick={() => setSelectedEvent(null)}
+              style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', border: 'none', color: 'var(--foreground)', cursor: 'pointer', fontSize: '1.2rem', opacity: 0.5 }}
+            >
+              ✕
+            </button>
+
+            <div style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', opacity: 0.5, marginBottom: '1rem', letterSpacing: '0.1em' }}>Detailed Reconciliation</div>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)' }}>{selectedEvent.serviceName}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <span style={{ fontWeight: 700 }}>{selectedEvent.customer}</span>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--foreground)', opacity: 0.3 }}></span>
+                <span style={{ opacity: 0.6, fontSize: '0.9rem' }}>{new Date(selectedEvent.serviceDate).toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', background: 'rgba(0,0,0,0.03)', padding: '2rem', borderRadius: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ opacity: 0.6 }}>Gross Transaction</span>
+                <span style={{ fontWeight: 800 }}>${selectedEvent.grossAmount.toFixed(2)}</span>
+              </div>
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
+                <span style={{ opacity: 0.8 }}>Marketplace Fee</span>
+                <span style={{ fontWeight: 800 }}>-${selectedEvent.commissionFee.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
+                <span style={{ opacity: 0.8 }}>Payment Processing</span>
+                <span style={{ fontWeight: 800 }}>-${selectedEvent.processingFee.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
+                <span style={{ opacity: 0.8 }}>Priority Booking</span>
+                <span style={{ fontWeight: 800 }}>-${selectedEvent.priorityFee.toFixed(2)}</span>
+              </div>
+
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 900, fontSize: '1rem' }}>Final Shop Payout</span>
+                <span style={{ fontWeight: 900, fontSize: '2rem', color: 'var(--primary)' }}>${selectedEvent.netPayable.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.4, textAlign: 'center', fontWeight: 600 }}>
+              REFERENCE: {selectedEvent.id.toUpperCase()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Summary Header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--primary)' }}>
@@ -142,7 +217,12 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                     <td>
                       <div style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.05)', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.4rem' }}>{event.type}</div>
                       <div style={{ fontWeight: 800 }}>{event.customer}</div>
-                      <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>REF: {event.id.slice(-8).toUpperCase()}</div>
+                      <div 
+                        onClick={() => setSelectedEvent(event)}
+                        style={{ fontSize: '0.7rem', opacity: 0.5, cursor: 'pointer', textDecoration: 'underline', color: 'var(--primary)' }}
+                      >
+                        REF: {event.id.slice(-8).toUpperCase()}
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>

@@ -56,6 +56,7 @@ export default async function FinancialLedgerPage() {
       type: isCancelled ? 'CANCELLATION_FEE' : 'BOOKING_PAYMENT',
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
+      serviceName: app.service.name,
       grossAmount: grossRevenue,
       commissionFee: commissionAmount,
       processingFee: stripeFee,
