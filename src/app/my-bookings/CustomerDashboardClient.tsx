@@ -53,7 +53,10 @@ export default function CustomerDashboardClient({
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f1f5f9', paddingBottom: '2rem', marginBottom: '2rem' }}>
                             <div>
                                 <h2 style={{ fontSize: '2rem', fontWeight: 900, color: '#6366f1', margin: 0 }}>TAX INVOICE</h2>
-                                <p style={{ margin: '0.5rem 0', fontWeight: 700, opacity: 0.6 }}>#{viewingInvoice.bookingGroupId || viewingInvoice.id.slice(-8).toUpperCase()}</p>
+                                <div style={{ marginTop: '0.5rem' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Booking ID: </span>
+                                    <span style={{ fontWeight: 800, color: '#1e293b' }}>#{viewingInvoice.bookingGroupId || viewingInvoice.id.slice(-8).toUpperCase()}</span>
+                                </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
                                 <h3 style={{ margin: 0, fontWeight: 900 }}>{viewingInvoice.tenant.name}</h3>
@@ -84,7 +87,7 @@ export default function CustomerDashboardClient({
                             </thead>
                             <tbody>
                                 {viewingInvoice.services.map((s: any, i: number) => {
-                                    const isCancelled = s.status === 'CANCELLED' || viewingInvoice.status === 'CANCELLED';
+                                    const isCancelled = s.status === 'CANCELLED';
                                     const finalPrice = isCancelled ? (s.price * 0.5) : s.price;
                                     const isFuture = new Date(s.startTime) > new Date();
                                     const statusText = isCancelled ? 'CANCELLED' : (isFuture ? 'BOOKED' : 'COMPLETED');
@@ -321,9 +324,6 @@ export default function CustomerDashboardClient({
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                                            <div style={{ textAlign: 'right', minWidth: '80px', marginRight: '1rem' }}>
-                                                <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>${group.totalPrice.toFixed(2)}</p>
-                                            </div>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                                 <button 
                                                     onClick={() => setViewingInvoice(group)}

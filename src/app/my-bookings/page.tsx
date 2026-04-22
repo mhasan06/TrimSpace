@@ -47,6 +47,7 @@ export default async function MyBookings() {
       if (!map.has(gid)) {
         map.set(gid, { 
             ...app, 
+            status: "GROUP", // Set a generic group status so it doesn't override individual services
             services: [], 
             totalPrice: 0.50, // Rollback Priority Fee
             ids: [], 
