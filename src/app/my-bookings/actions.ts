@@ -128,10 +128,13 @@ export async function updateCustomerAvatar(formData: FormData) {
     if (file.size > 2 * 1024 * 1024) throw new Error("File too large (Max 2MB).");
     if (!file.type.startsWith("image/")) throw new Error("Only images are allowed.");
 
-    const sKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
-    console.log("[DEBUG] Supabase Key starts with:", sKey.substring(0, 5));
     const { uploadFile } = require("@/lib/storage");
-    const avatarUrl = await uploadFile('avatars', `user-${userId}-${Date.now()}.png`, file, file.type);
+    
+    // Convert File to Buffer for robust server-side upload
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    
+    const avatarUrl = await uploadFile('avatars', `user-${userId}-${Date.now()}.png`, buffer, file.type);
     
     await prisma.user.update({
       where: { id: userId },

@@ -1,15 +1,10 @@
-import { supabaseAdmin } from "./supabase";
+export async function uploadFile(bucket: string, path: string, blob: any, contentType: string): Promise<string> {
+  const { createClient } = require('@supabase/supabase-js');
+  const sUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const sKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  const client = createClient(sUrl, sKey);
 
-/**
- * Uploads a file blob to a specified Supabase Storage bucket and returns the public URL.
- */
-export async function uploadFile(bucket: string, path: string, blob: Blob, contentType: string): Promise<string> {
-  if (!supabaseAdmin) {
-    throw new Error("Supabase Admin client not initialized. Check your SUPABASE_SERVICE_ROLE_KEY.");
-  }
-
-  // @ts-ignore
-  const { data, error } = await supabaseAdmin.storage
+  const { data, error } = await client.storage
     .from(bucket)
     .upload(path, blob, {
       contentType,
@@ -21,10 +16,7 @@ export async function uploadFile(bucket: string, path: string, blob: Blob, conte
     throw new Error(`Failed to upload ${path} to ${bucket}: ${error.message}`);
   }
 
-  if (!supabaseAdmin) throw new Error("Supabase client missing.");
-
-  // @ts-ignore
-  const { data: { publicUrl } } = supabaseAdmin.storage
+  const { data: { publicUrl } } = client.storage
     .from(bucket)
     .getPublicUrl(path);
 
