@@ -147,10 +147,14 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                     </td>
                     <td>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1.5rem', fontSize: '0.75rem' }}>
-                        <span style={{ opacity: 0.6 }}>Gross:</span>
+                        <span style={{ opacity: 0.6 }}>Gross Revenue:</span>
                         <span style={{ fontWeight: 800 }}>${event.grossAmount.toFixed(2)}</span>
-                        <span style={{ opacity: 0.6 }}>Fees:</span>
-                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${(event.platformFee + event.stripeFee).toFixed(2)}</span>
+                        <span style={{ opacity: 0.6 }}>Commission:</span>
+                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.commissionFee.toFixed(2)}</span>
+                        <span style={{ opacity: 0.6 }}>Processing:</span>
+                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.processingFee.toFixed(2)}</span>
+                        <span style={{ opacity: 0.6 }}>Priority Fee:</span>
+                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.priorityFee.toFixed(2)}</span>
                       </div>
                     </td>
                     <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>

@@ -44,7 +44,8 @@ export default async function FinancialLedgerPage() {
     // Stripe Fee (Approximate: 2.9% + 30c)
     const stripeFee = isPaid ? ((gross * 0.029) + 0.30) : 0;
     
-    // Net Payable to Salon
+    // Net Payable to Salon = Gross - PlatformGain - StripeFee
+    // We want to pass absolute fee values to the UI for clear subtraction display
     const net = gross - platformGain - stripeFee;
 
     return {
@@ -55,10 +56,11 @@ export default async function FinancialLedgerPage() {
       type: isCancelled ? 'CANCELLATION_FEE' : 'BOOKING_PAYMENT',
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
-      grossAmount: gross,
-      platformFee: platformGain - priorityFee, // This is commission
-      stripeFee: stripeFee,
-      tax: 0, // GST 0% as requested
+      grossAmount: Math.abs(gross),
+      commissionFee: Math.abs(platformGain - priorityFee), // Just the commission part
+      processingFee: Math.abs(stripeFee),
+      priorityFee: Math.abs(priorityFee),
+      tax: 0, 
       netPayable: net,
       netPlatform: platformGain,
       isFuture: isFuture
