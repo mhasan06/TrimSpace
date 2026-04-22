@@ -47,7 +47,7 @@ export default async function AdminLedgerPage() {
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
       shopName: app.tenant.name,
-      shopId: app.shopId,
+      shopId: app.tenantId,
       serviceName: app.service.name,
       servicePrice: servicePrice,
       cancellationAmount: isCancelled ? app.cancellationFee : 0,
