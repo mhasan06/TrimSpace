@@ -215,36 +215,41 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Today's Earnings</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${todayRev.toFixed(2)}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Live Sydney Time</p>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Today's Total</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(todayRev + todayCancelledRev).toFixed(2)}</p>
+           <div style={{ marginTop: '0.8rem', display: 'flex', gap: '0.8rem', fontSize: '0.7rem', fontWeight: 800 }}>
+              <span style={{ color: '#10b981' }}>Service: ${todayRev.toFixed(2)}</span>
+              <span style={{ opacity: 0.3 }}>|</span>
+              <span style={{ color: '#ef4444' }}>Cancellation: ${todayCancelledRev.toFixed(2)}</span>
+           </div>
         </div>
         <div className={`${styles.statCard} glass`}>
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Weekly Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${thisWeekRev.toFixed(0)}</p>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.6rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444', background: weekProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(thisWeekRev + thisWeekCancelledRev).toFixed(0)}</p>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
+                 <span style={{ color: '#10b981' }}>Svc: ${thisWeekRev.toFixed(0)}</span>
+                 <span style={{ color: '#ef4444' }}>Can: ${thisWeekCancelledRev.toFixed(0)}</span>
+              </div>
+              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444', background: weekProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
                  {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.75rem', opacity: 0.6, fontWeight: 800, color: 'var(--foreground)' }}>vs last week</span>
            </div>
         </div>
         <div className={`${styles.statCard} glass`}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>MTD Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${thisMonthRev.toFixed(0)}</p>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.6rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444', background: monthProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
+           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>MTD Total</h3>
+           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(thisMonthRev + thisMonthCancelledRev).toFixed(0)}</p>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
+                 <span style={{ color: '#10b981' }}>Svc: ${thisMonthRev.toFixed(0)}</span>
+                 <span style={{ color: '#ef4444' }}>Can: ${thisMonthCancelledRev.toFixed(0)}</span>
+              </div>
+              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444', background: monthProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
                  {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}%
               </span>
-              <span style={{ fontSize: '0.75rem', opacity: 0.6, fontWeight: 800, color: 'var(--foreground)' }}>vs last month</span>
            </div>
         </div>
-         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid #ef4444' }}>
-            <h3 style={{ color: '#ef4444', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Cancellation Income</h3>
-            <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${thisMonthCancelledRev.toFixed(0)}</p>
-            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>MTD Retention Fees</p>
-         </div>
-         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
+        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
            <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${ytdRev.toFixed(0)}</p>
            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Current Fiscal Year</p>
@@ -255,6 +260,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Team Capacity</p>
         </div>
       </div>
+ </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
         <WeeklyCalendar weekData={outlook} currentDay={targetDateStr} />
