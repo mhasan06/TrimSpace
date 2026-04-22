@@ -32,21 +32,23 @@ export default async function FinancialLedgerPage() {
     const isPaid = app.paymentStatus === 'PAID' || app.paymentStatus === 'PARTIAL_REFUNDED';
     const isFuture = new Date(app.startTime) > new Date();
     
-    // Financial Calculation Logic
     const servicePrice = app.service.price;
     const priorityFee = 0.50;
-    const gross = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
     
-    // Platforms Revenue = Priority Fee + (Service Price * Commission)
-    // Note: If cancelled, we still take commission on the retention? Usually yes.
-    const platformGain = priorityFee + (isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission));
+    // The amount collected from the customer
+    const grossRevenue = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
     
-    // Stripe Fee (Approximate: 2.9% + 30c)
-    const stripeFee = isPaid ? ((gross * 0.029) + 0.30) : 0;
+    // The marketplace commission (only on the service/cancellation part)
+    const commissionAmount = isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission);
     
-    // Net Payable to Salon = Gross - PlatformGain - StripeFee
-    // We want to pass absolute fee values to the UI for clear subtraction display
-    const net = gross - platformGain - stripeFee;
+    // Total Platform take = Commission + Priority Fee
+    const platformTotal = commissionAmount + priorityFee;
+    
+    // Stripe Processing Fee (approx 2.9% + 30c)
+    const stripeFee = isPaid ? ((grossRevenue * 0.029) + 0.30) : 0;
+    
+    // The Shop's actual share
+    const netPayout = grossRevenue - platformTotal - stripeFee;
 
     return {
       id: app.id,
@@ -56,13 +58,13 @@ export default async function FinancialLedgerPage() {
       type: isCancelled ? 'CANCELLATION_FEE' : 'BOOKING_PAYMENT',
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
-      grossAmount: Math.abs(gross),
-      commissionFee: Math.abs(platformGain - priorityFee), // Just the commission part
-      processingFee: Math.abs(stripeFee),
-      priorityFee: Math.abs(priorityFee),
+      grossAmount: grossRevenue,
+      commissionFee: commissionAmount,
+      processingFee: stripeFee,
+      priorityFee: priorityFee,
       tax: 0, 
-      netPayable: net,
-      netPlatform: platformGain,
+      netPayable: netPayout,
+      netPlatform: platformTotal,
       isFuture: isFuture
     };
   });

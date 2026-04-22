@@ -12,8 +12,9 @@ interface LedgerEvent {
   status: 'PENDING' | 'SETTLED' | 'REFUNDED' | 'FAILED';
   customer: string;
   grossAmount: number;
-  platformFee: number;
-  stripeFee: number;
+  commissionFee: number;
+  processingFee: number;
+  priorityFee: number;
   tax: number;
   netPayable: number;
   netPlatform: number;
