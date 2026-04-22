@@ -23,8 +23,7 @@ export default function CustomerDashboardClient({
 
     const filteredRows = (() => {
         if (activeTab === "appointments") return upcoming;
-        if (activeTab === "completed") return past.filter((g: any) => g.status !== "CANCELLED");
-        if (activeTab === "cancelled") return past.filter((g: any) => g.status === "CANCELLED");
+        if (activeTab === "completed") return past;
         return [];
     })();
 
@@ -283,17 +282,6 @@ export default function CustomerDashboardClient({
                             }}
                         >
                             Completed
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab("cancelled")}
-                            style={{ 
-                                background: 'none', border: 'none', padding: '1rem 0', 
-                                borderBottom: activeTab === "cancelled" ? '3px solid #6366f1' : '3px solid transparent', 
-                                color: activeTab === "cancelled" ? '#1e293b' : '#94a3b8', 
-                                fontWeight: 800, fontSize: '1rem', cursor: 'pointer' 
-                            }}
-                        >
-                            Cancelled
                         </button>
                     </nav>
 
