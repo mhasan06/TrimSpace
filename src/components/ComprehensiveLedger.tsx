@@ -100,28 +100,43 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', background: 'rgba(0,0,0,0.03)', padding: '2rem', borderRadius: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                <span style={{ opacity: 0.6 }}>Gross Transaction</span>
-                <span style={{ fontWeight: 800 }}>${selectedEvent.grossAmount.toFixed(2)}</span>
+                <span style={{ opacity: 0.6 }}>{selectedEvent.type === 'CANCELLATION_FEE' ? 'Cancellation Retention' : 'Base Service Price'}</span>
+                <span style={{ fontWeight: 800 }}>${selectedEvent.type === 'CANCELLATION_FEE' ? selectedEvent.cancellationAmount.toFixed(2) : selectedEvent.servicePrice.toFixed(2)}</span>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ opacity: 0.6 }}>Priority Booking Fee</span>
+                <span style={{ fontWeight: 800 }}>+${selectedEvent.priorityFee.toFixed(2)}</span>
+              </div>
+              
+              <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 900 }}>
+                <span style={{ opacity: 0.7 }}>Gross Amount Collected</span>
+                <span>${selectedEvent.grossAmount.toFixed(2)}</span>
+              </div>
+
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
-                <span style={{ opacity: 0.8 }}>Marketplace Fee</span>
+                <span style={{ opacity: 0.8 }}>Marketplace Commission</span>
                 <span style={{ fontWeight: 800 }}>-${selectedEvent.commissionFee.toFixed(2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
-                <span style={{ opacity: 0.8 }}>Payment Processing</span>
+                <span style={{ opacity: 0.8 }}>Payment Processing (Stripe)</span>
                 <span style={{ fontWeight: 800 }}>-${selectedEvent.processingFee.toFixed(2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#ef4444' }}>
-                <span style={{ opacity: 0.8 }}>Priority Booking</span>
+                <span style={{ opacity: 0.8 }}>Priority Fee Deduction</span>
                 <span style={{ fontWeight: 800 }}>-${selectedEvent.priorityFee.toFixed(2)}</span>
               </div>
 
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.2rem 0' }}></div>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 900, fontSize: '1rem' }}>Final Shop Payout</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                   <span style={{ fontWeight: 900, fontSize: '1rem' }}>Final Shop Payout</span>
+                   <span style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700 }}>PAID TO YOUR BANK</span>
+                </div>
                 <span style={{ fontWeight: 900, fontSize: '2rem', color: 'var(--primary)' }}>${selectedEvent.netPayable.toFixed(2)}</span>
               </div>
             </div>
