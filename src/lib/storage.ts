@@ -1,7 +1,7 @@
 export async function uploadFile(bucket: string, path: string, blob: any, contentType: string): Promise<string> {
   const { createClient } = require('@supabase/supabase-js');
-  const sUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const sKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  const sUrl = "https://vtyljcccdgsmwxtihucs.supabase.co";
+  const sKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0eWxqY2NjZGdzbXd4dGlodWNzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTgyMDMwNiwiZXhwIjoyMDkxMzk2MzA2fQ.hot9M6JsB1k46DdEW4cI1hfuyTzufGtYjAjxfPIRIps";
   const client = createClient(sUrl, sKey);
 
   const { data, error } = await client.storage
