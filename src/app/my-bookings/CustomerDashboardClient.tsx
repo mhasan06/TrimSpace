@@ -124,7 +124,7 @@ export default function CustomerDashboardClient({
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', fontWeight: 900, borderTop: '1px solid #f1f5f9', marginTop: '0.5rem' }}>
                                 <span>Total Paid</span>
-                                <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift + viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.cancellationFee || 0), 0)).toFixed(2)}</span>
+                                <span>${viewingInvoice.totalPrice.toFixed(2)}</span>
                             </div>
                             
                             {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (

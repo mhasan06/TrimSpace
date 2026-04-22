@@ -22,8 +22,18 @@ export async function handleRefundAndCancel(id: string) {
     
     // 1. Fetch appointments (either one or the whole group)
     const appointments: any[] = isGroup 
-      ? await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "Appointment" WHERE "bookingGroupId" = $1`, id)
-      : await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "Appointment" WHERE "id" = $1`, id);
+      ? await prisma.$queryRawUnsafe<any[]>(`
+          SELECT a.*, s.price as "servicePrice" 
+          FROM "Appointment" a
+          JOIN "Service" s ON a."serviceId" = s.id
+          WHERE a."bookingGroupId" = $1
+        `, id)
+      : await prisma.$queryRawUnsafe<any[]>(`
+          SELECT a.*, s.price as "servicePrice" 
+          FROM "Appointment" a
+          JOIN "Service" s ON a."serviceId" = s.id
+          WHERE a.id = $1
+        `, id);
 
     if (appointments.length === 0) throw new Error("Booking not found.");
     if (appointments.some(a => a.customerId !== userId)) throw new Error("Unauthorized.");
@@ -37,7 +47,7 @@ export async function handleRefundAndCancel(id: string) {
       if (app.status === "CANCELLED") continue;
 
       if (app.paymentStatus === "PAID") {
-        const stripeRefundAmount = Number(app.amountPaidStripe) * 0.5;
+        const stripeRefundAmount = (Number(app.amountPaidStripe) > Number(app.servicePrice) ? (Number(app.amountPaidStripe) - 0.50) : Number(app.amountPaidStripe)) * 0.5;
         const giftRefundAmount   = Number(app.amountPaidGift)   * 0.5;
 
         // Stripe Refund
