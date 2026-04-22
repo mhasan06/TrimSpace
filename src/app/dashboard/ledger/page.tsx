@@ -38,16 +38,14 @@ export default async function FinancialLedgerPage() {
     // The amount collected from the customer
     const grossRevenue = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
     
-    // The marketplace commission (only on the service/cancellation part)
-    const commissionAmount = isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission);
+    // Ensure all fees are absolute positive values
+    const commissionAmount = Math.abs(isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission));
+    const stripeFee = Math.abs(isPaid ? ((grossRevenue * 0.029) + 0.30) : 0);
     
     // Total Platform take = Commission + Priority Fee
     const platformTotal = commissionAmount + priorityFee;
     
-    // Stripe Processing Fee (approx 2.9% + 30c)
-    const stripeFee = isPaid ? ((grossRevenue * 0.029) + 0.30) : 0;
-    
-    // The Shop's actual share
+    // The Shop's actual share = EVERYTHING COLLECTED - EVERYTHING TAKEN BY PLATFORM/STRIPE
     const netPayout = grossRevenue - platformTotal - stripeFee;
 
     return {
