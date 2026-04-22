@@ -73,10 +73,12 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const endOfToday = new Date(nowSydney);
   endOfToday.setHours(23,59,59,999);
 
-  const [todayStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday}`
+  const [todayStats, todayCancelledStats]: any[] = await Promise.all([
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday} AND status = 'CANCELLED'`
   ]);
   const todayRev = Number(todayStats[0]?.revenue || 0);
+  const todayCancelledRev = Number(todayCancelledStats[0]?.revenue || 0);
 
   // 3. Trend Analysis (Weekly Progress)
   const startOfThisWeek = new Date(nowSydney);
@@ -86,13 +88,15 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfLastWeek = new Date(startOfThisWeek);
   startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
 
-  const [thisWeekStats, lastWeekStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek}`
+  const [thisWeekStats, lastWeekStats, thisWeekCancelledStats]: any[] = await Promise.all([
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek} AND status = 'CANCELLED'`
   ]);
 
   const thisWeekRev = Number(thisWeekStats[0]?.revenue || 0);
   const lastWeekRev = Number(lastWeekStats[0]?.revenue || 0);
+  const thisWeekCancelledRev = Number(thisWeekCancelledStats[0]?.revenue || 0);
   const weekProgress = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
 
   // 4. Monthly & YTD Progress
@@ -100,15 +104,17 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfLastMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth() - 1, 1);
   const startOfThisYear = new Date(nowSydney.getFullYear(), 0, 1);
   
-  const [thisMonthStats, lastMonthStats, ytdStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth}`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}`
+  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats]: any[] = await Promise.all([
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth} AND status != 'CANCELLED'`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}`,
+    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED'`
   ]);
 
   const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
   const lastMonthRev = Number(lastMonthStats[0]?.revenue || 0);
   const ytdRev = Number(ytdStats[0]?.revenue || 0);
+  const thisMonthCancelledRev = Number(thisMonthCancelledStats[0]?.revenue || 0);
   const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
 
   // 4. Staff Leadership Data (Past 30 Days)
@@ -233,7 +239,12 @@ export default async function DashboardOverview({ searchParams }: { searchParams
               <span style={{ fontSize: '0.75rem', opacity: 0.6, fontWeight: 800, color: 'var(--foreground)' }}>vs last month</span>
            </div>
         </div>
-        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
+         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid #ef4444' }}>
+            <h3 style={{ color: '#ef4444', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Cancellation Income</h3>
+            <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${thisMonthCancelledRev.toFixed(0)}</p>
+            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>MTD Retention Fees</p>
+         </div>
+         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
            <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
            <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${ytdRev.toFixed(0)}</p>
            <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Current Fiscal Year</p>
