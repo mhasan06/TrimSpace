@@ -58,7 +58,7 @@ export default async function FinancialLedgerPage() {
       grossAmount: gross,
       platformFee: platformGain - priorityFee, // This is commission
       stripeFee: stripeFee,
-      tax: gross * 0.1, // Assuming 10% GST included
+      tax: 0, // GST 0% as requested
       netPayable: net,
       netPlatform: platformGain,
       isFuture: isFuture
