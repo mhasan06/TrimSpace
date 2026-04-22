@@ -83,10 +83,21 @@ export default async function MyBookings() {
     include: { tenant: true }
   });
 
-  const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now));
-  const pastGroups = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
-  const completedGroups = pastGroups.filter((g: any) => g.services.some((s: any) => s.status !== 'CANCELLED'));
-  const cancelledGroups = pastGroups.filter((g: any) => g.services.every((s: any) => s.status === 'CANCELLED'));
+  const allGroups = groupList(mappedAppointments.reverse());
+  
+  const upcoming = allGroups.filter((g: any) => 
+    new Date(g.startTime) > now && 
+    g.services.some((s: any) => s.status !== 'CANCELLED')
+  );
+
+  const completedGroups = allGroups.filter((g: any) => 
+    new Date(g.startTime) <= now && 
+    g.services.some((s: any) => s.status !== 'CANCELLED')
+  );
+
+  const cancelledGroups = allGroups.filter((g: any) => 
+    g.services.every((s: any) => s.status === 'CANCELLED')
+  );
 
   const completedCount = mappedAppointments.filter(a => a.status === 'COMPLETED' || (new Date(a.startTime) < now && a.status !== 'CANCELLED')).length;
   const cancelledCount = mappedAppointments.filter(a => a.status === 'CANCELLED').length;
