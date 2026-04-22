@@ -25,10 +25,14 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   const [activeTab, setActiveTab] = useState<'settled' | 'pending' | 'future' | 'adjustments'>('settled');
 
   const filteredData = data.filter(event => {
-    if (activeTab === 'settled') return event.status === 'SETTLED' && !event.isFuture;
-    if (activeTab === 'pending') return event.status === 'PENDING' && !event.isFuture;
-    if (activeTab === 'future') return event.isFuture;
-    if (activeTab === 'adjustments') return event.type === 'REFUND' || event.type === 'ADJUSTMENT' || event.type === 'CANCELLATION_FEE';
+    const eventDate = new Date(event.serviceDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isBeforeToday = eventDate < today;
+
+    if (activeTab === 'settled') return isBeforeToday;
+    if (activeTab === 'future') return !isBeforeToday;
     return true;
   });
 
@@ -53,28 +57,26 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Summary Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--primary)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Total Gross Volume</h4>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
+            {activeTab === 'settled' ? 'Total Finalized Volume' : 'Expected Pipeline Volume'}
+          </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.gross.toFixed(2)}</div>
         </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--secondary)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Net Payable to Shop</h4>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
+            {activeTab === 'settled' ? 'Net Paid to Shop' : 'Projected Net Payout'}
+          </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
-        </div>
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--accent)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Platform Revenue</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.platform.toFixed(2)}</div>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
         {[
-          { id: 'settled', label: 'Settled Transactions', icon: '✅' },
-          { id: 'pending', label: 'Pending Settlement', icon: '⏳' },
-          { id: 'future', label: 'Future Bookings', icon: '📅' },
-          { id: 'adjustments', label: 'Adjustments & Disputes', icon: '⚖️' }
+          { id: 'settled', label: 'Settled Transactions', icon: '✅', sub: 'Completed up to yesterday' },
+          { id: 'future', label: 'Future & Today', icon: '📅', sub: 'In-progress and upcoming' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -83,18 +85,24 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
               color: activeTab === tab.id ? 'white' : 'var(--foreground)',
               border: 'none',
-              padding: '0.8rem 1.5rem',
-              borderRadius: '12px',
+              padding: '1rem 2rem',
+              borderRadius: '16px',
               fontWeight: 800,
               cursor: 'pointer',
               display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '0.2rem',
               transition: 'all 0.2s',
-              opacity: activeTab === tab.id ? 1 : 0.6
+              opacity: activeTab === tab.id ? 1 : 0.6,
+              flex: 1,
+              textAlign: 'left'
             }}
           >
-            <span>{tab.icon}</span> {tab.label}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
+               <span>{tab.icon}</span> {tab.label}
+            </div>
+            <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
           </button>
         ))}
       </div>
