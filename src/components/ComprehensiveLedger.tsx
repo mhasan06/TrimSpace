@@ -165,16 +165,11 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
           </div>
         ))}
       </div>
-            {filteredData.length === 0 && (
-              <tr>
-                <td colSpan={4} style={{ textAlign: 'center', padding: '4rem', opacity: 0.4, fontStyle: 'italic' }}>
-                  No financial events found in this section.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {filteredData.length === 0 && (
+        <div className="glass" style={{ textAlign: 'center', padding: '4rem', opacity: 0.4, fontStyle: 'italic', borderRadius: '20px' }}>
+          No financial events found in this section.
+        </div>
+      )}
 
       <div style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px dashed var(--primary)' }}>
         <h4 style={{ fontSize: '0.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>💡 Financial Insight</h4>
