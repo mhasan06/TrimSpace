@@ -70,7 +70,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
         <nav className={styles.nav}>
           {enabledFeatures.includes("OVERVIEW") && <Link href="/dashboard" className={styles.navLink}>Overview</Link>}
-          {(enabledFeatures.includes("LEDGER") || enabledFeatures.includes("SETTLEMENTS")) && <Link href="/dashboard/appointments" className={styles.navLink} style={{ color: 'var(--foreground)', fontWeight: 600 }}>Master Ledger</Link>}
+          {(enabledFeatures.includes("LEDGER") || enabledFeatures.includes("SETTLEMENTS")) && (
+            <>
+              <Link href="/dashboard/appointments" className={styles.navLink}>Master Ledger</Link>
+              <Link href="/dashboard/ledger" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 700 }}>Financial Settlement</Link>
+            </>
+          )}
           {enabledFeatures.includes("COMMS") && <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>}
           {enabledFeatures.includes("REPORTS") && <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>}
           {enabledFeatures.includes("SERVICES") && <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>}
