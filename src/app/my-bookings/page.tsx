@@ -48,7 +48,7 @@ export default async function MyBookings() {
         map.set(gid, { 
             ...app, 
             services: [], 
-            totalPrice: 0, 
+            totalPrice: 0.50, // Rollback Priority Fee
             ids: [], 
             totalStripe: 0, 
             totalGift: 0,
@@ -63,7 +63,9 @@ export default async function MyBookings() {
         name: app.service.name,
         price: app.service.price,
         startTime: app.startTime,
-        endTime: app.endTime
+        endTime: app.endTime,
+        status: app.status,
+        cancellationFee: app.cancellationFee
       });
       g.totalPrice += app.service.price;
       g.ids.push(app.id);
@@ -78,7 +80,7 @@ export default async function MyBookings() {
     include: { tenant: true }
   });
 
-  const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now && app.status !== 'CANCELLED'));
+  const upcoming = groupList(mappedAppointments.filter(app => new Date(app.startTime) > now));
   const past = groupList(mappedAppointments.filter(app => new Date(app.startTime) <= now || app.status === 'CANCELLED').reverse());
 
   const completedCount = mappedAppointments.filter(a => a.status === 'COMPLETED' || (new Date(a.startTime) < now && a.status !== 'CANCELLED')).length;

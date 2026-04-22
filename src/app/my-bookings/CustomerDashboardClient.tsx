@@ -107,22 +107,33 @@ export default function CustomerDashboardClient({
                             </tbody>
                         </table>
 
-                        <div style={{ marginLeft: 'auto', width: '300px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6 }}>
-                                <span>Original Total</span>
-                                <span>${viewingInvoice.totalPrice.toFixed(2)}</span>
+                        <div style={{ marginLeft: 'auto', width: '320px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6, fontSize: '0.85rem' }}>
+                                <span>Services Subtotal</span>
+                                <span>${(viewingInvoice.totalPrice - 0.50).toFixed(2)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontWeight: 900, fontSize: '1.2rem', borderTop: '2px solid #f1f5f9', marginTop: '1rem', paddingTop: '1rem', color: '#6366f1' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6, fontSize: '0.85rem' }}>
+                                <span>Priority Booking Fee</span>
+                                <span>$0.50</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', fontWeight: 900, borderTop: '1px solid #f1f5f9', marginTop: '0.5rem' }}>
                                 <span>Total Paid</span>
                                 <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift).toFixed(2)}</span>
                             </div>
+                            
                             {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
-                                <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #6366f1' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#6366f1' }}>
-                                        <span>Estimated Refund</span>
-                                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift - viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0)).toFixed(2)}</span>
+                                <div style={{ marginTop: '1.5rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '18px', border: '1px dashed #6366f1' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.5rem', opacity: 0.6 }}>
+                                        <span>Final Session Cost</span>
+                                        <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0) + 0.50).toFixed(2)}</span>
                                     </div>
-                                    <p style={{ fontSize: '0.65rem', margin: '0.5rem 0 0', opacity: 0.5 }}>Processed automatically via original payment method.</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, color: '#6366f1', fontSize: '1.1rem' }}>
+                                        <span>Estimated Refund</span>
+                                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift - (viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.cancellationFee || s.price * 0.5) : s.price), 0) + 0.50)).toFixed(2)}</span>
+                                    </div>
+                                    <p style={{ fontSize: '0.65rem', margin: '0.8rem 0 0', opacity: 0.5, lineHeight: '1.4' }}>
+                                        Refund includes original payment minus 50% retention on cancelled items and the non-refundable booking fee.
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -346,21 +357,24 @@ export default function CustomerDashboardClient({
                                                     boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
                                                 }}>
                                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#6366f1' }}></div>
+                                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: service.status === 'CANCELLED' ? '#ef4444' : '#6366f1' }}></div>
                                                         <div>
-                                                            <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '0.9rem' }}>{service.name}</span>
+                                                            <span style={{ fontWeight: 800, color: service.status === 'CANCELLED' ? '#ef4444' : '#1e293b', fontSize: '0.9rem', textDecoration: service.status === 'CANCELLED' ? 'line-through' : 'none' }}>{service.name}</span>
                                                             <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700 }}>
                                                                 {sDate} at {sTime} • ${service.price.toFixed(2)}
+                                                                {service.status === 'CANCELLED' && <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>(CANCELLED)</span>}
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <CancelButton 
-                                                        appointmentId={service.id} 
-                                                        amountPaidStripe={Number(group.totalStripe / group.services.length)} 
-                                                        amountPaidGift={Number(group.totalGift / group.services.length)} 
-                                                        label="Cancel"
-                                                        small
-                                                    />
+                                                    {service.status !== 'CANCELLED' && (
+                                                        <CancelButton 
+                                                            appointmentId={service.id} 
+                                                            amountPaidStripe={Number(group.totalStripe / group.services.length)} 
+                                                            amountPaidGift={Number(group.totalGift / group.services.length)} 
+                                                            label="Cancel"
+                                                            small
+                                                        />
+                                                    )}
                                                 </div>
                                             );
                                         })}
