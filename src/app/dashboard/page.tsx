@@ -197,8 +197,8 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     <>
       <header className={`${styles.header} glass`}>
         <div>
-           <h1>Dashboard Overview</h1>
-           <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Business Intelligence & Planning</p>
+           <h1 style={{ color: 'var(--foreground)', margin: 0 }}>Dashboard Overview</h1>
+           <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem', fontWeight: 700 }}>Business Intelligence & Planning</p>
         </div>
         <div className={styles.profileStats} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <DashboardAlerts initialAlerts={alerts as any} />
