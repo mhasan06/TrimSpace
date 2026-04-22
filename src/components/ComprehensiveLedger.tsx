@@ -12,6 +12,8 @@ interface LedgerEvent {
   status: 'PENDING' | 'SETTLED' | 'REFUNDED' | 'FAILED';
   customer: string;
   serviceName: string;
+  servicePrice: number;
+  cancellationAmount: number;
   grossAmount: number;
   commissionFee: number;
   processingFee: number;
@@ -206,34 +208,45 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               <thead>
                 <tr style={{ background: 'transparent' }}>
                   <th style={{ width: '30%' }}>Event Details</th>
-                  <th style={{ width: '20%' }}>Status</th>
+                  <th style={{ width: '20%' }}>Booking Status</th>
                   <th style={{ width: '30%' }}>Financial Breakdown</th>
                   <th style={{ textAlign: 'right' }}>Net Payout</th>
                 </tr>
               </thead>
               <tbody>
-                {data.events.map((event: any) => (
+                {data.events.map((event: LedgerEvent) => (
                   <tr key={event.id}>
                     <td>
-                      <div style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.05)', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.4rem' }}>{event.type}</div>
-                      <div style={{ fontWeight: 800 }}>{event.customer}</div>
-                      <div 
-                        onClick={() => setSelectedEvent(event)}
-                        style={{ fontSize: '0.7rem', opacity: 0.5, cursor: 'pointer', textDecoration: 'underline', color: 'var(--primary)' }}
-                      >
-                        REF: {event.id.slice(-8).toUpperCase()}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '0.05em' }}>
+                          {event.type === 'CANCELLATION_FEE' ? `CANCELLATION FEE: $${event.cancellationAmount.toFixed(2)}` : `SERVICE FEE: $${event.servicePrice.toFixed(2)}`}
+                        </div>
+                        <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>{event.customer}</div>
+                        <div 
+                          onClick={() => setSelectedEvent(event)}
+                          style={{ fontSize: '0.7rem', opacity: 0.5, cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                          REF: {event.id.slice(-8).toUpperCase()}
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                        <span style={{ 
-                          width: '8px', height: '8px', borderRadius: '50%', 
-                          background: event.status === 'SETTLED' ? '#10b981' : (event.status === 'FAILED' ? '#ef4444' : '#f59e0b') 
-                        }}></span>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800 }}>{event.status}</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                         <div style={{ 
+                            display: 'inline-flex', alignItems: 'center', gap: '0.4rem', 
+                            padding: '0.3rem 0.8rem', borderRadius: '8px',
+                            background: event.type === 'CANCELLATION_FEE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                            color: event.type === 'CANCELLATION_FEE' ? '#ef4444' : '#10b981',
+                            fontSize: '0.75rem', fontWeight: 900, width: 'fit-content'
+                         }}>
+                            {event.type === 'CANCELLATION_FEE' ? 'CANCELLED' : 'COMPLETED'}
+                         </div>
+                         <div style={{ fontSize: '0.7rem', opacity: 0.5, fontWeight: 700 }}>
+                            {new Date(event.serviceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                         </div>
                       </div>
-                      <div style={{ fontSize: '0.7rem', opacity: 0.6 }}>{new Date(event.serviceDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </td>
+ </td>
                     <td>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1.5rem', fontSize: '0.75rem' }}>
                         <span style={{ opacity: 0.6 }}>Gross Revenue:</span>
