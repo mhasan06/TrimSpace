@@ -27,6 +27,8 @@ interface LedgerEvent {
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   const [activeTab, setActiveTab] = useState<'settled' | 'future'>('settled');
   const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
 
   const filteredData = data.filter(event => {
     const eventDate = new Date(event.serviceDate);
@@ -35,7 +37,17 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
 
     const isBeforeToday = eventDate < today;
 
-    if (activeTab === 'settled') return isBeforeToday;
+    // Base Tab Filter
+    if (activeTab === 'settled') {
+      if (!isBeforeToday) return false;
+      
+      // Time Period Filters (Settled Only)
+      if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
+      if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
+      
+      return true;
+    }
+    
     if (activeTab === 'future') return !isBeforeToday;
     return true;
   });
@@ -173,38 +185,85 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-        {[
-          { id: 'settled', label: 'Settled Transactions', icon: '✅', sub: 'Completed up to yesterday' },
-          { id: 'future', label: 'Future & Today', icon: '📅', sub: 'In-progress and upcoming' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            style={{
-              background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
-              color: activeTab === tab.id ? 'white' : 'var(--foreground)',
-              border: 'none',
-              padding: '1rem 2rem',
-              borderRadius: '16px',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: '0.2rem',
-              transition: 'all 0.2s',
-              opacity: activeTab === tab.id ? 1 : 0.6,
-              flex: 1,
-              textAlign: 'left'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
-               <span>{tab.icon}</span> {tab.label}
-            </div>
-            <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
-          </button>
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+          {[
+            { id: 'settled', label: 'Settled Transactions', icon: '✅', sub: 'Completed up to yesterday' },
+            { id: 'future', label: 'Future & Today', icon: '📅', sub: 'In-progress and upcoming' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              style={{
+                background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                color: activeTab === tab.id ? 'white' : 'var(--foreground)',
+                border: 'none',
+                padding: '1rem 2rem',
+                borderRadius: '16px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '0.2rem',
+                transition: 'all 0.2s',
+                opacity: activeTab === tab.id ? 1 : 0.6,
+                flex: 1,
+                textAlign: 'left'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
+                 <span>{tab.icon}</span> {tab.label}
+              </div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'settled' && (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', animation: 'fadeIn 0.3s ease-out' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Filter Period:</span>
+            
+            <select 
+              value={selectedYear} 
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{ 
+                background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
+                border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
+                fontWeight: 700, outline: 'none', cursor: 'pointer'
+              }}
+            >
+              <option value="all">All Years</option>
+              {[2024, 2025, 2026].map(y => <option key={y} value={y.toString()}>{y}</option>)}
+            </select>
+
+            <select 
+              value={selectedMonth} 
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              style={{ 
+                background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
+                border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
+                fontWeight: 700, outline: 'none', cursor: 'pointer'
+              }}
+            >
+              <option value="all">All Months</option>
+              {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, i) => (
+                <option key={m} value={i.toString()}>{m}</option>
+              ))}
+            </select>
+
+            <button 
+              onClick={() => { setSelectedYear("all"); setSelectedMonth("all"); }}
+              style={{ 
+                background: 'transparent', border: '1px dashed var(--border)', 
+                padding: '0.6rem 1.2rem', borderRadius: '12px', fontSize: '0.75rem',
+                fontWeight: 700, cursor: 'pointer', opacity: 0.6
+              }}
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Grouped Table View */}
