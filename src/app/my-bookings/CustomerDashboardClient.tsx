@@ -229,7 +229,7 @@ export default function CustomerDashboardClient({
                 {/* Stats Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
                     {[
-                        { label: 'All Bookings', value: upcoming.length + past.length, color: '#6366f1', trend: '+35%' },
+                        { label: 'All Bookings', value: upcoming.length + completed.length + cancelled.length, color: '#6366f1', trend: '+35%' },
                         { label: 'Completed', value: completedCount, color: '#22c55e', trend: '+25%' },
                         { label: 'Cancelled', value: cancelledCount, color: '#ef4444', trend: '-10%' }
                     ].map((stat, i) => (
