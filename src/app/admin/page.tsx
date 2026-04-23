@@ -11,15 +11,30 @@ export default async function AdminOverview() {
 
   const pendingReview = totalShops - activeShops;
   
-  // Calculate Global Gross Merchandise Value (GMV) across ALL shops globally
-  const globalAppointments: any[] = await prisma.$queryRaw`
-    SELECT a.*, s.price as "servicePrice"
-    FROM "Appointment" a
-    JOIN "Service" s ON a."serviceId" = s.id
-    WHERE a."paymentStatus" = 'PAID'
-  `;
-  const gmv = globalAppointments.reduce((acc, app) => acc + Number(app.servicePrice || 0), 0);
-  const platformFees = gmv * 0.025; // Simulated 2.5% commission
+  // Calculate Global Gross Merchandise Value (GMV) and Platform Earnings
+  const appointments = await prisma.appointment.findMany({
+    where: { paymentStatus: 'PAID' },
+    include: { service: true }
+  });
+
+  const settings = await prisma.platformSettings.findFirst();
+  const platformCommission = settings?.defaultPlatformFee || 0.02;
+
+  const metrics = appointments.reduce((acc, app) => {
+    const isCancelled = app.status === 'CANCELLED';
+    const servicePrice = app.service.price;
+    const priorityFee = 0.50;
+    const grossRevenue = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
+    const commissionAmount = Math.abs(isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission));
+    
+    return {
+      gmv: acc.gmv + grossRevenue,
+      commissions: acc.commissions + (commissionAmount + priorityFee)
+    };
+  }, { gmv: 0, commissions: 0 });
+
+  const gmv = metrics.gmv;
+  const platformFees = metrics.commissions;
   
   // Scrape recent Shops
   const recentShops = await prisma.tenant.findMany({
@@ -120,7 +135,7 @@ export default async function AdminOverview() {
               {(() => {
                  // Group appointments by customer + startTime + tenantId
                  const groups: Record<string, any[]> = {};
-                 globalAppointments.forEach(app => {
+                 appointments.forEach(app => {
                     const key = `${app.customerId}-${app.startTime}-${app.tenantId}`;
                     if (!groups[key]) groups[key] = [];
                     groups[key].push(app);
@@ -138,7 +153,7 @@ export default async function AdminOverview() {
                     </tr>
                  ));
               })()}
-              {globalAppointments.length === 0 && (
+              {appointments.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ textAlign: 'center', opacity: 0.5, fontStyle: 'italic', padding: '1.5rem' }}>No synchronized group events detected in the current cluster.</td>
                 </tr>
