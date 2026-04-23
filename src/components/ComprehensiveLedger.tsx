@@ -27,6 +27,7 @@ interface LedgerEvent {
   disputeReason?: string | null;
   disputeStatus?: string | null;
   disputeResolvedAt?: string | null;
+  disputeResolvedBy?: string | null;
   disputeResolutionMemo?: string | null;
 }
 
