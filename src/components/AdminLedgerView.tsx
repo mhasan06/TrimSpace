@@ -230,16 +230,17 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         </div>
 
         {activeTab === 'disputes' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 900, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resolution Queue:</span>
-            <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.07)', padding: '0.3rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resolution Queue:</span>
+            <div style={{ display: 'flex', gap: '0.4rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               <button 
                 onClick={() => setDisputeSubTab('pending')}
                 style={{ 
-                  background: disputeSubTab === 'pending' ? 'rgba(245, 158, 11, 0.15)' : 'transparent',
-                  color: disputeSubTab === 'pending' ? '#f59e0b' : 'rgba(255,255,255,0.6)',
-                  border: disputeSubTab === 'pending' ? '1px solid rgba(245, 158, 11, 0.3)' : '1px solid transparent',
-                  padding: '0.5rem 1.2rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s'
+                  background: disputeSubTab === 'pending' ? '#f59e0b' : 'transparent',
+                  color: disputeSubTab === 'pending' ? 'white' : '#64748b',
+                  border: 'none',
+                  padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s',
+                  boxShadow: disputeSubTab === 'pending' ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none'
                 }}
               >
                 PENDING REVIEW ({data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length})
@@ -247,10 +248,11 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
               <button 
                 onClick={() => setDisputeSubTab('resolved')}
                 style={{ 
-                  background: disputeSubTab === 'resolved' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                  color: disputeSubTab === 'resolved' ? '#10b981' : 'rgba(255,255,255,0.6)',
-                  border: disputeSubTab === 'resolved' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid transparent',
-                  padding: '0.5rem 1.2rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s'
+                  background: disputeSubTab === 'resolved' ? '#10b981' : 'transparent',
+                  color: disputeSubTab === 'resolved' ? 'white' : '#64748b',
+                  border: 'none',
+                  padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s',
+                  boxShadow: disputeSubTab === 'resolved' ? '0 4px 12px rgba(16, 185, 129, 0.2)' : 'none'
                 }}
               >
                 RESOLVED HISTORY ({data.filter(e => e.disputeStatus && (e.disputeStatus === 'RESOLVED_PAYOUT' || e.disputeStatus === 'RESOLVED_REFUND')).length})
