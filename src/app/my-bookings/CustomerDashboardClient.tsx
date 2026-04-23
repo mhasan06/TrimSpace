@@ -396,14 +396,14 @@ export default function CustomerDashboardClient({
                                                                 small
                                                             />
                                                         )}
-                                                        {!service.isDisputed && (activeTab === 'completed' || service.status === 'CANCELLED') && (
+                                                        {!(service.isDisputed || !!service.disputeStatus) && (activeTab === 'completed' || service.status === 'CANCELLED') && (
                                                             <RaiseDisputeButton 
                                                                 appointmentId={service.id} 
                                                                 serviceName={service.name} 
                                                                 date={service.startTime} 
                                                             />
                                                         )}
-                                                        {service.isDisputed && (
+                                                        {(service.isDisputed || !!service.disputeStatus) && (
                                                             <button 
                                                                 onClick={() => setExpandedDisputeId(expandedDisputeId === service.id ? null : service.id)}
                                                                 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', background: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}

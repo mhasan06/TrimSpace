@@ -40,7 +40,7 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
-        isDisputed: false,
+        isDisputed: true,
         disputeStatus: status,
         disputeResolutionMemo: memo,
         disputeResolvedAt: new Date(),
