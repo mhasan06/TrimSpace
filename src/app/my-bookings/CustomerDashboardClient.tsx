@@ -370,6 +370,7 @@ export default function CustomerDashboardClient({
                                             const sTime = new Date(service.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
                                             const sDate = new Date(service.startTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' });
                                             return (
+                                                <>
                                                 <div key={service.id || idx} style={{ 
                                                     background: 'white', padding: '1rem 1.5rem', borderRadius: '18px', 
                                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
