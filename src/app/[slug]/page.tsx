@@ -10,13 +10,17 @@ import { getIsFavorited } from './favoriteActions';
 export default async function TenantPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
-  // High-fidelity fetch including relations for Team and Services
+  // Fetch platform settings for policies
+  const platformSettings = await prisma.platformSettings.findUnique({
+    where: { id: 'platform_global' }
+  });
+
   const tenant: any = await prisma.tenant.findUnique({
     where: { slug },
     include: {
         services: { where: { isActive: true } },
         businessHours: true,
-        users: { where: { role: { in: ['BARBER', 'ADMIN'] }, isActive: true } } // This is our 'Team'
+        users: { where: { role: { in: ['BARBER', 'ADMIN'] }, isActive: true } }
     }
   });
 
@@ -110,6 +114,8 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
                         initialServices={tenant.services} 
                         tenantSlug={tenant.slug} 
                         category={tenant.category} 
+                        cancellationPolicy={platformSettings?.cancellationPolicy}
+                        bookingPolicy={platformSettings?.bookingPolicy}
                       />
                   </section>
 

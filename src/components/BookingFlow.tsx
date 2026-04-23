@@ -17,17 +17,22 @@ export type Service = {
 export default function BookingFlow({ 
   initialServices, 
   tenantSlug,
-  category = 'BARBER'
+  category = 'BARBER',
+  cancellationPolicy,
+  bookingPolicy
 }: { 
   initialServices: Service[], 
   tenantSlug: string,
-  category?: string 
+  category?: string,
+  cancellationPolicy?: string | null,
+  bookingPolicy?: string | null
 }) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
   const [stage, setStage] = useState<"SERVICES" | "CALENDAR" | "PAYMENT">("SERVICES");
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
+  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
@@ -369,24 +374,47 @@ export default function BookingFlow({
                 <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>{new Date(targetDate).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })} at {selectedTime}</p>
              </div>
 
-             <button 
-                onClick={handleFinalCheckout}
-                disabled={isPending || isProcessingPayment}
-                style={{ 
-                    marginTop: '2.5rem', 
-                    width: '100%', 
-                    padding: '1.4rem', 
-                    background: '#000', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: '20px', 
-                    fontWeight: 900, 
-                    fontSize: '1.2rem', 
-                    cursor: 'pointer',
-                    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)'
-                }}>
-                {isProcessingPayment ? "Redirecting to Secure Checkout..." : "Confirm & Pay Online"}
-             </button>
+              <div style={{ marginTop: '2.5rem', padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '20px' }}>
+                <h4 style={{ fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', marginBottom: '1rem' }}>Policies & Terms</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ fontSize: '0.85rem', lineHeight: 1.5, color: '#475569' }}>
+                        <strong style={{ color: '#1e293b' }}>Booking Policy:</strong> {bookingPolicy || "A valid payment method is required to secure your booking."}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', lineHeight: 1.5, color: '#475569' }}>
+                        <strong style={{ color: '#1e293b' }}>Cancellation Policy:</strong> {cancellationPolicy || "Cancellations must be made at least 24 hours in advance."}
+                    </div>
+                </div>
+
+                <label style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.5rem', cursor: 'pointer', background: agreedToPolicies ? 'rgba(99,102,241,0.05)' : 'transparent', padding: '1rem', borderRadius: '12px', border: agreedToPolicies ? '1px solid #6366f1' : '1px solid transparent', transition: 'all 0.2s' }}>
+                    <input 
+                        type="checkbox" 
+                        checked={agreedToPolicies} 
+                        onChange={(e) => setAgreedToPolicies(e.target.checked)}
+                        style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366f1' }}
+                    />
+                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>I agree to the Booking and Cancellation policies.</span>
+                </label>
+              </div>
+
+              <button 
+                 onClick={handleFinalCheckout}
+                 disabled={isPending || isProcessingPayment || !agreedToPolicies}
+                 style={{ 
+                     marginTop: '2.5rem', 
+                     width: '100%', 
+                     padding: '1.4rem', 
+                     background: agreedToPolicies ? '#000' : '#cbd5e1', 
+                     color: '#fff', 
+                     border: 'none', 
+                     borderRadius: '20px', 
+                     fontWeight: 900, 
+                     fontSize: '1.2rem', 
+                     cursor: agreedToPolicies ? 'pointer' : 'not-allowed',
+                     boxShadow: agreedToPolicies ? '0 20px 40px -10px rgba(0,0,0,0.3)' : 'none',
+                     transition: 'all 0.3s ease'
+                 }}>
+                 {isProcessingPayment ? "Redirecting to Secure Checkout..." : "Confirm & Pay Online"}
+              </button>
           </div>
       )}
 
