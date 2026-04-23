@@ -26,10 +26,12 @@ interface LedgerEvent {
   isDisputed?: boolean;
   disputeReason?: string | null;
   disputeStatus?: string | null;
+  disputeResolvedAt?: string | null;
+  disputeResolutionMemo?: string | null;
 }
 
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
-  const [activeTab, setActiveTab] = useState<'settled' | 'future'>('settled');
+  const [activeTab, setActiveTab] = useState<'settled' | 'future' | 'disputes'>('settled');
   const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
@@ -51,25 +53,26 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   };
 
   const filteredData = data.filter(event => {
-// ... rest of filtering logic ...
     const eventDate = new Date(event.serviceDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const isBeforeToday = eventDate < today;
 
-    // Base Tab Filter
+    if (activeTab === 'disputes') {
+      return event.isDisputed || (event.disputeStatus && event.disputeStatus.startsWith('RESOLVED'));
+    }
+
+    // Exclude currently active disputes from normal tabs to avoid confusion about frozen funds
+    if (event.isDisputed && activeTab !== 'disputes') return false;
+
     if (activeTab === 'settled') {
       if (!isBeforeToday) return false;
-      
-      // Time Period Filters (Settled Only)
       if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
       if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
-      
-      return true;
+    } else {
+      if (isBeforeToday) return false;
     }
-    
-    if (activeTab === 'future') return !isBeforeToday;
     return true;
   });
 
@@ -186,9 +189,32 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               </div>
             </div>
 
-            {/* Dispute Section */}
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: selectedEvent.isDisputed ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.03)', borderRadius: '16px', border: `1px dashed ${selectedEvent.isDisputed ? '#f59e0b' : 'rgba(255,255,255,0.1)'}` }}>
-              {selectedEvent.isDisputed ? (
+            {/* Dispute Section (Integrated Audit Trail) */}
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: selectedEvent.isDisputed || selectedEvent.disputeStatus?.startsWith('RESOLVED') ? 'rgba(245, 158, 11, 0.05)' : 'rgba(255,255,255,0.03)', borderRadius: '16px', border: `1px dashed ${selectedEvent.isDisputed ? '#f59e0b' : 'rgba(255,255,255,0.1)'}` }}>
+              {selectedEvent.disputeStatus?.startsWith('RESOLVED') ? (
+                <div style={{ padding: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                    <span style={{ 
+                      fontSize: '0.75rem', fontWeight: 900, 
+                      color: selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444',
+                      background: selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                      padding: '0.3rem 0.6rem', borderRadius: '6px'
+                    }}>
+                      VERDICT: {selectedEvent.disputeStatus.replace('RESOLVED_', '')}
+                    </span>
+                    <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>
+                      {selectedEvent.disputeResolvedAt ? new Date(selectedEvent.disputeResolvedAt).toLocaleDateString() : ''}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
+                    <span style={{ opacity: 0.4, fontSize: '0.65rem', display: 'block', fontWeight: 900, textTransform: 'uppercase' }}>Resolution Note:</span>
+                    <div style={{ fontWeight: 600, marginTop: '0.2rem' }}>{selectedEvent.disputeResolutionMemo}</div>
+                  </div>
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem', fontSize: '0.75rem', opacity: 0.5 }}>
+                    <span style={{ fontWeight: 800 }}>Your Reason:</span> "{selectedEvent.disputeReason}"
+                  </div>
+                </div>
+              ) : selectedEvent.isDisputed ? (
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     ⚠️ Active Dispute Under Review
@@ -196,6 +222,9 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                   <div style={{ fontSize: '0.85rem', opacity: 0.8, fontStyle: 'italic' }}>
                     "{selectedEvent.disputeReason}"
                   </div>
+                  <p style={{ fontSize: '0.65rem', opacity: 0.5, marginTop: '0.8rem', fontWeight: 700 }}>
+                    Payout for this item is frozen until the App Admin provides a verdict.
+                  </p>
                 </div>
               ) : (
                 <div>
@@ -256,14 +285,15 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {[
             { id: 'settled', label: 'Settled Transactions', icon: '✅', sub: 'Completed up to yesterday' },
+            { id: 'disputes', label: 'Disputes & Claims', icon: '⚠️', sub: 'Active and Resolved' },
             { id: 'future', label: 'Future & Today', icon: '📅', sub: 'In-progress and upcoming' }
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               style={{
-                background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
-                color: activeTab === tab.id ? 'white' : 'var(--foreground)',
+                background: activeTab === tab.id ? (tab.id === 'disputes' ? '#f59e0b' : 'var(--primary)') : 'transparent',
+                color: activeTab === tab.id ? (tab.id === 'disputes' ? 'black' : 'white') : 'var(--foreground)',
                 border: 'none',
                 padding: '1rem 2rem',
                 borderRadius: '16px',
@@ -281,6 +311,11 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
                  <span>{tab.icon}</span> {tab.label}
+                 {tab.id === 'disputes' && data.filter(e => e.isDisputed || (e.disputeStatus && e.disputeStatus.startsWith('RESOLVED'))).length > 0 && (
+                   <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
+                     {data.filter(e => e.isDisputed || (e.disputeStatus && e.disputeStatus.startsWith('RESOLVED'))).length}
+                   </span>
+                 )}
               </div>
               <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
             </button>

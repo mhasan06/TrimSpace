@@ -70,6 +70,8 @@ export default async function FinancialLedgerPage() {
       isDisputed: app.isDisputed,
       disputeReason: app.disputeReason,
       disputeStatus: app.disputeStatus,
+      disputeResolvedAt: app.disputeResolvedAt?.toISOString(),
+      disputeResolutionMemo: app.disputeResolutionMemo,
     };
   });
 
