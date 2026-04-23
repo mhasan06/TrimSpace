@@ -34,9 +34,6 @@ export default async function MyBookings() {
     barber: { name: app.barberName }
   }));
 
-  const { getSydneyDate } = require("@/lib/dateUtils");
-  const now = getSydneyDate();
-  
   const groupList = (list: any[]) => {
     const groups: any[] = [];
     const map = new Map();
@@ -86,6 +83,8 @@ export default async function MyBookings() {
     include: { tenant: true }
   });
 
+  const now = new Date();
+  
   const allGroups = groupList(mappedAppointments);
   
   // Fetch Dispute Notes for transparency
