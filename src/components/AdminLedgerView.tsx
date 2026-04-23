@@ -61,12 +61,10 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
     const isBeforeToday = eventDate < today;
 
-    // Dispute Tab isolates all disputed items
     if (activeTab === 'disputes') {
       return event.isDisputed;
     }
 
-    // Standard tabs exclude disputed items to "freeze" them
     if (event.isDisputed) return false;
 
     if (activeTab === 'settled') {
@@ -78,7 +76,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
     }
     return true;
   });
-// ... rest of header and tabs ...
 
   const totals = filteredData.reduce((acc, curr) => ({
     gross: acc.gross + curr.grossAmount,
@@ -87,7 +84,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
     stripe: acc.stripe + curr.processingFee
   }), { gross: 0, net: 0, platform: 0, stripe: 0 });
 
-  // Group by SHOP
   const groupedByShop = filteredData.reduce((acc: any, event) => {
     if (!acc[event.shopId]) {
       acc[event.shopId] = { 
@@ -120,7 +116,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Admin Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0 }}>Financial Command Center</h1>
@@ -140,7 +135,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         </button>
       </div>
 
-      {/* Summary Header */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #6366f1' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Gross Collected</h4>
@@ -160,7 +154,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         </div>
       </div>
 
-      {/* Resolution Modal */}
       {resolvingEvent && (
         <div 
           onClick={() => setResolvingEvent(null)}
@@ -201,7 +194,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         </div>
       )}
 
-      {/* Tabs & Filters */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {[
@@ -215,19 +207,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
               style={{
                 background: activeTab === tab.id ? (tab.id === 'disputes' ? '#f59e0b' : 'var(--primary)') : 'transparent',
                 color: activeTab === tab.id ? (tab.id === 'disputes' ? 'black' : 'white') : 'var(--foreground)',
-                border: 'none',
-                padding: '1rem 2rem',
-                borderRadius: '16px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'flex-start',
-                gap: '0.2rem',
-                transition: 'all 0.2s',
-                opacity: activeTab === tab.id ? 1 : 0.6,
-                flex: 1,
-                textAlign: 'left'
+                border: 'none', padding: '1rem 2rem', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.2rem', transition: 'all 0.2s', opacity: activeTab === tab.id ? 1 : 0.6, flex: 1, textAlign: 'left'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
@@ -267,7 +247,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         )}
       </div>
 
-      {/* MERCHANT TABLE */}
       <div className="glass" style={{ borderRadius: '24px', overflow: 'hidden' }}>
         <table className={styles.table}>
           <thead>
@@ -319,6 +298,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                   <th>Service Date</th>
                                   <th>Customer</th>
                                   <th>Service Description</th>
+                                  {activeTab === 'disputes' && <th>Merchant Reason</th>}
                                   <th>Service Fees</th>
                                   <th>Status</th>
                                   <th>Gross Revenue</th>
@@ -337,6 +317,11 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                     <td style={{ fontWeight: 600 }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
                                     <td style={{ fontWeight: 700 }}>{event.customer}</td>
                                     <td>{event.serviceName}</td>
+                                    {activeTab === 'disputes' && (
+                                      <td style={{ fontStyle: 'italic', color: '#f59e0b', fontSize: '0.75rem', maxWidth: '200px' }}>
+                                        "{event.disputeReason}"
+                                      </td>
+                                    )}
                                     <td style={{ fontWeight: 600 }}>
                                       ${event.servicePrice.toFixed(2)}
                                     </td>
@@ -364,7 +349,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                         </button>
                                       </td>
                                     )}
-                                  </tr>
+                                 </tr>
                                ))}
                             </tbody>
                          </table>
