@@ -3,8 +3,9 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-export default function SocialLoginButtons() {
+export default function SocialLoginButtons({ mode = "in" }: { mode?: "in" | "up" }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const label = mode === "in" ? "Sign in" : "Sign up";
 
   const handleSocialLogin = async (provider: string) => {
     setLoading(provider);
@@ -45,7 +46,7 @@ export default function SocialLoginButtons() {
           <path fill="#FBBC05" d="M5.84 14.11c-.22-.66-.35-1.36-.35-2.11s.13-1.45.35-2.11V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.83z" />
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.83c.87-2.6 3.3-4.53 6.16-4.53z" />
         </svg>
-        {loading === "google" ? "Connecting..." : "Sign in with Google"}
+        {loading === "google" ? "Connecting..." : `${label} with Google`}
       </button>
 
       <button
@@ -71,7 +72,7 @@ export default function SocialLoginButtons() {
         <svg width="20" height="20" fill="white" viewBox="0 0 24 24">
           <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
         </svg>
-        {loading === "facebook" ? "Connecting..." : "Sign in with Facebook"}
+        {loading === "facebook" ? "Connecting..." : `${label} with Facebook`}
       </button>
     </div>
   );

@@ -74,7 +74,7 @@ function RegisterContent() {
 
         {!isBusiness && !formState?.success && (
           <div style={{ marginTop: '1.5rem' }}>
-            <SocialLoginButtons />
+            <SocialLoginButtons mode="up" />
           </div>
         )}
       </main>
