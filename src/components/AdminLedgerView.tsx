@@ -30,6 +30,13 @@ interface AdminLedgerEvent {
   disputeStatus?: string | null;
   disputeResolvedBy?: string | null;
   disputeResolutionMemo?: string | null;
+  disputeNotes?: {
+    id: string;
+    content: string;
+    authorName: string;
+    authorRole: string;
+    createdAt: string;
+  }[];
 }
 
 export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
@@ -41,7 +48,22 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
   const [isTriggering, setIsTriggering] = useState(false);
   const [resolvingEvent, setResolvingEvent] = useState<AdminLedgerEvent | null>(null);
   const [resolutionMemo, setResolutionMemo] = useState("");
+  const [newComment, setNewComment] = useState("");
   const [isResolving, setIsResolving] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+
+  const handleAddNote = async () => {
+    if (!resolvingEvent || !newComment) return;
+    setIsAddingNote(true);
+    const res = await addDisputeNoteAction(resolvingEvent.id, newComment);
+    if (res.success) {
+      setNewComment("");
+      // Ideally we would update the local state too, but revalidatePath will handle the refresh
+    } else {
+      alert(res.error);
+    }
+    setIsAddingNote(false);
+  };
 
   const handleResolve = async (resolution: 'PAYOUT' | 'REFUND') => {
     if (!resolvingEvent || !resolutionMemo) return;
@@ -163,40 +185,64 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
       {resolvingEvent && (
         <div 
-          onClick={() => { setResolvingEvent(null); setResolutionMemo(""); }}
+          onClick={() => { setResolvingEvent(null); setResolutionMemo(""); setNewComment(""); }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
         >
-          <div onClick={e => e.stopPropagation()} className="glass" style={{ width: '500px', padding: '2.5rem', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div onClick={e => e.stopPropagation()} className="glass" style={{ width: '650px', maxHeight: '90vh', overflowY: 'auto', padding: '2.5rem', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.2)' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>
-              {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? 'Dispute Audit Log' : 'Resolve Financial Dispute'}
+              {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? 'Dispute Audit Log' : 'Dispute Investigation'}
             </h2>
             
             <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px dashed #f59e0b' }}>
-               <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Merchant Reason:</div>
+               <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Original Merchant Claim:</div>
                <div style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>"{resolvingEvent.disputeReason}"</div>
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Resolution Memo:</div>
-              {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? (
-                <div style={{ 
-                  width: '100%', minHeight: '120px', maxHeight: '300px', overflowY: 'auto',
-                  background: 'rgba(255,255,255,0.03)', color: 'white', 
-                  border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem',
-                  fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', opacity: 0.9
-                }}>
-                  {resolvingEvent.disputeResolutionMemo || "No memo recorded."}
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase', marginBottom: '1rem' }}>Investigation Timeline:</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                {(resolvingEvent.disputeNotes || []).length === 0 && (
+                  <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.4, border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '16px' }}>
+                    No investigation notes yet. Start the conversation below.
+                  </div>
+                )}
+                {(resolvingEvent.disputeNotes || []).map((note, idx) => (
+                  <div key={idx} style={{ 
+                    alignSelf: note.authorRole === 'ADMIN' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    background: note.authorRole === 'ADMIN' ? '#6366f1' : 'rgba(255,255,255,0.07)',
+                    padding: '1rem',
+                    borderRadius: '16px',
+                    borderBottomRightRadius: note.authorRole === 'ADMIN' ? '2px' : '16px',
+                    borderBottomLeftRadius: note.authorRole === 'MERCHANT' ? '2px' : '16px',
+                  }}>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 900, opacity: 0.8, marginBottom: '0.3rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                      <span>{note.authorName} ({note.authorRole})</span>
+                      <span>{new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{note.content}</div>
+                  </div>
+                ))}
+              </div>
+
+              {!resolvingEvent.disputeStatus?.startsWith('RESOLVED') && (
+                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <textarea 
+                    placeholder="Post a status update or ask the merchant a question..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    style={{ width: '100%', height: '80px', background: 'transparent', color: 'white', border: 'none', outline: 'none', resize: 'none', fontSize: '0.9rem' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button 
+                      onClick={handleAddNote}
+                      disabled={isAddingNote || !newComment}
+                      style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', opacity: isAddingNote || !newComment ? 0.5 : 1 }}
+                    >
+                      {isAddingNote ? 'Posting...' : 'POST UPDATE'}
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                <textarea 
-                  placeholder="Internal resolution memo (Mandatory)..."
-                  value={resolutionMemo}
-                  onChange={(e) => setResolutionMemo(e.target.value)}
-                  style={{ 
-                    width: '100%', height: '150px', background: 'rgba(255,255,255,0.05)', color: 'white', 
-                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', outline: 'none'
-                  }}
-                />
               )}
             </div>
 
@@ -206,41 +252,56 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                 background: resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                 border: `1px solid ${resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444'}`
               }}>
-                <div style={{ fontWeight: 900, fontSize: '0.8rem', color: resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                   FINAL VERDICT: {resolvingEvent.disputeStatus.replace('RESOLVED_', '')}
+                <div style={{ fontWeight: 900, fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Final Resolution Summary:</div>
+                <div style={{ fontSize: '0.95rem', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
+                  {resolvingEvent.disputeResolutionMemo}
                 </div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                  Confirmed by <span style={{ color: 'var(--primary)' }}>{resolvingEvent.disputeResolvedBy || 'System Admin'}</span>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 900, fontSize: '0.8rem', color: resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444', textTransform: 'uppercase' }}>
+                     VERDICT: {resolvingEvent.disputeStatus.replace('RESOLVED_', '')}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                    Closed by <span style={{ color: 'var(--primary)' }}>{resolvingEvent.disputeResolvedBy || 'System Admin'}</span>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button 
-                  onClick={() => handleResolve('PAYOUT')}
-                  disabled={isResolving || !resolutionMemo}
-                  style={{ flex: 1, background: '#10b981', color: 'black', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
-                >
-                  RELEASE PAYOUT
-                </button>
-                <button 
-                  onClick={() => handleResolve('REFUND')}
-                  disabled={isResolving || !resolutionMemo}
-                  style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
-                >
-                  REFUND CUSTOMER
-                </button>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
+                <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase', marginBottom: '1rem' }}>Final Resolution Decision:</div>
+                <textarea 
+                  placeholder="Final decision memo (Visible to merchant)..."
+                  value={resolutionMemo}
+                  onChange={(e) => setResolutionMemo(e.target.value)}
+                  style={{ width: '100%', height: '100px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', marginBottom: '1.5rem', outline: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    onClick={() => handleResolve('PAYOUT')}
+                    disabled={isResolving || !resolutionMemo}
+                    style={{ flex: 1, background: '#10b981', color: 'black', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
+                  >
+                    RELEASE PAYOUT
+                  </button>
+                  <button 
+                    onClick={() => handleResolve('REFUND')}
+                    disabled={isResolving || !resolutionMemo}
+                    style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
+                  >
+                    REFUND CUSTOMER
+                  </button>
+                </div>
               </div>
             )}
             
             <button 
-              onClick={() => { setResolvingEvent(null); setResolutionMemo(""); }} 
+              onClick={() => { setResolvingEvent(null); setResolutionMemo(""); setNewComment(""); }} 
               style={{ 
                 width: '100%', marginTop: '2rem', background: '#334155', color: 'white', 
                 border: 'none', padding: '1.2rem', borderRadius: '16px', fontWeight: 900, 
                 cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
               }}
             >
-              CLOSE AUDIT LOG
+              CLOSE COMMAND CENTER
             </button>
           </div>
         </div>

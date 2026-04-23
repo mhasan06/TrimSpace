@@ -17,7 +17,8 @@ export default async function FinancialLedgerPage() {
     include: {
       customer: true,
       service: true,
-      settlement: true
+      settlement: true,
+      disputeNotes: true
     },
     orderBy: { startTime: 'desc' }
   });
@@ -72,6 +73,13 @@ export default async function FinancialLedgerPage() {
       disputeStatus: app.disputeStatus,
       disputeResolvedAt: app.disputeResolvedAt?.toISOString(),
       disputeResolutionMemo: app.disputeResolutionMemo,
+      disputeNotes: app.disputeNotes.map(n => ({
+        id: n.id,
+        content: n.content,
+        authorName: n.authorName,
+        authorRole: n.authorRole,
+        createdAt: n.createdAt.toISOString()
+      })),
     };
   });
 

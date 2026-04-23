@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 export default async function AdminLedgerPage() {
   // Fetch ALL appointments for ALL shops
   const appointments = await prisma.appointment.findMany({
-    include: {
       customer: true,
       service: true,
       tenant: true, // Need shop name for admin view
+      disputeNotes: true,
     },
     orderBy: {
       startTime: 'desc',
@@ -64,6 +64,13 @@ export default async function AdminLedgerPage() {
       disputeStatus: app.disputeStatus,
       disputeResolvedBy: app.disputeResolvedBy,
       disputeResolutionMemo: app.disputeResolutionMemo,
+      disputeNotes: app.disputeNotes.map(n => ({
+        id: n.id,
+        content: n.content,
+        authorName: n.authorName,
+        authorRole: n.authorRole,
+        createdAt: n.createdAt.toISOString()
+      })),
     };
   });
 

@@ -56,3 +56,29 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
     return { success: false, error: "Server error resolving dispute" };
   }
 }
+
+export async function addDisputeNoteAction(appointmentId: string, content: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, error: "Unauthorized" };
+
+    const authorName = session.user?.name || "User";
+    const authorRole = (session.user as any).role === 'ADMIN' ? 'ADMIN' : 'MERCHANT';
+
+    await prisma.disputeNote.create({
+      data: {
+        appointmentId,
+        content,
+        authorName,
+        authorRole
+      }
+    });
+
+    revalidatePath('/admin/ledger');
+    revalidatePath('/dashboard/ledger');
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to add note:", error);
+    return { success: false, error: "Server error adding note" };
+  }
+}
