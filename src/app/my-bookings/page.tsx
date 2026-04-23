@@ -17,7 +17,7 @@ export default async function MyBookings() {
   });
 
   const appointments = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT a.*, t.name as "tenantName", t.slug as "tenantSlug", t.address as "tenantAddress", 
+    SELECT a.*, a."isDisputed", t.name as "tenantName", t.slug as "tenantSlug", t.address as "tenantAddress", 
            s.name as "serviceName", s.price as "servicePrice", b.name as "barberName"
     FROM "Appointment" a
     JOIN "Tenant" t ON a."tenantId" = t.id

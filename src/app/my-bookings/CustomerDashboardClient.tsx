@@ -7,6 +7,7 @@ import CustomerLogoutButton from "@/components/CustomerLogoutButton";
 import SessionHistoryTable from "./SessionHistoryTable";
 import InvoiceButton from "@/components/InvoiceButton";
 import CancelButton from "@/components/CancelButton";
+import RaiseDisputeButton from "@/components/RaiseDisputeButton";
 
 export default function CustomerDashboardClient({ 
     user, 
@@ -382,15 +383,29 @@ export default function CustomerDashboardClient({
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
-                                                        <CancelButton 
-                                                            appointmentId={service.id} 
-                                                            amountPaidStripe={service.amountPaidStripe} 
-                                                            amountPaidGift={service.amountPaidGift} 
-                                                            label="Cancel"
-                                                            small
-                                                        />
-                                                    )}
+                                                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                                                        {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
+                                                            <CancelButton 
+                                                                appointmentId={service.id} 
+                                                                amountPaidStripe={service.amountPaidStripe} 
+                                                                amountPaidGift={service.amountPaidGift} 
+                                                                label="Cancel"
+                                                                small
+                                                            />
+                                                        )}
+                                                        {!service.isDisputed && (activeTab === 'completed' || service.status === 'CANCELLED') && (
+                                                            <RaiseDisputeButton 
+                                                                appointmentId={service.id} 
+                                                                serviceName={service.name} 
+                                                                date={service.startTime} 
+                                                            />
+                                                        )}
+                                                        {service.isDisputed && (
+                                                            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', background: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>
+                                                                DISPUTE ACTIVE
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             );
                                         })}
