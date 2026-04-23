@@ -1,3 +1,7 @@
+"use client";
+
+import React, { useState } from "react";
+import styles from "../app/dashboard/page.module.css";
 import { resolveDisputeAction, addDisputeNoteAction, settleMerchantBatchAction } from "../app/dashboard/ledger/actions";
 
 interface AdminLedgerEvent {
