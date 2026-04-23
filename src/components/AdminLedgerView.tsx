@@ -178,17 +178,26 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
             <div style={{ marginBottom: '2rem' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Resolution Memo:</div>
-              <textarea 
-                placeholder="Internal resolution memo (Mandatory)..."
-                value={resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? (resolvingEvent.disputeResolutionMemo || "") : resolutionMemo}
-                readOnly={!!resolvingEvent.disputeStatus?.startsWith('RESOLVED')}
-                onChange={(e) => setResolutionMemo(e.target.value)}
-                style={{ 
-                  width: '100%', height: '120px', background: 'rgba(255,255,255,0.05)', color: 'white', 
-                  border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', outline: 'none',
-                  opacity: resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? 0.7 : 1
-                }}
-              />
+              {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? (
+                <div style={{ 
+                  width: '100%', minHeight: '120px', maxHeight: '300px', overflowY: 'auto',
+                  background: 'rgba(255,255,255,0.03)', color: 'white', 
+                  border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem',
+                  fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', opacity: 0.9
+                }}>
+                  {resolvingEvent.disputeResolutionMemo || "No memo recorded."}
+                </div>
+              ) : (
+                <textarea 
+                  placeholder="Internal resolution memo (Mandatory)..."
+                  value={resolutionMemo}
+                  onChange={(e) => setResolutionMemo(e.target.value)}
+                  style={{ 
+                    width: '100%', height: '150px', background: 'rgba(255,255,255,0.05)', color: 'white', 
+                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', outline: 'none'
+                  }}
+                />
+              )}
             </div>
 
             {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? (
@@ -222,7 +231,17 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                 </button>
               </div>
             )}
-            <button onClick={() => { setResolvingEvent(null); setResolutionMemo(""); }} style={{ width: '100%', marginTop: '1.5rem', background: 'transparent', color: 'white', border: 'none', opacity: 0.5, fontSize: '0.8rem', cursor: 'pointer' }}>Close View</button>
+            
+            <button 
+              onClick={() => { setResolvingEvent(null); setResolutionMemo(""); }} 
+              style={{ 
+                width: '100%', marginTop: '2rem', background: '#334155', color: 'white', 
+                border: 'none', padding: '1.2rem', borderRadius: '16px', fontWeight: 900, 
+                cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+              }}
+            >
+              CLOSE AUDIT LOG
+            </button>
           </div>
         </div>
       )}
