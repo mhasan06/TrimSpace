@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export default async function AdminLedgerPage() {
   // Fetch ALL appointments for ALL shops
   const appointments = await prisma.appointment.findMany({
+    include: {
       customer: true,
       service: true,
       tenant: true, // Need shop name for admin view
