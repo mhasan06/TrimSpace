@@ -341,6 +341,8 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (<option key={m} value={i.toString()}>{m}</option>))}
             </select>
           </div>
+        )}
+
         {activeTab === 'disputes' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Claim Status:</span>
