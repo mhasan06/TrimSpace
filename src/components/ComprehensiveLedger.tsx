@@ -64,7 +64,7 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
     }
 
     // Exclude currently active disputes from normal tabs to avoid confusion about frozen funds
-    if (event.isDisputed && activeTab !== 'disputes') return false;
+    if (event.isDisputed) return false;
 
     if (activeTab === 'settled') {
       if (!isBeforeToday) return false;
