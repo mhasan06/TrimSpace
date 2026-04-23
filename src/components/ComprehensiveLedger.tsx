@@ -341,9 +341,6 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (<option key={m} value={i.toString()}>{m}</option>))}
             </select>
           </div>
-        )}
-      </div>
-
         {activeTab === 'disputes' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Claim Status:</span>
@@ -373,51 +370,6 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                 RESOLVED ({data.filter(e => e.disputeStatus && e.disputeStatus.startsWith('RESOLVED')).length})
               </button>
             </div>
-          </div>
-        )}
-
-        {activeTab === 'settled' && (
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', animation: 'fadeIn 0.3s ease-out' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Filter Period:</span>
-            
-            <select 
-              value={selectedYear} 
-              onChange={(e) => setSelectedYear(e.target.value)}
-              style={{ 
-                background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
-                border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
-                fontWeight: 700, outline: 'none', cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Years</option>
-              {[2024, 2025, 2026].map(y => <option key={y} value={y.toString()}>{y}</option>)}
-            </select>
-
-            <select 
-              value={selectedMonth} 
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              style={{ 
-                background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', 
-                border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px',
-                fontWeight: 700, outline: 'none', cursor: 'pointer'
-              }}
-            >
-              <option value="all">All Months</option>
-              {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((m, i) => (
-                <option key={m} value={i.toString()}>{m}</option>
-              ))}
-            </select>
-
-            <button 
-              onClick={() => { setSelectedYear("all"); setSelectedMonth("all"); }}
-              style={{ 
-                background: 'transparent', border: '1px dashed var(--border)', 
-                padding: '0.6rem 1.2rem', borderRadius: '12px', fontSize: '0.75rem',
-                fontWeight: 700, cursor: 'pointer', opacity: 0.6
-              }}
-            >
-              Reset Filters
-            </button>
           </div>
         )}
       </div>
