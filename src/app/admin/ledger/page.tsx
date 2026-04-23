@@ -62,6 +62,7 @@ export default async function AdminLedgerPage() {
       isDisputed: app.isDisputed,
       disputeReason: app.disputeReason,
       disputeStatus: app.disputeStatus,
+      disputeResolvedBy: app.disputeResolvedBy,
     };
   });
 

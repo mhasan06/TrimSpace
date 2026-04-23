@@ -200,7 +200,7 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                       background: selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                       padding: '0.3rem 0.6rem', borderRadius: '6px'
                     }}>
-                      VERDICT: {selectedEvent.disputeStatus.replace('RESOLVED_', '')}
+                      VERDICT: {selectedEvent.disputeStatus.replace('RESOLVED_', '')} (by {selectedEvent.disputeResolvedBy || 'Platform Support'})
                     </span>
                     <span style={{ fontSize: '0.6rem', opacity: 0.5 }}>
                       {selectedEvent.disputeResolvedAt ? new Date(selectedEvent.disputeResolvedAt).toLocaleDateString() : ''}

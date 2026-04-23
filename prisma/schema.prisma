@@ -153,6 +153,7 @@ model Appointment {
   disputeReason String?
   disputeStatus String? // PENDING, RESOLVED_PAYOUT, RESOLVED_REFUND
   disputeResolvedAt DateTime?
+  disputeResolvedBy String?
   disputeResolutionMemo String? @db.Text
 }
 

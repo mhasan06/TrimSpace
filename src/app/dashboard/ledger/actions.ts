@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function flagDisputeAction(appointmentId: string, reason: string) {
   try {
@@ -20,35 +22,37 @@ export async function flagDisputeAction(appointmentId: string, reason: string) {
     return { success: true };
   } catch (error) {
     console.error("Dispute Error:", error);
-    return { error: "Failed to flag dispute. Please try again." };
+    return { success: false, error: "Failed to flag dispute. Please try again." };
   }
 }
 
 export async function resolveDisputeAction(appointmentId: string, resolution: 'PAYOUT' | 'REFUND', memo: string) {
   try {
-    const data: any = {
-      isDisputed: false,
-      disputeStatus: resolution === 'PAYOUT' ? 'RESOLVED_PAYOUT' : 'RESOLVED_REFUND',
-      disputeResolvedAt: new Date(),
-      disputeResolutionMemo: memo
-    };
-
-    // If it's a refund, we might want to update paymentStatus as well
-    if (resolution === 'REFUND') {
-      data.paymentStatus = 'REFUNDED';
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      return { success: false, error: "Unauthorized. Admin access required." };
     }
 
+    const adminName = session.user?.name || "Platform Admin";
+
+    const status = resolution === 'PAYOUT' ? 'RESOLVED_PAYOUT' : 'RESOLVED_REFUND';
+    
     await prisma.appointment.update({
       where: { id: appointmentId },
-      data
+      data: {
+        isDisputed: false,
+        disputeStatus: status,
+        disputeResolutionMemo: memo,
+        disputeResolvedAt: new Date(),
+        disputeResolvedBy: adminName
+      }
     });
 
-    revalidatePath("/dashboard/ledger");
-    revalidatePath("/admin/ledger");
-    
+    revalidatePath('/admin/ledger');
+    revalidatePath('/dashboard/ledger');
     return { success: true };
   } catch (error) {
-    console.error("Resolution Error:", error);
-    return { error: "Failed to resolve dispute." };
+    console.error("Failed to resolve dispute:", error);
+    return { success: false, error: "Server error resolving dispute" };
   }
 }

@@ -28,6 +28,7 @@ interface AdminLedgerEvent {
   isDisputed?: boolean;
   disputeReason?: string | null;
   disputeStatus?: string | null;
+  disputeResolvedBy?: string | null;
 }
 
 export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
