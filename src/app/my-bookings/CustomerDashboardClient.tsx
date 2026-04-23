@@ -17,11 +17,13 @@ export default function CustomerDashboardClient({
     userReviewIds,
     completedCount,
     cancelledCount,
-    favorites = []
+    favorites = [],
+    disputeNotes = []
 }: any) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("appointments");
     const [viewingInvoice, setViewingInvoice] = useState<any>(null);
+    const [expandedDisputeId, setExpandedDisputeId] = useState<string | null>(null);
 
     const filteredRows = (() => {
         if (activeTab === "appointments") return upcoming;
@@ -401,12 +403,53 @@ export default function CustomerDashboardClient({
                                                             />
                                                         )}
                                                         {service.isDisputed && (
-                                                            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', background: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>
-                                                                DISPUTE ACTIVE
-                                                            </span>
+                                                            <button 
+                                                                onClick={() => setExpandedDisputeId(expandedDisputeId === service.id ? null : service.id)}
+                                                                style={{ fontSize: '0.65rem', fontWeight: 900, color: '#ef4444', background: '#fee2e2', padding: '0.4rem 0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                                                            >
+                                                                {expandedDisputeId === service.id ? "CLOSE TIMELINE" : "VIEW TIMELINE"}
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                {/* Expanded Dispute Timeline */}
+                                                {expandedDisputeId === service.id && (
+                                                    <div style={{ background: 'white', border: '2px solid #fee2e2', borderRadius: '20px', padding: '1.5rem', marginTop: '-0.5rem', marginBottom: '1rem', marginLeft: '2rem' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                                            <div>
+                                                                <h5 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#1e293b' }}>Dispute Investigation</h5>
+                                                                <p style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700 }}>Status: <span style={{ color: '#ef4444' }}>{service.disputeStatus || 'PENDING'}</span></p>
+                                                            </div>
+                                                            <div style={{ textAlign: 'right' }}>
+                                                                <p style={{ margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 800 }}>REASON</p>
+                                                                <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800, color: '#1e293b' }}>{service.disputeReason?.replace(/_/g, ' ')}</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                            {disputeNotes.filter((n: any) => n.appointmentId === service.id).map((note: any, nidx: number) => (
+                                                                <div key={nidx} style={{ display: 'flex', gap: '1rem' }}>
+                                                                    <div style={{ minWidth: '40px', textAlign: 'right' }}>
+                                                                        <p style={{ margin: 0, fontSize: '0.6rem', color: '#94a3b8', fontWeight: 800 }}>{new Date(note.createdAt).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' })}</p>
+                                                                    </div>
+                                                                    <div style={{ flex: 1, background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                                                                            <span style={{ fontSize: '0.7rem', fontWeight: 900, color: note.authorRole === 'ADMIN' ? '#6366f1' : '#1e293b' }}>
+                                                                                {note.authorName} ({note.authorRole})
+                                                                            </span>
+                                                                        </div>
+                                                                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569', lineHeight: 1.5 }}>{note.content}</p>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {disputeNotes.filter((n: any) => n.appointmentId === service.id).length === 0 && (
+                                                                <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>No notes recorded for this dispute yet.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
                                             );
                                         })}
                                     </div>

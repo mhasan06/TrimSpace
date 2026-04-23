@@ -17,7 +17,7 @@ export default async function MyBookings() {
   });
 
   const appointments = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT a.*, a."isDisputed", t.name as "tenantName", t.slug as "tenantSlug", t.address as "tenantAddress", 
+    SELECT a.*, a."isDisputed", a."disputeStatus", a."disputeReason", t.name as "tenantName", t.slug as "tenantSlug", t.address as "tenantAddress", 
            s.name as "serviceName", s.price as "servicePrice", b.name as "barberName"
     FROM "Appointment" a
     JOIN "Tenant" t ON a."tenantId" = t.id
@@ -47,9 +47,9 @@ export default async function MyBookings() {
       if (!map.has(gid)) {
         map.set(gid, { 
             ...app, 
-            status: "GROUP", // Set a generic group status so it doesn't override individual services
+            status: "GROUP", 
             services: [], 
-            totalPrice: 0.50, // Rollback Priority Fee
+            totalPrice: 0.50,
             ids: [], 
             totalStripe: 0, 
             totalGift: 0,
@@ -66,6 +66,9 @@ export default async function MyBookings() {
         startTime: app.startTime,
         endTime: app.endTime,
         status: app.status,
+        isDisputed: app.isDisputed,
+        disputeStatus: app.disputeStatus,
+        disputeReason: app.disputeReason,
         cancellationFee: app.cancellationFee,
         amountPaidStripe: Number(app.amountPaidStripe || 0),
         amountPaidGift: Number(app.amountPaidGift || 0)
@@ -85,6 +88,13 @@ export default async function MyBookings() {
 
   const allGroups = groupList(mappedAppointments.reverse());
   
+  // Fetch Dispute Notes for transparency
+  const appointmentIds = mappedAppointments.map(a => a.id);
+  const disputeNotes = await prisma.disputeNote.findMany({
+    where: { appointmentId: { in: appointmentIds } },
+    orderBy: { createdAt: 'asc' }
+  });
+
   const upcoming = allGroups.filter((g: any) => 
     new Date(g.startTime) > now && 
     g.services.some((s: any) => s.status !== 'CANCELLED')
@@ -127,6 +137,7 @@ export default async function MyBookings() {
         userReviewIds={userReviewIds}
         completedCount={completedCount}
         cancelledCount={cancelledCount}
+        disputeNotes={disputeNotes}
     />
   );
 }
