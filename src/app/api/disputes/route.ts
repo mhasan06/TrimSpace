@@ -30,9 +30,9 @@ export async function POST(req: Request) {
                 // Create an initial internal note
                 disputeNotes: {
                     create: {
-                        authorId: (session.user as any).id,
-                        content: `Customer raised dispute. Reason: ${reason}. Description: ${description}`,
-                        isInternal: false
+                        authorName: session.user?.name || "Customer",
+                        authorRole: "CUSTOMER",
+                        content: `Customer raised dispute. Reason: ${reason}. Description: ${description}`
                     }
                 }
             }
