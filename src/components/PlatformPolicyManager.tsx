@@ -62,8 +62,9 @@ export default function PlatformPolicyManager({ initialSettings }: { initialSett
                         placeholder="Define your global booking terms..."
                         style={{ 
                             width: '100%', height: '150px', padding: '1.2rem', borderRadius: '12px', 
-                            background: 'rgba(255,255,255,0.03)', color: 'white', border: '1px solid var(--border)',
-                            fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', resize: 'vertical'
+                            background: '#fff', color: '#1e293b', border: '1px solid var(--border)',
+                            fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', resize: 'vertical',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
                         }} 
                     />
                 </div>
@@ -76,8 +77,9 @@ export default function PlatformPolicyManager({ initialSettings }: { initialSett
                         placeholder="Define your global cancellation fees and refund windows..."
                         style={{ 
                             width: '100%', height: '150px', padding: '1.2rem', borderRadius: '12px', 
-                            background: 'rgba(255,255,255,0.03)', color: 'white', border: '1px solid var(--border)',
-                            fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', resize: 'vertical'
+                            background: '#fff', color: '#1e293b', border: '1px solid var(--border)',
+                            fontSize: '0.95rem', lineHeight: '1.6', outline: 'none', resize: 'vertical',
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
                         }} 
                     />
                 </div>

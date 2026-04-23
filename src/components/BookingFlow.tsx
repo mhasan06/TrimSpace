@@ -310,6 +310,12 @@ export default function BookingFlow({
           <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
              {!session?.user ? (
                <div>
+                  <button 
+                    onClick={() => setStage("CALENDAR")}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginBottom: '1rem', padding: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    ← Back to Schedule
+                  </button>
                   <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
                   {isLoginMode ? (
                         <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -331,7 +337,13 @@ export default function BookingFlow({
                   )}
                </div>
              ) : (
-               <div>
+              <div>
+                  <button 
+                    onClick={() => setStage("CALENDAR")}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginBottom: '1rem', padding: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  >
+                    ← Back to Schedule
+                  </button>
                   <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Confirm Booking</h2>
                   <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Review your selection and complete your booking securely.</p>
                </div>
