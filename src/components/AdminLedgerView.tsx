@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import styles from "../app/dashboard/page.module.css";
-import { resolveDisputeAction } from "../app/dashboard/ledger/actions";
+import { resolveDisputeAction, addDisputeNoteAction } from "../app/dashboard/ledger/actions";
 
 interface AdminLedgerEvent {
   id: string;
