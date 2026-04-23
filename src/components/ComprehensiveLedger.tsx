@@ -33,6 +33,7 @@ interface LedgerEvent {
 
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   const [activeTab, setActiveTab] = useState<'settled' | 'future' | 'disputes'>('settled');
+  const [disputeSubTab, setDisputeSubTab] = useState<'pending' | 'resolved'>('pending');
   const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
@@ -61,7 +62,11 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
     const isBeforeToday = eventDate < today;
 
     if (activeTab === 'disputes') {
-      return event.isDisputed || (event.disputeStatus && event.disputeStatus.startsWith('RESOLVED'));
+      if (disputeSubTab === 'pending') {
+        return event.isDisputed && event.disputeStatus === 'PENDING';
+      } else {
+        return event.disputeStatus && event.disputeStatus.startsWith('RESOLVED');
+      }
     }
 
     // Exclude currently active disputes from normal tabs to avoid confusion about frozen funds
@@ -312,9 +317,9 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
                  <span>{tab.icon}</span> {tab.label}
-                 {tab.id === 'disputes' && data.filter(e => e.isDisputed || (e.disputeStatus && e.disputeStatus.startsWith('RESOLVED'))).length > 0 && (
+                 {tab.id === 'disputes' && data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length > 0 && (
                    <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
-                     {data.filter(e => e.isDisputed || (e.disputeStatus && e.disputeStatus.startsWith('RESOLVED'))).length}
+                     {data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length}
                    </span>
                  )}
               </div>
@@ -322,6 +327,31 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
             </button>
           ))}
         </div>
+
+        {activeTab === 'disputes' && (
+          <div style={{ display: 'flex', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', width: 'fit-content' }}>
+            <button 
+              onClick={() => setDisputeSubTab('pending')}
+              style={{ 
+                background: disputeSubTab === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                color: disputeSubTab === 'pending' ? '#f59e0b' : 'white',
+                border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.8rem'
+              }}
+            >
+              PENDING ({data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length})
+            </button>
+            <button 
+              onClick={() => setDisputeSubTab('resolved')}
+              style={{ 
+                background: disputeSubTab === 'resolved' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                color: disputeSubTab === 'resolved' ? '#10b981' : 'white',
+                border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.8rem'
+              }}
+            >
+              RESOLVED ({data.filter(e => e.disputeStatus && e.disputeStatus.startsWith('RESOLVED')).length})
+            </button>
+          </div>
+        )}
 
         {activeTab === 'settled' && (
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', animation: 'fadeIn 0.3s ease-out' }}>

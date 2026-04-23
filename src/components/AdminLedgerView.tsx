@@ -33,6 +33,7 @@ interface AdminLedgerEvent {
 
 export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
   const [activeTab, setActiveTab] = useState<'settled' | 'future' | 'disputes'>('settled');
+  const [disputeSubTab, setDisputeSubTab] = useState<'pending' | 'resolved'>('pending');
   const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
@@ -63,10 +64,14 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
     const isBeforeToday = eventDate < today;
 
     if (activeTab === 'disputes') {
-      return event.isDisputed;
+      if (disputeSubTab === 'pending') {
+        return event.isDisputed && event.disputeStatus === 'PENDING';
+      } else {
+        return event.disputeStatus && (event.disputeStatus === 'RESOLVED_PAYOUT' || event.disputeStatus === 'RESOLVED_REFUND');
+      }
     }
 
-    if (event.isDisputed) return false;
+    if (event.isDisputed && event.disputeStatus === 'PENDING') return false;
 
     if (activeTab === 'settled') {
       if (!isBeforeToday) return false;
@@ -213,9 +218,9 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
                  <span>{tab.icon}</span> {tab.label}
-                 {tab.id === 'disputes' && data.filter(e => e.isDisputed).length > 0 && (
+                 {tab.id === 'disputes' && data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length > 0 && (
                    <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
-                     {data.filter(e => e.isDisputed).length}
+                     {data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length}
                    </span>
                  )}
               </div>
@@ -223,6 +228,31 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
             </button>
           ))}
         </div>
+
+        {activeTab === 'disputes' && (
+          <div style={{ display: 'flex', gap: '0.75rem', background: 'rgba(255,255,255,0.03)', padding: '0.4rem', borderRadius: '12px', width: 'fit-content' }}>
+            <button 
+              onClick={() => setDisputeSubTab('pending')}
+              style={{ 
+                background: disputeSubTab === 'pending' ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
+                color: disputeSubTab === 'pending' ? '#f59e0b' : 'white',
+                border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.8rem'
+              }}
+            >
+              PENDING REVIEW ({data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length})
+            </button>
+            <button 
+              onClick={() => setDisputeSubTab('resolved')}
+              style={{ 
+                background: disputeSubTab === 'resolved' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                color: disputeSubTab === 'resolved' ? '#10b981' : 'white',
+                border: 'none', padding: '0.6rem 1.5rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.8rem'
+              }}
+            >
+              RESOLVED HISTORY ({data.filter(e => e.disputeStatus && (e.disputeStatus === 'RESOLVED_PAYOUT' || e.disputeStatus === 'RESOLVED_REFUND')).length})
+            </button>
+          </div>
+        )}
 
         {activeTab === 'settled' && (
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
