@@ -106,13 +106,13 @@ export default async function MyBookings() {
       new Date(g.startTime) <= now && 
       g.services.some((s: any) => s.status !== 'CANCELLED')
     )
-    .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const cancelledGroups = allGroups
     .filter((g: any) => 
       g.services.every((s: any) => s.status === 'CANCELLED')
     )
-    .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const completedCount = mappedAppointments.filter(a => a.status === 'COMPLETED' || (new Date(a.startTime) < now && a.status !== 'CANCELLED')).length;
   const cancelledCount = mappedAppointments.filter(a => a.status === 'CANCELLED').length;
