@@ -286,7 +286,7 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
         </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
-            {activeTab === 'settled' ? 'Net Paid to Shop' : 'Net Receivable'}
+            {activeTab === 'settled_history' ? 'Net Paid to Shop' : 'Net Receivable'}
           </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
         </div>
