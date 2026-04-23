@@ -147,6 +147,13 @@ model Appointment {
   settlement   Settlement? @relation(fields: [settlementId], references: [id])
   
   review       Review?
+
+  // Dispute Management
+  isDisputed   Boolean  @default(false)
+  disputeReason String?
+  disputeStatus String? // PENDING, RESOLVED_PAYOUT, RESOLVED_REFUND
+  disputeResolvedAt DateTime?
+  disputeResolutionMemo String? @db.Text
 }
 
 model GiftCard {

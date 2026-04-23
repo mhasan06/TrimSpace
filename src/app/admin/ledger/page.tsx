@@ -58,7 +58,10 @@ export default async function AdminLedgerPage() {
       tax: 0, 
       netPayable: netPayout,
       netPlatform: platformTotal,
-      isFuture: isFuture
+      isFuture: isFuture,
+      isDisputed: app.isDisputed,
+      disputeReason: app.disputeReason,
+      disputeStatus: app.disputeStatus,
     };
   });
 

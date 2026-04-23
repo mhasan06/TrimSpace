@@ -66,7 +66,10 @@ export default async function FinancialLedgerPage() {
       tax: 0, 
       netPayable: netPayout,
       netPlatform: platformTotal,
-      isFuture: isFuture
+      isFuture: isFuture,
+      isDisputed: app.isDisputed,
+      disputeReason: app.disputeReason,
+      disputeStatus: app.disputeStatus,
     };
   });
 

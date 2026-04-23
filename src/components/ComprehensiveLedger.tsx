@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "../app/dashboard/page.module.css";
+import { flagDisputeAction } from "../app/dashboard/ledger/actions";
 
 interface LedgerEvent {
   id: string;
@@ -22,6 +23,9 @@ interface LedgerEvent {
   netPayable: number;
   netPlatform: number;
   isFuture: boolean;
+  isDisputed?: boolean;
+  disputeReason?: string | null;
+  disputeStatus?: string | null;
 }
 
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
@@ -29,8 +33,25 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [disputeReason, setDisputeReason] = useState("");
+  const [isFlagging, setIsFlagging] = useState(false);
+
+  const handleFlagDispute = async () => {
+    if (!selectedEvent || !disputeReason) return;
+    setIsFlagging(true);
+    const res = await flagDisputeAction(selectedEvent.id, disputeReason);
+    if (res.success) {
+      alert("Dispute raised successfully. Payout for this item is now frozen.");
+      setSelectedEvent({ ...selectedEvent, isDisputed: true, disputeReason, disputeStatus: 'PENDING' });
+      setDisputeReason("");
+    } else {
+      alert(res.error);
+    }
+    setIsFlagging(false);
+  };
 
   const filteredData = data.filter(event => {
+// ... rest of filtering logic ...
     const eventDate = new Date(event.serviceDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -155,10 +176,56 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                    <span style={{ fontWeight: 900, fontSize: '1rem' }}>Final Shop Payout</span>
-                   <span style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700 }}>PAID TO YOUR BANK</span>
+                   <span style={{ fontSize: '0.65rem', opacity: 0.4, fontWeight: 700 }}>
+                     {selectedEvent.isDisputed ? 'PAYOUT FROZEN' : 'PAID TO YOUR BANK'}
+                   </span>
                 </div>
-                <span style={{ fontWeight: 900, fontSize: '2rem', color: 'var(--primary)' }}>${selectedEvent.netPayable.toFixed(2)}</span>
+                <span style={{ fontWeight: 900, fontSize: '2rem', color: selectedEvent.isDisputed ? '#f59e0b' : 'var(--primary)' }}>
+                  ${selectedEvent.netPayable.toFixed(2)}
+                </span>
               </div>
+            </div>
+
+            {/* Dispute Section */}
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: selectedEvent.isDisputed ? 'rgba(245, 158, 11, 0.1)' : 'rgba(255,255,255,0.03)', borderRadius: '16px', border: `1px dashed ${selectedEvent.isDisputed ? '#f59e0b' : 'rgba(255,255,255,0.1)'}` }}>
+              {selectedEvent.isDisputed ? (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                    ⚠️ Active Dispute Under Review
+                  </div>
+                  <div style={{ fontSize: '0.85rem', opacity: 0.8, fontStyle: 'italic' }}>
+                    "{selectedEvent.disputeReason}"
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h4 style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', opacity: 0.5, marginBottom: '0.8rem' }}>Raise a Financial Dispute</h4>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Reason for dispute (e.g. Incorrect fee)..."
+                      value={disputeReason}
+                      onChange={(e) => setDisputeReason(e.target.value)}
+                      style={{ 
+                        flex: 1, background: 'rgba(255,255,255,0.05)', color: 'white', 
+                        border: '1px solid rgba(255,255,255,0.1)', padding: '0.6rem 1rem', 
+                        borderRadius: '10px', fontSize: '0.8rem', outline: 'none'
+                      }}
+                    />
+                    <button 
+                      onClick={handleFlagDispute}
+                      disabled={isFlagging || !disputeReason}
+                      style={{ 
+                        background: '#ef4444', color: 'white', border: 'none', 
+                        padding: '0.6rem 1rem', borderRadius: '10px', fontWeight: 900, 
+                        fontSize: '0.7rem', cursor: 'pointer', opacity: isFlagging || !disputeReason ? 0.5 : 1
+                      }}
+                    >
+                      {isFlagging ? "WAIT..." : "FLAG"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ marginTop: '2rem', fontSize: '0.75rem', opacity: 0.4, textAlign: 'center', fontWeight: 600 }}>
