@@ -107,8 +107,9 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
   const totals = filteredData.reduce((acc, curr) => ({
     gross: acc.gross + curr.grossAmount,
     net: acc.net + curr.netPayable,
-    platform: acc.platform + curr.netPlatform
-  }), { gross: 0, net: 0, platform: 0 });
+    platform: acc.platform + curr.commissionFee + curr.priorityFee,
+    processing: acc.processing + curr.processingFee
+  }), { gross: 0, net: 0, platform: 0, processing: 0 });
 
   // Group events by day
   const groupedByDay = filteredData.reduce((acc: any, event) => {
@@ -255,16 +256,24 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               
 
       {/* Summary Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--primary)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #6366f1' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
-            {activeTab === 'settled' ? 'Total Finalized Volume' : 'Expected Pipeline Volume'}
+            {activeTab === 'future' ? 'Projected Gross' : 'Gross Revenue'}
           </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.gross.toFixed(2)}</div>
         </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--secondary)' }}>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Marketplace Fees</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${totals.platform.toFixed(2)}</div>
+        </div>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #ef4444' }}>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Processing Costs</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${totals.processing.toFixed(2)}</div>
+        </div>
+        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
-            {activeTab === 'settled' ? 'Net Paid to Shop' : 'Projected Net Payout'}
+            {activeTab === 'settled' ? 'Net Paid to Shop' : 'Net Receivable'}
           </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
         </div>
