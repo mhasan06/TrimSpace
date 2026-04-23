@@ -68,6 +68,7 @@ export default async function FinancialLedgerPage() {
       netPayable: netPayout,
       netPlatform: platformTotal,
       isFuture: isFuture,
+      isSettled: !!app.settlementId,
       isDisputed: app.isDisputed,
       disputeReason: app.disputeReason,
       disputeStatus: app.disputeStatus,

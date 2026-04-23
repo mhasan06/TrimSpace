@@ -23,6 +23,7 @@ interface LedgerEvent {
   netPayable: number;
   netPlatform: number;
   isFuture: boolean;
+  isSettled: boolean;
   isDisputed?: boolean;
   disputeReason?: string | null;
   disputeStatus?: string | null;
@@ -39,7 +40,7 @@ interface LedgerEvent {
 }
 
 export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
-  const [activeTab, setActiveTab] = useState<'settled' | 'future' | 'disputes'>('settled');
+  const [activeTab, setActiveTab] = useState<'payout_queue' | 'settled_history' | 'future' | 'disputes'>('payout_queue');
   const [disputeSubTab, setDisputeSubTab] = useState<'pending' | 'resolved'>('pending');
   const [selectedEvent, setSelectedEvent] = useState<LedgerEvent | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -83,6 +84,7 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
 
     const isBeforeToday = eventDate < today;
 
+    // 1. Disputes Tab
     if (activeTab === 'disputes') {
       if (disputeSubTab === 'pending') {
         return event.isDisputed && event.disputeStatus === 'PENDING';
@@ -92,15 +94,26 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
     }
 
     // Exclude currently active disputes from normal tabs to avoid confusion about frozen funds
-    if (event.isDisputed) return false;
+    if (event.isDisputed && event.disputeStatus === 'PENDING') return false;
 
-    if (activeTab === 'settled') {
-      if (!isBeforeToday) return false;
+    // 2. Payout Queue (Unsettled past items)
+    if (activeTab === 'payout_queue') {
+       return !event.isSettled && isBeforeToday && !event.isFuture;
+    }
+
+    // 3. Settled History (Actually paid items)
+    if (activeTab === 'settled_history') {
+      if (!event.isSettled) return false;
       if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
       if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
-    } else {
-      if (isBeforeToday) return false;
+      return true;
     }
+
+    // 4. Future Forecast
+    if (activeTab === 'future') {
+      return event.isFuture || !isBeforeToday;
+    }
+
     return true;
   });
 
@@ -283,9 +296,10 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {[
-            { id: 'settled', label: 'Settled Transactions', icon: '✅', sub: 'Completed up to yesterday' },
-            { id: 'disputes', label: 'Disputes & Claims', icon: '⚠️', sub: 'Active and Resolved' },
-            { id: 'future', label: 'Future & Today', icon: '📅', sub: 'In-progress and upcoming' }
+            { id: 'payout_queue', label: 'Awaiting Payout', icon: '🏧', sub: 'Completed & ready to send' },
+            { id: 'settled_history', label: 'Payout History', icon: '📜', sub: 'Funds settled to your bank' },
+            { id: 'disputes', label: 'Disputes & Claims', icon: '⚠️', sub: 'Frozen or resolved' },
+            { id: 'future', label: 'Future Forecast', icon: '📅', sub: 'Upcoming revenue' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -310,16 +324,25 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}>
                  <span>{tab.icon}</span> {tab.label}
-                 {tab.id === 'disputes' && data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length > 0 && (
-                   <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
-                     {data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length}
-                   </span>
-                 )}
               </div>
               <div style={{ fontSize: '0.65rem', opacity: 0.8, fontWeight: 600 }}>{tab.sub}</div>
             </button>
           ))}
         </div>
+
+        {activeTab === 'settled_history' && (
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Filter History:</span>
+            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}>
+              {[2024, 2025, 2026].map(y => <option key={y} value={y.toString()}>{y}</option>)}
+            </select>
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}>
+              <option value="all">All Months</option>
+              {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (<option key={m} value={i.toString()}>{m}</option>))}
+            </select>
+          </div>
+        )}
+      </div>
 
         {activeTab === 'disputes' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
