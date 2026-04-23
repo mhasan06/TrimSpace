@@ -82,3 +82,45 @@ export async function addDisputeNoteAction(appointmentId: string, content: strin
     return { success: false, error: "Server error adding note" };
   }
 }
+
+export async function settleMerchantBatchAction(shopId: string, amount: number, appointmentIds: string[]) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== 'ADMIN') {
+      return { success: false, error: "Unauthorized. Admin access required." };
+    }
+
+    // 1. Create the Settlement record
+    const settlement = await prisma.settlement.create({
+      data: {
+        tenantId: shopId,
+        amount: amount,
+        grossAmount: amount, 
+        feeAmount: 0,
+        status: 'SETTLED',
+        weekLabel: `Daily Payrun - ${new Date().toLocaleDateString('en-AU')}`,
+        startDate: new Date(),
+        endDate: new Date(),
+        adminComments: `Daily payout run executed by ${session.user?.name || 'Admin'}`,
+      }
+    });
+
+    // 2. Link all appointments to this settlement
+    await prisma.appointment.updateMany({
+      where: {
+        id: { in: appointmentIds }
+      },
+      data: {
+        settlementId: settlement.id
+      }
+    });
+
+    revalidatePath('/admin/ledger');
+    revalidatePath('/dashboard/ledger');
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Settlement Error:", error);
+    return { success: false, error: "Failed to process settlement batch." };
+  }
+}

@@ -1,8 +1,4 @@
-"use client";
-
-import React, { useState } from "react";
-import styles from "../app/dashboard/page.module.css";
-import { resolveDisputeAction, addDisputeNoteAction } from "../app/dashboard/ledger/actions";
+import { resolveDisputeAction, addDisputeNoteAction, settleMerchantBatchAction } from "../app/dashboard/ledger/actions";
 
 interface AdminLedgerEvent {
   id: string;
@@ -25,6 +21,7 @@ interface AdminLedgerEvent {
   netPayable: number;
   netPlatform: number;
   isFuture: boolean;
+  isSettled: boolean;
   isDisputed?: boolean;
   disputeReason?: string | null;
   disputeStatus?: string | null;
@@ -40,12 +37,13 @@ interface AdminLedgerEvent {
 }
 
 export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
-  const [activeTab, setActiveTab] = useState<'settled' | 'future' | 'disputes'>('settled');
+  const [activeTab, setActiveTab] = useState<'payout_queue' | 'settled_history' | 'disputes' | 'future'>('payout_queue');
   const [disputeSubTab, setDisputeSubTab] = useState<'pending' | 'resolved'>('pending');
   const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
   const [isTriggering, setIsTriggering] = useState(false);
+  const [settlingShopId, setSettlingShopId] = useState<string | null>(null);
   const [resolvingEvent, setResolvingEvent] = useState<AdminLedgerEvent | null>(null);
   const [resolutionMemo, setResolutionMemo] = useState("");
   const [newComment, setNewComment] = useState("");
@@ -58,7 +56,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
     const res = await addDisputeNoteAction(resolvingEvent.id, newComment);
     if (res.success) {
       setNewComment("");
-      // Ideally we would update the local state too, but revalidatePath will handle the refresh
     } else {
       alert(res.error);
     }
@@ -86,6 +83,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
     const isBeforeToday = eventDate < today;
 
+    // 1. Disputes Tab logic
     if (activeTab === 'disputes') {
       if (disputeSubTab === 'pending') {
         return event.isDisputed && event.disputeStatus === 'PENDING';
@@ -94,15 +92,27 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
       }
     }
 
+    // Always exclude pending disputes from other tabs to avoid double-payouts
     if (event.isDisputed && event.disputeStatus === 'PENDING') return false;
 
-    if (activeTab === 'settled') {
-      if (!isBeforeToday) return false;
-      if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
-      if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
-    } else {
-      if (isBeforeToday) return false;
+    // 2. Payout Queue (Unsettled, completed transactions)
+    if (activeTab === 'payout_queue') {
+       return !event.isSettled && isBeforeToday && !event.isFuture;
     }
+
+    // 3. Settled History (Transactions already paid to merchant)
+    if (activeTab === 'settled_history') {
+       if (!event.isSettled) return false;
+       if (selectedYear !== "all" && eventDate.getFullYear().toString() !== selectedYear) return false;
+       if (selectedMonth !== "all" && eventDate.getMonth().toString() !== selectedMonth) return false;
+       return true;
+    }
+
+    // 4. Pipeline Forecast (Upcoming bookings)
+    if (activeTab === 'future') {
+       return event.isFuture || !isBeforeToday;
+    }
+
     return true;
   });
 
@@ -116,6 +126,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
   const groupedByShop = filteredData.reduce((acc: any, event) => {
     if (!acc[event.shopId]) {
       acc[event.shopId] = { 
+        id: event.shopId,
         name: event.shopName, 
         events: [], 
         totals: { gross: 0, net: 0, platform: 0, stripe: 0 } 
@@ -131,16 +142,17 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
   const shopEntries = Object.entries(groupedByShop).sort((a: any, b: any) => b[1].totals.net - a[1].totals.net);
 
-  const handleTriggerAll = async () => {
-    setIsTriggering(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    alert("Global Settlement Run Complete! All eligible shops have been settled.");
-    setIsTriggering(false);
-  };
-
-  const handleSettleShop = async (shopName: string) => {
-    if (!confirm(`Trigger immediate settlement for ${shopName}?`)) return;
-    alert(`Settlement generated for ${shopName}. Funds will be transferred to their nominated bank account.`);
+  const handleSettleShop = async (shopId: string, shopName: string, amount: number, appointmentIds: string[]) => {
+    if (!confirm(`Mark $${amount.toFixed(2)} as PAID to ${shopName}? This will move these items to history.`)) return;
+    
+    setSettlingShopId(shopId);
+    const res = await settleMerchantBatchAction(shopId, amount, appointmentIds);
+    if (res.success) {
+       alert(`Batch payout for ${shopName} successful!`);
+    } else {
+       alert(res.error);
+    }
+    setSettlingShopId(null);
   };
 
   return (
@@ -148,20 +160,14 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0 }}>Financial Command Center</h1>
-          <p style={{ opacity: 0.6, fontSize: '1rem' }}>Managing {shopEntries.length} active merchants.</p>
+          <p style={{ opacity: 0.6, fontSize: '1rem' }}>Managing {shopEntries.length} shops in this view.</p>
         </div>
-        <button
-          onClick={handleTriggerAll}
-          disabled={isTriggering}
-          style={{
-            background: 'var(--secondary)', color: 'white', border: 'none',
-            padding: '1.2rem 2.5rem', borderRadius: '16px', fontWeight: 900,
-            cursor: isTriggering ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-            boxShadow: '0 10px 20px -5px rgba(var(--secondary-rgb), 0.3)'
-          }}
-        >
-          {isTriggering ? 'Processing All Batches...' : '🚀 Trigger Global Settlement Run'}
-        </button>
+        {activeTab === 'payout_queue' && shopEntries.length > 0 && (
+           <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '1rem 2rem', borderRadius: '20px', border: '1px solid #10b981', textAlign: 'right' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#10b981', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Total Pending Payouts</div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
+           </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
@@ -310,7 +316,8 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {[
-            { id: 'settled', label: 'Merchant Payout Queue', icon: '🏧', sub: 'Batches ready for settlement' },
+            { id: 'payout_queue', label: 'Merchant Payout Queue', icon: '🏧', sub: 'Batches awaiting settlement' },
+            { id: 'settled_history', label: 'Settled History', icon: '📜', sub: 'Completed payout runs' },
             { id: 'disputes', label: 'Active Disputes', icon: '⚠️', sub: 'Action required' },
             { id: 'future', label: 'Pipeline Forecast', icon: '📈', sub: 'Upcoming revenue projections' }
           ].map(tab => (
@@ -340,53 +347,25 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '1rem', marginBottom: '1rem' }}>
             <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Resolution Queue:</span>
             <div style={{ display: 'flex', gap: '0.4rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <button 
-                onClick={() => setDisputeSubTab('pending')}
-                style={{ 
-                  background: disputeSubTab === 'pending' ? '#f59e0b' : 'transparent',
-                  color: disputeSubTab === 'pending' ? 'white' : '#64748b',
-                  border: 'none',
-                  padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s',
-                  boxShadow: disputeSubTab === 'pending' ? '0 4px 12px rgba(245, 158, 11, 0.2)' : 'none'
-                }}
-              >
+              <button onClick={() => setDisputeSubTab('pending')} style={{ background: disputeSubTab === 'pending' ? '#f59e0b' : 'transparent', color: disputeSubTab === 'pending' ? 'white' : '#64748b', border: 'none', padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem' }}>
                 PENDING REVIEW ({data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length})
               </button>
-              <button 
-                onClick={() => setDisputeSubTab('resolved')}
-                style={{ 
-                  background: disputeSubTab === 'resolved' ? '#10b981' : 'transparent',
-                  color: disputeSubTab === 'resolved' ? 'white' : '#64748b',
-                  border: 'none',
-                  padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem', transition: 'all 0.2s',
-                  boxShadow: disputeSubTab === 'resolved' ? '0 4px 12px rgba(16, 185, 129, 0.2)' : 'none'
-                }}
-              >
-                RESOLVED HISTORY ({data.filter(e => e.disputeStatus && (e.disputeStatus === 'RESOLVED_PAYOUT' || e.disputeStatus === 'RESOLVED_REFUND')).length})
+              <button onClick={() => setDisputeSubTab('resolved')} style={{ background: disputeSubTab === 'resolved' ? '#10b981' : 'transparent', color: disputeSubTab === 'resolved' ? 'white' : '#64748b', border: 'none', padding: '0.5rem 1.2rem', borderRadius: '8px', fontWeight: 900, cursor: 'pointer', fontSize: '0.75rem' }}>
+                RESOLVED HISTORY ({data.filter(e => e.disputeStatus?.startsWith('RESOLVED')).length})
               </button>
             </div>
           </div>
         )}
 
-        {activeTab === 'settled' && (
+        {activeTab === 'settled_history' && (
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Time Range:</span>
-            <select 
-              value={selectedYear} 
-              onChange={(e) => setSelectedYear(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}
-            >
+            <span style={{ fontSize: '0.75rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase' }}>Filter History:</span>
+            <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}>
               {[2024, 2025, 2026].map(y => <option key={y} value={y.toString()}>{y}</option>)}
             </select>
-            <select 
-              value={selectedMonth} 
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}
-            >
+            <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--foreground)', border: '1px solid var(--border)', padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 700 }}>
               <option value="all">All Months</option>
-              {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (
-                <option key={m} value={i.toString()}>{m}</option>
-              ))}
+              {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => (<option key={m} value={i.toString()}>{m}</option>))}
             </select>
           </div>
         )}
@@ -400,9 +379,8 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
               <th>Transactions</th>
               <th>Gross Volume</th>
               <th>Platform Take</th>
-              <th>Stripe Cost</th>
               <th>Net Due to Shop</th>
-              <th style={{ textAlign: 'right', paddingRight: '2rem' }}>Actions</th>
+              <th style={{ textAlign: 'right', paddingRight: '2rem' }}>{activeTab === 'payout_queue' ? 'Actions' : 'Status'}</th>
             </tr>
           </thead>
           <tbody>
@@ -418,90 +396,65 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                   <td style={{ fontWeight: 700 }}>{data.events.length} events</td>
                   <td style={{ fontWeight: 700 }}>${data.totals.gross.toFixed(2)}</td>
                   <td style={{ fontWeight: 800, color: 'var(--secondary)' }}>${data.totals.platform.toFixed(2)}</td>
-                  <td style={{ fontWeight: 700, opacity: 0.6 }}>${data.totals.stripe.toFixed(2)}</td>
                   <td>
                     <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#10b981' }}>${data.totals.net.toFixed(2)}</div>
                   </td>
                   <td style={{ textAlign: 'right', paddingRight: '2rem' }}>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleSettleShop(data.name); }}
-                      style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}
-                    >
-                      SETTLE NOW
-                    </button>
+                    {activeTab === 'payout_queue' ? (
+                       <button 
+                         onClick={(e) => { 
+                           e.stopPropagation(); 
+                           handleSettleShop(shopId, data.name, data.totals.net, data.events.map((ev: any) => ev.id)); 
+                         }}
+                         disabled={settlingShopId === shopId}
+                         style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', opacity: settlingShopId === shopId ? 0.5 : 1 }}
+                       >
+                         {settlingShopId === shopId ? 'SETTLING...' : 'MARK AS PAID'}
+                       </button>
+                    ) : (
+                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontWeight: 900, fontSize: '0.8rem' }}>
+                          <span style={{ background: '#10b981', color: 'black', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>PAID & SETTLED</span>
+                       </div>
+                    )}
                   </td>
                 </tr>
                 {expandedShopId === shopId && (
                   <tr>
-                    <td colSpan={7} style={{ padding: '0 2rem 2rem 2rem', background: 'rgba(255,255,255,0.01)' }}>
+                    <td colSpan={6} style={{ padding: '0 2rem 2rem 2rem', background: 'rgba(255,255,255,0.01)' }}>
                       <div className="glass" style={{ borderRadius: '16px', padding: '1rem', marginTop: '-1rem' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                               <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                  <th style={{ padding: '1rem' }}>REF ID</th>
-                                  <th>Transaction Date</th>
-                                  <th>Service Date</th>
-                                  <th>Customer</th>
-                                  <th>Service Description</th>
-                                  {activeTab === 'disputes' && <th>Merchant Reason</th>}
-                                  <th>Service Fees</th>
-                                  <th>Status</th>
-                                  <th>Gross Revenue</th>
-                                  <th>Platform Fee</th>
-                                  <th>Stripe Fee</th>
-                                  <th style={{ textAlign: 'right' }}>Merchant Payout</th>
-                               </tr>
-                            </thead>
-                            <tbody>
-                               {data.events.map((event: any) => (
-                                 <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.8rem' }}>
-                                    <td style={{ padding: '1rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '0.7rem' }}>
-                                      {event.id.slice(-8).toUpperCase()}
-                                    </td>
-                                    <td style={{ opacity: 0.7 }}>{new Date(event.date).toLocaleDateString()}</td>
-                                    <td style={{ fontWeight: 600 }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
-                                    <td style={{ fontWeight: 700 }}>{event.customer}</td>
-                                    <td>{event.serviceName}</td>
-                                    {activeTab === 'disputes' && (
-                                      <td style={{ fontStyle: 'italic', color: '#f59e0b', fontSize: '0.75rem', maxWidth: '200px' }}>
-                                        "{event.disputeReason}"
-                                      </td>
-                                    )}
-                                    <td style={{ fontWeight: 600 }}>
-                                      ${event.servicePrice.toFixed(2)}
-                                    </td>
-                                    <td>
-                                      <span style={{ 
-                                        fontSize: '0.65rem', 
-                                        background: event.type === 'CANCELLATION_FEE' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                                        color: event.type === 'CANCELLATION_FEE' ? '#ef4444' : '#10b981',
-                                        padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 900
-                                      }}>
-                                        {event.type.replace('_', ' ')}
-                                      </span>
-                                    </td>
-                                    <td style={{ fontWeight: 700 }}>${event.grossAmount.toFixed(2)}</td>
-                                    <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>+${event.netPlatform.toFixed(2)}</td>
-                                    <td style={{ opacity: 0.6 }}>-${event.processingFee.toFixed(2)}</td>
-                                    <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
-                                      {activeTab === 'disputes' && (
-                                        <td style={{ textAlign: 'right', paddingLeft: '1rem' }}>
-                                          <button 
-                                            onClick={() => setResolvingEvent(event)}
-                                            style={{ 
-                                              background: event.disputeStatus?.startsWith('RESOLVED') ? '#6366f1' : '#f59e0b', 
-                                              color: event.disputeStatus?.startsWith('RESOLVED') ? 'white' : 'black', 
-                                              border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' 
-                                            }}
-                                          >
-                                            {event.disputeStatus?.startsWith('RESOLVED') ? 'AUDIT' : 'RESOLVE'}
-                                          </button>
-                                        </td>
-                                      )}
-                                 </tr>
-                               ))}
-                            </tbody>
-                         </table>
+                             <thead>
+                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                   <th style={{ padding: '1rem' }}>REF ID</th>
+                                   <th>Date</th>
+                                   <th>Customer</th>
+                                   <th>Service</th>
+                                   <th>Net Revenue</th>
+                                   <th>Platform Take</th>
+                                   <th style={{ textAlign: 'right' }}>Final Payout</th>
+                                </tr>
+                             </thead>
+                             <tbody>
+                                {data.events.map((event: any) => (
+                                  <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.8rem' }}>
+                                     <td style={{ padding: '1rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '0.7rem' }}>{event.id.slice(-8).toUpperCase()}</td>
+                                     <td style={{ opacity: 0.7 }}>{new Date(event.serviceDate).toLocaleDateString()}</td>
+                                     <td style={{ fontWeight: 700 }}>{event.customer}</td>
+                                     <td>{event.serviceName}</td>
+                                     <td style={{ fontWeight: 700 }}>${event.grossAmount.toFixed(2)}</td>
+                                     <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>-${event.netPlatform.toFixed(2)}</td>
+                                     <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
+                                       {activeTab === 'disputes' && (
+                                         <td style={{ textAlign: 'right', paddingLeft: '1rem' }}>
+                                           <button onClick={() => setResolvingEvent(event)} style={{ background: event.disputeStatus?.startsWith('RESOLVED') ? '#6366f1' : '#f59e0b', color: event.disputeStatus?.startsWith('RESOLVED') ? 'white' : 'black', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' }}>
+                                             {event.disputeStatus?.startsWith('RESOLVED') ? 'AUDIT' : 'RESOLVE'}
+                                           </button>
+                                         </td>
+                                       )}
+                                  </tr>
+                                ))}
+                             </tbody>
+                        </table>
                       </div>
                     </td>
                   </tr>
