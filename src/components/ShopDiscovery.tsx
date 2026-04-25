@@ -96,14 +96,14 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section className={styles.heroSection} style={{ 
-        height: '70vh', 
-      <div style={{ 
         padding: '120px 20px', 
         textAlign: 'center', 
         background: 'linear-gradient(180deg, #f8fafc 0%, var(--background) 100%)',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        height: '70vh',
+        minHeight: '600px'
       }}>
         <div style={{ maxWidth: '1000px', width: '100%' }}>
           <h1 style={{ fontSize: '4.5rem', fontWeight: 950, marginBottom: '0.5rem', letterSpacing: '-0.04em', lineHeight: 1, color: '#020617' }}>
