@@ -6,12 +6,19 @@ import Link from "next/link";
 export default function NavHeader() {
   const { data: session } = useSession();
   const [showMenu, setShowMenu] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const role = (session?.user as any)?.role;
-  const displayName = (session?.user as any)?.tenantId 
-    ? (session?.user as any)?.tenantName || 'Business'
-    : session?.user?.name || 'Account';
+  const userImage = session?.user?.image;
+
+  // Handle window resize for mobile check
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Handle click outside to close menu
   useEffect(() => {
@@ -26,21 +33,23 @@ export default function NavHeader() {
 
   return (
     <header style={{ 
-      padding: '1.2rem 2.5rem', 
+      padding: isMobile ? '0.8rem 1.2rem' : '1.2rem 2.5rem', 
       position: 'sticky', 
       top: 0, 
       zIndex: 1000, 
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center',
-      background: 'rgba(255, 255, 255, 0.8)',
-      backdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(0,0,0,0.05)'
+      background: 'rgba(255, 255, 255, 0.85)',
+      backdropFilter: 'blur(30px)',
+      WebkitBackdropFilter: 'blur(30px)',
+      borderBottom: '1px solid rgba(0,0,0,0.05)',
+      transition: 'all 0.3s ease'
     }}>
       {/* ─── LOGO ─── */}
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-        <div style={{ background: '#000', color: 'white', borderRadius: '10px', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <div style={{ background: '#000', color: 'white', borderRadius: '10px', padding: isMobile ? '0.4rem' : '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width={isMobile ? "18" : "22"} height={isMobile ? "18" : "22"} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="6" cy="6" r="3"></circle>
             <circle cx="6" cy="18" r="3"></circle>
             <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
@@ -48,42 +57,41 @@ export default function NavHeader() {
             <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
           </svg>
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#000', margin: 0, letterSpacing: '-0.8px' }}>TrimSpace</h1>
+        {!isMobile && <h1 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#000', margin: 0, letterSpacing: '-0.8px' }}>TrimSpace</h1>}
       </Link>
       
       {/* ─── NAV LINKS ─── */}
-      <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-        <Link href="/gift" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
-          Share a Gift Experience
-        </Link>
+      <nav style={{ display: 'flex', gap: isMobile ? '1rem' : '2.2rem', alignItems: 'center' }}>
         
-        {!session ? (
-          <Link href="/login" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
-            Log in
-          </Link>
-        ) : (
-          <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', opacity: 0.5 }}>
-            {displayName}
-          </span>
+        {!isMobile && (
+          <>
+            <Link href="/gift" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
+              Share a Gift Experience
+            </Link>
+            {!session && (
+              <Link href="/login" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
+                Log in
+              </Link>
+            )}
+            <Link href="/register?type=business" style={{ 
+              fontWeight: 800, 
+              fontSize: '0.95rem', 
+              color: '#000', 
+              textDecoration: 'none', 
+              padding: '0.8rem 1.4rem', 
+              borderRadius: '40px', 
+              border: '1px solid #e2e8f0',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              Become a Partner
+            </Link>
+          </>
         )}
 
-        <Link href="/register?type=business" style={{ 
-          fontWeight: 800, 
-          fontSize: '0.95rem', 
-          color: '#000', 
-          textDecoration: 'none', 
-          padding: '0.8rem 1.4rem', 
-          borderRadius: '40px', 
-          border: '1px solid #e2e8f0',
-          transition: 'background 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-        >
-          Become a Partner
-        </Link>
-        
-        {/* ─── MENU DROPDOWN ─── */}
+        {/* ─── USER AVATAR / MENU ─── */}
         <div style={{ position: 'relative' }} ref={menuRef}>
           <button 
             onClick={() => setShowMenu(!showMenu)}
@@ -91,21 +99,44 @@ export default function NavHeader() {
               display: 'flex', 
               alignItems: 'center', 
               gap: '0.8rem', 
-              padding: '0.6rem 1.2rem', 
+              padding: isMobile ? '0.4rem 0.8rem' : '0.5rem 1rem', 
               borderRadius: '40px', 
               border: '1px solid #e2e8f0', 
               background: '#fff', 
               cursor: 'pointer',
               fontWeight: 800,
-              fontSize: '1rem'
+              fontSize: '1rem',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.02)'
             }}
           >
-            Menu
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+              {session ? (
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f1f5f9', overflow: 'hidden', border: '1.5px solid #000' }}>
+                  {userImage ? (
+                    <img src={userImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                </div>
+              )}
+            </div>
           </button>
 
           {showMenu && (
@@ -113,44 +144,54 @@ export default function NavHeader() {
               position: 'absolute', 
               top: 'calc(100% + 12px)', 
               right: 0, 
-              width: '280px', 
+              width: isMobile ? 'calc(100vw - 2.4rem)' : '300px', 
               background: '#fff', 
-              borderRadius: '16px', 
-              boxShadow: '0 10px 40px rgba(0,0,0,0.12)', 
+              borderRadius: '24px', 
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)', 
               border: '1px solid #f1f5f9', 
               padding: '1.5rem',
               textAlign: 'left'
             }}>
+              {/* Profile Section */}
+              {session && (
+                <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', fontWeight: 900 }}>
+                      {userImage ? <img src={userImage} style={{ width: '100%', borderRadius: '50%' }} /> : (session?.user?.name?.[0] || 'T')}
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900 }}>{session?.user?.name || 'Partner'}</h4>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>{session?.user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* For Customers */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 900, marginBottom: '1rem', color: '#000' }}>For customers</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <h3 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>For connoisseurs</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {!session ? (
-                    <Link href="/login" style={{ textDecoration: 'none', color: 'var(--primary)', fontWeight: 800, fontSize: '0.95rem' }}>Log in or sign up</Link>
+                    <Link href="/login" style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Log in or sign up</Link>
                   ) : (
-                    <button onClick={() => signOut()} style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}>Log out</button>
+                    <Link href="/my-bookings" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>My Bookings</Link>
                   )}
-                  <Link href="/gift" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Share a Gift Experience</Link>
-                  <Link href="/download" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Download the app</Link>
-                  <Link href="/support" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Help and support</Link>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8, marginTop: '0.5rem' }}>
-                    🌐 English (AU)
-                  </div>
+                  <Link href="/gift" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
+                  <Link href="/support" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
+                  {isMobile && (
+                    <>
+                      <div style={{ height: '1px', background: '#f1f5f9', margin: '0.5rem 0' }}></div>
+                      <Link href="/register?type=business" style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
+                    </>
+                  )}
                 </div>
               </div>
 
-              <div style={{ height: '1px', background: '#f1f5f9', margin: '0 -1.5rem 1.5rem' }}></div>
-
-              {/* For Businesses */}
-              <div>
-                <Link href="/register?type=business" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', color: '#000' }}>
-                  <span style={{ fontWeight: 900, fontSize: '1rem' }}>For businesses</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </Link>
-              </div>
+              {session && (
+                <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '1rem', paddingTop: '1rem' }}>
+                  <button onClick={() => signOut()} style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}>Log out</button>
+                </div>
+              )}
             </div>
           )}
         </div>

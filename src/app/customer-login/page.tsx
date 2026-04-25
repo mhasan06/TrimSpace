@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +14,14 @@ export default function CustomerLogin() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,42 +52,57 @@ export default function CustomerLogin() {
   return (
     <main style={{ 
       display: 'flex', 
-      height: 'calc(100vh - 80px)', 
+      flexDirection: isMobile ? 'column' : 'row',
+      minHeight: 'calc(100vh - 80px)', 
       background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
-      overflow: 'hidden',
+      overflowX: 'hidden',
       color: '#000'
     }}>
       {/* ─── LEFT: CINEMATIC IMAGE ─── */}
       <div style={{ 
         flex: 1.2, 
+        minHeight: isMobile ? '40vh' : 'auto',
         background: `linear-gradient(to right, transparent 70%, rgba(255,255,255,0.8)), url('/luxury_barbershop.png') center/cover no-repeat`,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        padding: '5rem',
+        padding: isMobile ? '2rem' : '5rem',
         position: 'relative',
-        borderRight: '1px solid rgba(0,0,0,0.05)'
+        borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.05)',
+        borderBottom: isMobile ? '1px solid rgba(0,0,0,0.05)' : 'none'
       }}>
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ 
+          position: 'relative', 
+          zIndex: 1,
+          background: isMobile ? 'rgba(255,255,255,0.7)' : 'transparent',
+          backdropFilter: isMobile ? 'blur(10px)' : 'none',
+          padding: isMobile ? '1.5rem' : '0',
+          borderRadius: isMobile ? '24px' : '0'
+        }}>
           <h2 style={{ 
-            fontSize: '3.8rem', 
+            fontSize: isMobile ? '2.2rem' : '3.8rem', 
             fontWeight: 950, 
             letterSpacing: '-0.04em', 
-            lineHeight: 1, 
-            marginBottom: '1.2rem', 
+            lineHeight: 1.1, 
+            marginBottom: '1rem', 
             color: '#000',
             textShadow: '0 0 40px rgba(255,255,255,0.8)' 
           }}>
             The Space for Excellence.
           </h2>
           <p style={{ 
-            fontSize: '1.25rem', 
+            fontSize: isMobile ? '1.1rem' : '1.25rem', 
             fontWeight: 700, 
             color: '#1e293b', 
             maxWidth: '500px', 
             opacity: 1,
             lineHeight: 1.5,
-            textShadow: '0 0 20px rgba(255,255,255,0.5)'
+            textShadow: '0 0 20px rgba(255,255,255,0.8)',
+            background: !isMobile ? 'rgba(255,255,255,0.4)' : 'transparent',
+            padding: !isMobile ? '0.5rem 1rem' : '0',
+            borderRadius: '12px',
+            marginLeft: !isMobile ? '-1rem' : '0',
+            backdropFilter: !isMobile ? 'blur(10px)' : 'none'
           }}>
             Enter a world-class marketplace where premium grooming meets effortless booking.
           </p>
@@ -92,13 +115,13 @@ export default function CustomerLogin() {
         display: 'flex', 
         flexDirection: 'column', 
         justifyContent: 'center', 
-        padding: '5rem', 
-        background: 'rgba(255,255,255,0.4)',
-        backdropFilter: 'blur(30px)',
-        WebkitBackdropFilter: 'blur(30px)'
+        padding: isMobile ? '3rem 1.5rem' : '5rem', 
+        background: isMobile ? 'transparent' : 'rgba(255,255,255,0.4)',
+        backdropFilter: isMobile ? 'none' : 'blur(30px)',
+        WebkitBackdropFilter: isMobile ? 'none' : 'blur(30px)'
       }}>
-        <div style={{ maxWidth: '400px' }}>
-          <h1 style={{ fontSize: '2.4rem', fontWeight: 950, marginBottom: '0.8rem', letterSpacing: '-0.02em', color: '#000' }}>
+        <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }}>
+          <h1 style={{ fontSize: isMobile ? '2rem' : '2.4rem', fontWeight: 950, marginBottom: '0.8rem', letterSpacing: '-0.02em', color: '#000' }}>
             Customer Access
           </h1>
           <p style={{ color: '#475569', fontSize: '1rem', marginBottom: '2.5rem', fontWeight: 600 }}>
@@ -165,7 +188,7 @@ export default function CustomerLogin() {
           </form>
 
           <div style={{ margin: '2rem 0' }}>
-            <SocialLoginButtons compact={true} />
+            <SocialLoginButtons mode="up" compact={true} />
           </div>
 
           <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>
