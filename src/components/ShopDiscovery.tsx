@@ -105,15 +105,39 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
             gap: '8px',
             border: '1px solid #eef2f6'
           }}>
-            <div style={{ flex: 1.5, minWidth: '200px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
+            <div style={{ flex: 1.5, minWidth: '220px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
               <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Service or Venue</label>
-              <input 
-                type="text" 
-                placeholder="What are you looking for?" 
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                style={{ border: 'none', width: '100%', outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
-              />
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input 
+                  type="text" 
+                  placeholder="Haircut, Spa, Barber..." 
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
+                />
+                <select 
+                  value={selectedCategory || ""} 
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  style={{ 
+                    border: 'none', 
+                    background: '#f1f5f9', 
+                    padding: '4px 8px', 
+                    borderRadius: '8px', 
+                    fontSize: '0.75rem', 
+                    fontWeight: 800, 
+                    color: 'var(--primary)',
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">All Types</option>
+                  <option value="BARBER">Barbershop</option>
+                  <option value="SALON">Hair Salon</option>
+                  <option value="SPA">Spa & Wellness</option>
+                  <option value="SKIN">Skin Care</option>
+                  <option value="NAILS">Nails</option>
+                </select>
+              </div>
             </div>
             <div style={{ flex: 1, minWidth: '150px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9', position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -189,35 +213,6 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
         </div>
       </section>
 
-      {/* ─── CATEGORY CHIPS ─── */}
-      <section style={{ padding: '0 2rem 4rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          {[
-            { label: "Barbershop", key: "BARBER" },
-            { label: "Hair Salon", key: "SALON" },
-            { label: "Spa & Wellness", key: "SPA" },
-            { label: "Skin Care", key: "SKIN" },
-            { label: "Nails", key: "NAILS" }
-          ].map((cat) => (
-            <button 
-              key={cat.key}
-              onClick={() => setSelectedCategory(selectedCategory === cat.key ? null : cat.key)}
-              style={{
-                padding: '0.75rem 1.7rem',
-                borderRadius: '50px',
-                border: selectedCategory === cat.key ? 'none' : '1px solid var(--border)',
-                background: selectedCategory === cat.key ? 'var(--primary)' : '#fff',
-                color: selectedCategory === cat.key ? '#fff' : '#475569',
-                fontSize: '0.9rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: selectedCategory === cat.key ? '0 10px 15px -3px rgba(99, 102, 241, 0.3)' : 'var(--shadow-sm)'
-              }}
-            >
-              {cat.label}
-            </button>
-          ))}
-      </section>
 
       {/* ─── POPULAR SHOPS GRID ─── */}
       <section style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 6rem' }}>
