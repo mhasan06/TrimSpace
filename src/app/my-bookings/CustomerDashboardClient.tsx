@@ -360,9 +360,17 @@ export default function CustomerDashboardClient({
                                                 }}>
                                                     <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
                                                         <div style={{ width: '3px', height: '20px', background: service.status === 'CANCELLED' ? '#ef4444' : '#6366f1', borderRadius: '2px' }} />
-                                                        <div>
+                                                        <div style={{ minWidth: 0 }}>
                                                             <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8' }}>{sTime}</p>
-                                                            <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
+                                                            <p style={{ 
+                                                                margin: 0, 
+                                                                fontSize: '0.85rem', 
+                                                                fontWeight: 700, 
+                                                                color: '#1e293b',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
                                                                 {service.name}
                                                                 {service.status === 'CANCELLED' && <span style={{ color: '#ef4444', marginLeft: '0.4rem' }}>(CANCELLED)</span>}
                                                             </p>

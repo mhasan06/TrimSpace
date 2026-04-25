@@ -55,20 +55,21 @@ export default function RaiseDisputeButton({ appointmentId, serviceName, date }:
             <button 
                 onClick={() => setIsOpen(true)}
                 style={{ 
-                    background: 'transparent', color: '#64748b', 
-                    padding: '0.4rem 0.8rem', borderRadius: '8px', cursor: 'pointer',
-                    fontWeight: 700, fontSize: '0.65rem', border: '1px solid #e2e8f0',
-                    transition: 'all 0.2s'
+                    background: '#f8fafc', color: '#6366f1', 
+                    padding: '0.5rem 0.8rem', borderRadius: '10px', cursor: 'pointer',
+                    fontWeight: 800, fontSize: '0.65rem', border: '1px solid #6366f1',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 5px rgba(99, 102, 241, 0.05)'
                 }}
                 onMouseEnter={(e: any) => {
-                    e.currentTarget.style.borderColor = '#ef4444';
-                    e.currentTarget.style.color = '#ef4444';
-                    e.currentTarget.style.background = '#fee2e2';
+                    e.currentTarget.style.background = '#6366f1';
+                    e.currentTarget.style.color = '#fff';
                 }}
                 onMouseLeave={(e: any) => {
-                    e.currentTarget.style.borderColor = '#e2e8f0';
-                    e.currentTarget.style.color = '#64748b';
-                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.color = '#6366f1';
                 }}
             >
                 REPORT ISSUE
