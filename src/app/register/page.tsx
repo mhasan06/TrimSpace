@@ -9,6 +9,22 @@ function RegisterContent() {
   const searchParams = useSearchParams();
   const [isBusiness, setIsBusiness] = useState(false);
   const [formState, setFormState] = useState<{ error?: string; success?: boolean; message?: string } | null>(null);
+  const [suburbInput, setSuburbInput] = useState("");
+  const [stateInput, setStateInput] = useState("");
+  const [showSuburbDropdown, setShowSuburbDropdown] = useState(false);
+
+  const SUBURB_DATA = [
+      { s: "Sydney", st: "NSW" }, { s: "Bondi Beach", st: "NSW" }, { s: "Surry Hills", st: "NSW" },
+      { s: "Paddington", st: "NSW" }, { s: "Darlinghurst", st: "NSW" }, { s: "Melbourne", st: "VIC" },
+      { s: "South Yarra", st: "VIC" }, { s: "Brisbane", st: "QLD" }, { s: "Fortitude Valley", st: "QLD" },
+      { s: "Perth", st: "WA" }, { s: "Adelaide", st: "SA" }, { s: "Parramatta", st: "NSW" },
+      { s: "Chatswood", st: "NSW" }, { s: "Manly", st: "NSW" }, { s: "Cronulla", st: "NSW" },
+      { s: "Richmond", st: "VIC" }, { s: "Fitzroy", st: "VIC" }, { s: "Newtown", st: "NSW" }
+  ];
+
+  const matchingSuburbs = SUBURB_DATA.filter(item => 
+      suburbInput && item.s.toLowerCase().includes(suburbInput.toLowerCase())
+  ).slice(0, 5);
 
   useEffect(() => {
     if (searchParams.get("type") === "business") {
@@ -71,13 +87,52 @@ function RegisterContent() {
                   <input name="abn" type="text" placeholder="00 000 000 000" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
                 </div>
                 
-                <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', position: 'relative' }}>
                   <label style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>Physical Location</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <input name="street" type="text" placeholder="Street Address" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                      <input name="suburb" type="text" placeholder="Suburb" required style={{ flex: 2, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
-                      <input name="state" type="text" placeholder="State" required style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                    <div style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
+                      <div style={{ flex: 2, position: 'relative' }}>
+                        <input 
+                            name="suburb" 
+                            type="text" 
+                            placeholder="Suburb" 
+                            value={suburbInput}
+                            onChange={(e) => { setSuburbInput(e.target.value); setShowSuburbDropdown(true); }}
+                            onFocus={() => setShowSuburbDropdown(true)}
+                            onBlur={() => setTimeout(() => setShowSuburbDropdown(false), 200)}
+                            required 
+                            style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} 
+                        />
+                        {showSuburbDropdown && matchingSuburbs.length > 0 && (
+                            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', marginTop: '4px', border: '1px solid #eef2f6' }}>
+                                {matchingSuburbs.map(item => (
+                                    <div 
+                                        key={`${item.s}-${item.st}`}
+                                        onClick={() => {
+                                            setSuburbInput(item.s);
+                                            setStateInput(item.st);
+                                            setShowSuburbDropdown(false);
+                                        }}
+                                        style={{ padding: '0.6rem 1rem', cursor: 'pointer', fontSize: '0.85rem', color: '#1a202c', borderBottom: '1px solid #f1f5f9', fontWeight: 600 }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = '#f7fafc'}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        🏙️ {item.s}, {item.st}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                      </div>
+                      <input 
+                        name="state" 
+                        type="text" 
+                        placeholder="State" 
+                        value={stateInput}
+                        onChange={(e) => setStateInput(e.target.value)}
+                        required 
+                        style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} 
+                      />
                     </div>
                   </div>
                 </div>

@@ -86,6 +86,21 @@ export default function BrandingManager({
     const [customerPhotos, setCustomerPhotos] = useState<string[]>(initialCustomerPhotos || []);
     const [description, setDescription] = useState(initialDescription || "");
     const [saving, setSaving] = useState(false);
+    const [showSuburbDropdown, setShowSuburbDropdown] = useState(false);
+
+    // Common Australian Suburbs & States for Autocomplete
+    const SUBURB_DATA = [
+        { s: "Sydney", st: "NSW" }, { s: "Bondi Beach", st: "NSW" }, { s: "Surry Hills", st: "NSW" },
+        { s: "Paddington", st: "NSW" }, { s: "Darlinghurst", st: "NSW" }, { s: "Melbourne", st: "VIC" },
+        { s: "South Yarra", st: "VIC" }, { s: "Brisbane", st: "QLD" }, { s: "Fortitude Valley", st: "QLD" },
+        { s: "Perth", st: "WA" }, { s: "Adelaide", st: "SA" }, { s: "Parramatta", st: "NSW" },
+        { s: "Chatswood", st: "NSW" }, { s: "Manly", st: "NSW" }, { s: "Cronulla", st: "NSW" },
+        { s: "Richmond", st: "VIC" }, { s: "Fitzroy", st: "VIC" }, { s: "Newtown", st: "NSW" }
+    ];
+
+    const matchingSuburbs = SUBURB_DATA.filter(item => 
+        suburb && item.s.toLowerCase().includes(suburb.toLowerCase())
+    ).slice(0, 5);
 
     const updateGallerySlot = (index: number, url: string) => {
         const newGallery = [...gallery];
@@ -169,8 +184,37 @@ export default function BrandingManager({
                         <label style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>Physical Address</label>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <input type="text" placeholder="Street" value={street} onChange={(e) => setStreet(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
-                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
-                                <input type="text" placeholder="Suburb" value={suburb} onChange={(e) => setSuburb(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', position: 'relative' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Suburb" 
+                                        value={suburb} 
+                                        onChange={(e) => { setSuburb(e.target.value); setShowSuburbDropdown(true); }} 
+                                        onFocus={() => setShowSuburbDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowSuburbDropdown(false), 200)}
+                                        style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
+                                    />
+                                    {showSuburbDropdown && matchingSuburbs.length > 0 && (
+                                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 1000, borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', marginTop: '4px', border: '1px solid #eef2f6' }}>
+                                            {matchingSuburbs.map(item => (
+                                                <div 
+                                                    key={`${item.s}-${item.st}`}
+                                                    onClick={() => {
+                                                        setSuburb(item.s);
+                                                        setState(item.st);
+                                                        setShowSuburbDropdown(false);
+                                                    }}
+                                                    style={{ padding: '0.6rem 1rem', cursor: 'pointer', fontSize: '0.85rem', color: '#334155', fontWeight: 600, borderBottom: '1px solid #f1f5f9' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                >
+                                                    🏙️ {item.s}, {item.st}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                                 <input type="text" placeholder="State" value={state} onChange={(e) => setState(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
                             </div>
                         </div>
