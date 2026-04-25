@@ -54,7 +54,7 @@ export default function NavHeader() {
       {/* ─── NAV LINKS ─── */}
       <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
         <Link href="/gift" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
-          Send a gift card
+          Share a Gift Experience
         </Link>
         
         {!session ? (
@@ -130,7 +130,7 @@ export default function NavHeader() {
                   ) : (
                     <button onClick={() => signOut()} style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}>Log out</button>
                   )}
-                  <Link href="/gift" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Send a gift card</Link>
+                  <Link href="/gift" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Share a Gift Experience</Link>
                   <Link href="/download" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Download the app</Link>
                   <Link href="/support" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8 }}>Help and support</Link>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#000', fontWeight: 700, fontSize: '0.95rem', opacity: 0.8, marginTop: '0.5rem' }}>
