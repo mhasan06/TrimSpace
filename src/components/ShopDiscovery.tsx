@@ -98,53 +98,54 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       <section className={styles.heroSection} style={{ 
         padding: '160px 20px', 
         textAlign: 'center', 
-        background: '#ffffff',
+        background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FDF2F8 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        minHeight: '650px'
+        minHeight: '700px',
+        position: 'relative'
       }}>
-        <div style={{ maxWidth: '1000px', width: '100%' }}>
-          <h1 style={{ fontSize: '5rem', fontWeight: 900, marginBottom: '1.5rem', letterSpacing: '-0.05em', lineHeight: 1, color: '#000000' }}>
+        <div style={{ maxWidth: '1000px', width: '100%', position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '5.2rem', fontWeight: 950, marginBottom: '1rem', letterSpacing: '-0.04em', lineHeight: 1, color: '#000000' }}>
             Book local self-care services.
           </h1>
-          <p style={{ fontSize: '1.5rem', color: '#111111', marginBottom: '5rem', fontWeight: 400, letterSpacing: '-0.01em', opacity: 0.9 }}>
+          <p style={{ fontSize: '1.5rem', color: '#334155', marginBottom: '4.5rem', fontWeight: 500, letterSpacing: '-0.01em', opacity: 0.9 }}>
             Top-rated salons, barbers, and beauty experts trusted worldwide.
           </p>
           
           <div style={{ 
             display: 'flex', 
-            background: '#fff', 
-            borderRadius: '16px', 
-            padding: '8px', 
-            boxShadow: '0 4px 30px rgba(0,0,0,0.06)',
+            background: 'rgba(255, 255, 255, 0.75)', 
+            backdropFilter: 'blur(16px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+            borderRadius: '24px', 
+            padding: '12px', 
+            boxShadow: '0 20px 40px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.3)',
             flexWrap: 'wrap',
             gap: '0',
-            border: '1px solid #e2e8f0',
             maxWidth: '1000px',
             margin: '0 auto',
-            position: 'relative',
-            zIndex: 10
+            border: '1px solid rgba(255,255,255,0.4)'
           }}>
             {/* Service Search */}
-            <div style={{ flex: 1, minWidth: '300px', padding: '16px 24px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
-              <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.6 }}>Service or Venue</label>
+            <div style={{ flex: 1.5, minWidth: '300px', padding: '12px 24px', textAlign: 'left', borderRight: '1px solid rgba(0,0,0,0.05)' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.5 }}>Service or Venue</label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input 
                   type="text" 
                   placeholder="What service are you looking for?" 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 500, background: 'transparent', minWidth: '0' }}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 600, background: 'transparent', minWidth: '0' }}
                 />
                 <select 
                   value={selectedCategory || ""} 
                   onChange={(e) => setSelectedCategory(e.target.value || null)}
                   style={{ 
                     border: 'none', 
-                    background: '#f8fafc', 
+                    background: 'rgba(0,0,0,0.04)', 
                     padding: '6px 12px', 
-                    borderRadius: '8px', 
+                    borderRadius: '10px', 
                     fontSize: '0.85rem', 
                     fontWeight: 700, 
                     color: '#000',
@@ -163,8 +164,8 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
             </div>
             
             {/* Location Search */}
-            <div style={{ flex: 1, minWidth: '300px', padding: '16px 24px', textAlign: 'left', position: 'relative' }}>
-              <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.6 }}>Where</label>
+            <div style={{ flex: 1, minWidth: '250px', padding: '12px 24px', textAlign: 'left', position: 'relative' }}>
+              <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.5 }}>Where</label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input 
                   type="text" 
@@ -172,12 +173,12 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                   value={where}
                   onChange={(e) => { setWhere(e.target.value); setShowSuburbs(true); }}
                   onFocus={() => setShowSuburbs(true)}
-                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 500, background: 'transparent', minWidth: '0' }}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 600, background: 'transparent', minWidth: '0' }}
                 />
                 <button 
                   onClick={handleUseCurrentLocation}
                   disabled={isLocating}
-                  style={{ border: 'none', background: '#f8fafc', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#000' }}
+                  style={{ border: 'none', background: 'rgba(0,0,0,0.04)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#000' }}
                   title="Use my location"
                 >
                   {isLocating ? '⌛' : '📍'}
@@ -185,13 +186,13 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
               </div>
               
               {showSuburbs && matchingSuburbs.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 2147483647, borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', marginTop: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', zIndex: 2147483647, borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', marginTop: '12px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
                   {matchingSuburbs.map(s => (
                     <div 
                       key={s} 
                       onClick={() => { setWhere(s); setShowSuburbs(false); }}
-                      style={{ padding: '12px 20px', cursor: 'pointer', borderBottom: '1px solid #f8fafc', fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a', textAlign: 'left' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      style={{ padding: '14px 24px', cursor: 'pointer', borderBottom: '1px solid rgba(0,0,0,0.03)', fontSize: '0.95rem', fontWeight: 600, color: '#000', textAlign: 'left' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.03)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
                       🏙️ {s}
@@ -206,13 +207,16 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
               color: '#ffffff', 
               border: 'none', 
               padding: '0 40px', 
-              borderRadius: '12px', 
+              borderRadius: '16px', 
               fontSize: '1rem', 
-              fontWeight: 700, 
-              margin: '8px',
+              fontWeight: 800, 
+              margin: '6px',
               cursor: 'pointer',
-              transition: 'transform 0.2s'
-            }}>
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
+            >
               Search
             </button>
           </div>
