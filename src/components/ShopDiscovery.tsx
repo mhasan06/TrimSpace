@@ -107,26 +107,26 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', position: 'relative', zIndex: 1 }}>
           <h1 style={{ 
-            fontSize: '3.8rem', 
+            fontSize: '3.6rem', 
             fontWeight: 950, 
-            marginBottom: '0.8rem', 
+            marginBottom: '1rem', 
             letterSpacing: '-0.04em', 
             lineHeight: 1.1, 
             color: '#000000',
             whiteSpace: 'nowrap'
           }}>
-            Elevate your style. Book your perfect space.
+            Elevate your style - Secure a space designed for you
           </h1>
           <p style={{ 
             fontSize: '1.25rem', 
             color: '#475569', 
-            marginBottom: '4rem', 
+            marginBottom: '4.5rem', 
             fontWeight: 500, 
             letterSpacing: '-0.01em', 
             opacity: 0.9,
             whiteSpace: 'nowrap'
           }}>
-            Discover Australia's top-rated grooming and wellness experts.
+            Discover top-rated grooming and wellness experts.
           </p>
           
           <div style={{ 
