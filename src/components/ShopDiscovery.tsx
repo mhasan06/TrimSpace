@@ -58,16 +58,21 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        // In a real app, you'd use a Geocoding API (Google/OSM) here
-        // For now, we'll simulate finding the nearest suburb or just setting a 'Near Me' state
         setWhere("Current Location");
         setIsLocating(false);
       },
       (error) => {
-        console.error(error);
+        console.error("Geo Error:", error);
         setIsLocating(false);
-        alert("Unable to retrieve your location. Please type your suburb.");
-      }
+        if (error.code === 1) {
+          alert("Location access denied. Please enable location permissions in your browser settings or type your suburb.");
+        } else if (error.code === 3) {
+          alert("Location request timed out. Please try again or type your suburb.");
+        } else {
+          alert("Unable to retrieve your location. Please type your suburb.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
