@@ -149,7 +149,7 @@ export default function CustomerLogin() {
           </form>
 
           <div style={{ margin: '2rem 0' }}>
-            <SocialLoginButtons />
+            <SocialLoginButtons compact={true} />
           </div>
 
           <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>
