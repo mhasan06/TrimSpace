@@ -42,6 +42,13 @@ export default function CustomerDashboardClient({
 
     const nextBooking = upcoming[0];
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    };
+
     return (
         <div style={{ 
             minHeight: '100vh', 
@@ -78,7 +85,7 @@ export default function CustomerDashboardClient({
                                 <p style={{ margin: '0.2rem 0', fontSize: '0.8rem', opacity: 0.6 }}>{viewingInvoice.tenant.address}</p>
                             </div>
                         </div>
-                        {/* ... Rest of Invoice Modal remains structurally similar but with responsive tweaks ... */}
+
                         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '2rem', marginBottom: '2rem' }}>
                             <div>
                                 <p style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Billed To</p>
@@ -169,24 +176,43 @@ export default function CustomerDashboardClient({
 
                 <h2 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.8rem', textAlign: 'center' }}>{user.name}</h2>
                 
-                <button 
-                    onClick={() => setIsProfileOpen(true)}
-                    style={{ 
-                        background: 'transparent', 
-                        border: '1px solid #e2e8f0', 
-                        color: '#64748b', 
-                        padding: '0.5rem 1.2rem', 
-                        borderRadius: '12px', 
-                        fontSize: '0.8rem', 
-                        fontWeight: 700, 
-                        cursor: 'pointer',
-                        marginBottom: '1.5rem'
-                    }}
-                >
-                    Edit Profile
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                    <button 
+                        onClick={() => setIsProfileOpen(true)}
+                        style={{ 
+                            background: 'transparent', 
+                            border: '1px solid #e2e8f0', 
+                            color: '#64748b', 
+                            padding: '0.5rem 1.2rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 700, 
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Edit Profile
+                    </button>
+                    <Link 
+                        href="/profile"
+                        style={{ 
+                            background: 'transparent', 
+                            border: '1px solid #e2e8f0', 
+                            color: '#64748b', 
+                            padding: '0.5rem 1.2rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.8rem', 
+                            fontWeight: 700, 
+                            cursor: 'pointer',
+                            textDecoration: 'none'
+                        }}
+                    >
+                        Account Settings
+                    </Link>
+                </div>
 
-                <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
+                <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
+                
+                <Link href="/report-issue" style={{ width: '100%', background: '#fff', color: '#64748b', textAlign: 'center', padding: '0.8rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 700, border: '1px solid #e2e8f0', marginBottom: '1.5rem', fontSize: '0.85rem' }}>Report an Issue</Link>
 
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <div style={{ background: '#f8fafc', padding: '0.8rem 1.2rem', borderRadius: '18px' }}>
@@ -201,7 +227,7 @@ export default function CustomerDashboardClient({
                 
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>Welcome, {user.name.split(' ')[0]}!</h1>
+                        <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>{getGreeting()}, {user.name.split(' ')[0]}!</h1>
                         {nextBooking && (
                             <p style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6366f1', fontWeight: 700 }}>
                                 📅 Next visit: {new Date(nextBooking.startTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' })} at {new Date(nextBooking.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}
