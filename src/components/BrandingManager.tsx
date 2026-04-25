@@ -4,6 +4,7 @@ import { useState } from "react";
 import { updateTenantBranding } from "../app/dashboard/settings/actions";
 import { getTerminology } from "@/lib/terminology";
 import { AU_SUBURBS } from "@/lib/constants";
+import ImageUpload from "./ImageUpload";
 
 function PersonaPreview({ category }: { category: string }) {
     const t = getTerminology(category);
