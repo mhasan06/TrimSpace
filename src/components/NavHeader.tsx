@@ -196,7 +196,7 @@ export default function NavHeader() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {!session ? (
                     <Link 
-                      href="/login" 
+                      href="/customer-login" 
                       onClick={() => setShowMenu(false)}
                       style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1.1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', textAlign: 'center', border: '1px solid #e2e8f0' }}
                     >
