@@ -21,6 +21,25 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
   const [query, setQuery] = useState("");
   const [where, setWhere] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showSuburbs, setShowSuburbs] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+
+  // Extract unique suburbs from existing shops for autocomplete
+  const allSuburbs = useMemo(() => {
+    const s = new Set<string>();
+    initialTenants.forEach(t => {
+      if (t.address) {
+        const parts = t.address.split(',');
+        if (parts.length > 0) s.add(parts[0].trim());
+      }
+    });
+    return Array.from(s).sort();
+  }, [initialTenants]);
+
+  const matchingSuburbs = useMemo(() => {
+    if (!where || where.length < 2) return [];
+    return allSuburbs.filter(s => s.toLowerCase().includes(where.toLowerCase())).slice(0, 5);
+  }, [allSuburbs, where]);
 
   const filteredTenants = useMemo(() => {
     return initialTenants.filter(t => {
@@ -30,6 +49,27 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       return matchesName && matchesLoc && matchesCat;
     });
   }, [initialTenants, query, where, selectedCategory]);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        // In a real app, you'd use a Geocoding API (Google/OSM) here
+        // For now, we'll simulate finding the nearest suburb or just setting a 'Near Me' state
+        setWhere("Current Location");
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error(error);
+        setIsLocating(false);
+        alert("Unable to retrieve your location. Please type your suburb.");
+      }
+    );
+  };
 
   return (
     <div style={{ background: 'var(--background)', color: 'var(--foreground)', minHeight: '100vh' }}>
@@ -70,15 +110,58 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                 style={{ border: 'none', width: '100%', outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
               />
             </div>
-            <div style={{ flex: 1, minWidth: '150px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
-              <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Where?</label>
+            <div style={{ flex: 1, minWidth: '150px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Where?</label>
+                <button 
+                  onClick={handleUseCurrentLocation}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: 0, opacity: isLocating ? 0.5 : 1 }}
+                  title="Use my location"
+                >
+                  {isLocating ? '⌛' : '📍'}
+                </button>
+              </div>
               <input 
                 type="text" 
-                placeholder="Current location" 
+                placeholder="Suburb or City" 
                 value={where}
-                onChange={(e) => setWhere(e.target.value)}
+                onChange={(e) => {
+                  setWhere(e.target.value);
+                  setShowSuburbs(true);
+                }}
+                onFocus={() => setShowSuburbs(true)}
+                onBlur={() => setTimeout(() => setShowSuburbs(false), 200)}
                 style={{ border: 'none', width: '100%', outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
               />
+
+              {/* Suburb Dropdown */}
+              {showSuburbs && matchingSuburbs.length > 0 && (
+                <div className="glass" style={{ 
+                  position: 'absolute', 
+                  top: '100%', 
+                  left: 0, 
+                  right: 0, 
+                  background: 'white', 
+                  zIndex: 100, 
+                  marginTop: '10px', 
+                  borderRadius: '12px', 
+                  overflow: 'hidden', 
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                  border: '1px solid #f1f5f9'
+                }}>
+                  {matchingSuburbs.map(s => (
+                    <div 
+                      key={s} 
+                      onClick={() => { setWhere(s); setShowSuburbs(false); }}
+                      style={{ padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: '#475569', transition: 'background 0.2s' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      🏙️ {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div style={{ flex: 0.8, minWidth: '120px', padding: '12px 16px', textAlign: 'left' }}>
               <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>When?</label>
