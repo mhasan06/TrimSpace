@@ -368,7 +368,12 @@ export default function CustomerDashboardClient({
                                                             </p>
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                        <RaiseDisputeButton 
+                                                            appointmentId={service.id}
+                                                            serviceName={service.name}
+                                                            date={service.startTime}
+                                                        />
                                                         {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
                                                             <CancelButton 
                                                                 appointmentId={service.id} 
