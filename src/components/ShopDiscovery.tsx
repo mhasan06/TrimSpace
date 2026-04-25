@@ -31,25 +31,35 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
     ["Sydney", "Bondi Beach", "Surry Hills", "Paddington", "Darlinghurst", "Parramatta", "Chatswood", "Manly", "Cronulla"].forEach(reg => s.add(reg));
     
     initialTenants.forEach(t => {
-      if (t.address) {
+      // Prioritize explicit suburb field
+      if ((t as any).suburb) {
+        s.add((t as any).suburb);
+      } else if (t.address) {
+        // Fallback for legacy address strings
         const parts = t.address.split(',');
         if (parts.length > 0) s.add(parts[0].trim());
       }
     });
-    return Array.from(s).sort();
+    return Array.from(s).filter(Boolean).sort();
   }, [initialTenants]);
 
   const matchingSuburbs = useMemo(() => {
     if (!where || where.length < 1) return []; // Trigger on 1 character
-    return allSuburbs.filter(s => s.toLowerCase().includes(where.toLowerCase())).slice(0, 8);
+    return allSuburbs.filter(s => s.toLowerCase().includes(where.toLowerCase())).slice(0, 10);
   }, [allSuburbs, where]);
 
   const filteredTenants = useMemo(() => {
     return initialTenants.filter(t => {
-      const matchesName = t.name.toLowerCase().includes(query.toLowerCase());
-      const matchesLoc = !where || (t.address?.toLowerCase().includes(where.toLowerCase()));
-      const matchesCat = !selectedCategory || t.category === selectedCategory;
-      return matchesName && matchesLoc && matchesCat;
+      const matchesQuery = !query || 
+        t.name.toLowerCase().includes(query.toLowerCase()) || 
+        (t.description?.toLowerCase().includes(query.toLowerCase()));
+      
+      const shopSuburb = (t as any).suburb?.toLowerCase() || "";
+      const shopAddress = t.address?.toLowerCase() || "";
+      const matchesWhere = !where || shopSuburb.includes(where.toLowerCase()) || shopAddress.includes(where.toLowerCase());
+      
+      const matchesCategory = !selectedCategory || t.category === selectedCategory;
+      return matchesQuery && matchesWhere && matchesCategory;
     });
   }, [initialTenants, query, where, selectedCategory]);
 
