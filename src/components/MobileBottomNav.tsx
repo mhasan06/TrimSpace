@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -19,9 +21,9 @@ export default function MobileBottomNav() {
 
   const navItems = [
     { label: "Discover", icon: "🔍", path: "/" },
-    { label: "Bookings", icon: "📅", path: "/my-bookings" },
-    { label: "Favorites", icon: "❤️", path: "/favorites" },
-    { label: "Profile", icon: "👤", path: "/profile" },
+    { label: "Bookings", icon: "📅", path: session ? "/my-bookings" : "/customer-login" },
+    { label: "Favorites", icon: "❤️", path: session ? "/favorites" : "/customer-login" },
+    { label: "Profile", icon: "👤", path: session ? "/profile" : "/customer-login" },
   ];
 
   return (
@@ -43,7 +45,9 @@ export default function MobileBottomNav() {
       boxShadow: '0 -5px 20px rgba(0, 0, 0, 0.03)'
     }}>
       {navItems.map((item) => {
-        const isActive = pathname === item.path;
+        // Match active path exactly OR if it's the login redirect path
+        const isActive = pathname === item.path || (pathname === "/customer-login" && item.path === "/customer-login");
+        
         return (
           <Link 
             key={item.label} 

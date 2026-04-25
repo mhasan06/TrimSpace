@@ -195,16 +195,28 @@ export default function NavHeader() {
                 <h3 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>For connoisseurs</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {!session ? (
-                    <Link href="/login" style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Log in or sign up</Link>
+                    <Link 
+                      href="/login" 
+                      onClick={() => setShowMenu(false)}
+                      style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1.1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', textAlign: 'center', border: '1px solid #e2e8f0' }}
+                    >
+                      Log in or sign up
+                    </Link>
                   ) : (
-                    <Link href="/my-bookings" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>My Bookings</Link>
+                    <Link 
+                      href="/my-bookings" 
+                      onClick={() => setShowMenu(false)}
+                      style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}
+                    >
+                      My Bookings
+                    </Link>
                   )}
-                  <Link href="/gift" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
-                  <Link href="/support" style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
+                  <Link href="/gift" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
+                  <Link href="/support" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
                   {isMobile && (
                     <>
                       <div style={{ height: '1px', background: '#f1f5f9', margin: '0.5rem 0' }}></div>
-                      <Link href="/register?type=business" style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
+                      <Link href="/register?type=business" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
                     </>
                   )}
                 </div>
@@ -212,7 +224,12 @@ export default function NavHeader() {
 
               {session && (
                 <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '1rem', paddingTop: '1rem' }}>
-                  <button onClick={() => signOut()} style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}>Log out</button>
+                  <button 
+                    onClick={() => { signOut(); setShowMenu(false); }} 
+                    style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}
+                  >
+                    Log out
+                  </button>
                 </div>
               )}
             </div>
