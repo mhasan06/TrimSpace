@@ -96,13 +96,13 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section className={styles.heroSection} style={{ 
-        padding: '100px 20px', 
+        padding: '80px 20px 60px', 
         textAlign: 'center', 
         background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        minHeight: '500px',
+        minHeight: '450px',
         position: 'relative'
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', position: 'relative', zIndex: 1 }}>
@@ -120,7 +120,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
           <p style={{ 
             fontSize: '1.25rem', 
             color: '#475569', 
-            marginBottom: '3.5rem', 
+            marginBottom: '3rem', 
             fontWeight: 500, 
             letterSpacing: '-0.01em', 
             opacity: 0.9,
@@ -191,14 +191,6 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                   onFocus={() => setShowSuburbs(true)}
                   style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 600, background: 'transparent', minWidth: '0' }}
                 />
-                <button 
-                  onClick={handleUseCurrentLocation}
-                  disabled={isLocating}
-                  style={{ border: 'none', background: 'rgba(0,0,0,0.04)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#000' }}
-                  title="Use my location"
-                >
-                  {isLocating ? '⌛' : '📍'}
-                </button>
               </div>
               
               {showSuburbs && matchingSuburbs.length > 0 && (
@@ -242,10 +234,10 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
 
       {/* ─── POPULAR SHOPS GRID ─── */}
       <section style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 6rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem' }}>
             <div>
-                <h2 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#1e293b' }}>Popular Destinations</h2>
-                <p style={{ color: '#64748b', marginTop: '0.5rem', fontWeight: 500 }}>Top-rated professionals across your network</p>
+                <h2 style={{ fontSize: '2rem', fontWeight: 950, color: '#000', marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>Popular Destinations</h2>
+                <p style={{ color: '#64748b', fontWeight: 500 }}>Top-rated professionals across your network</p>
             </div>
             {selectedCategory && (
                 <button onClick={() => setSelectedCategory(null)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>Reset Filters</button>
