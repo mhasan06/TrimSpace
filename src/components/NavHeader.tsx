@@ -99,38 +99,61 @@ export default function NavHeader() {
               display: 'flex', 
               alignItems: 'center', 
               gap: '0.8rem', 
-              padding: isMobile ? '0.4rem 0.8rem' : '0.5rem 1rem', 
+              padding: isMobile ? '0.4rem 0.6rem' : '0.4rem 0.8rem', 
               borderRadius: '40px', 
               border: '1px solid #e2e8f0', 
               background: '#fff', 
               cursor: 'pointer',
               fontWeight: 800,
               fontSize: '1rem',
-              boxShadow: '0 2px 5px rgba(0,0,0,0.02)'
+              boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+              transition: 'all 0.2s'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.2)'}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="6" x2="21" y2="6"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
+              
               {session ? (
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#f1f5f9', overflow: 'hidden', border: '1.5px solid #000' }}>
+                <div style={{ 
+                  width: '38px', 
+                  height: '38px', 
+                  borderRadius: '50%', 
+                  background: '#000', 
+                  overflow: 'hidden', 
+                  border: '2px solid #fff',
+                  boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  fontWeight: 900
+                }}>
                   {userImage ? (
                     <img src={userImage} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </div>
+                    <span>{(session?.user?.name?.[0] || 'T').toUpperCase()}</span>
                   )}
                 </div>
               ) : (
-                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <div style={{ 
+                  width: '38px', 
+                  height: '38px', 
+                  borderRadius: '50%', 
+                  background: '#f1f5f9', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: '#64748b',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
