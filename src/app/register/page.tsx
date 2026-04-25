@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { registerAction } from "./actions";
 import { useFormStatus } from "react-dom";
-import { useSearchParams } from "next-auth/next";
+import { useSearchParams } from "next/navigation";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
 import { AU_SUBURBS } from "@/lib/constants";
 import Link from "next/link";
