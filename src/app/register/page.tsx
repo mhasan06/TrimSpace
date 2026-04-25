@@ -218,32 +218,81 @@ function RegisterContent() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Master Full Name</label>
+                <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {isBusiness ? "Master Full Name" : "Full Name"}
+                </label>
                 <input name="name" type="text" placeholder="John Doe" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Phone</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <select name="phoneCode" style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#000', width: '100px', fontWeight: 700 }}>
-                    <option value="+61">+61 AU</option>
-                    <option value="+1">+1 US</option>
+                  <select name="phoneCode" style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#000', width: '90px', fontWeight: 700 }}>
+                    <option value="+61">+61</option>
+                    <option value="+1">+1</option>
                   </select>
-                  <input name="phone" type="tel" required placeholder="0400 000 000" style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
+                  <input name="phone" type="tel" required placeholder="0400 000 000" style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600, minWidth: '0' }} />
                 </div>
               </div>
             </div>
 
-            {!isBusiness && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Primary Suburb</label>
-                <input name="suburb" type="text" placeholder="e.g. Bondi Beach" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
+            <div style={{ padding: '2rem', borderRadius: '24px', background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.05)' }}>
+              <h3 style={{ fontSize: '0.9rem', color: '#000', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>
+                {isBusiness ? "Physical Boutique Address" : "Your Primary Location"}
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                {isBusiness && (
+                  <input name="street" type="text" placeholder="Street Address" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
+                )}
+                <div style={{ display: 'flex', gap: '1rem', position: 'relative' }}>
+                  <div style={{ flex: 2, position: 'relative' }}>
+                    <input 
+                        name="suburb" 
+                        type="text" 
+                        placeholder="Suburb" 
+                        value={suburbInput}
+                        onChange={(e) => { setSuburbInput(e.target.value); setShowSuburbDropdown(true); }}
+                        onFocus={() => setShowSuburbDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowSuburbDropdown(false), 200)}
+                        required 
+                        style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} 
+                    />
+                    {showSuburbDropdown && matchingSuburbs.length > 0 && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '16px', boxShadow: '0 15px 40px rgba(0,0,0,0.1)', marginTop: '8px', border: '1px solid rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+                            {matchingSuburbs.map(item => (
+                                <div 
+                                    key={`${item.s}-${item.st}`}
+                                    onClick={() => {
+                                        setSuburbInput(item.s);
+                                        setStateInput(item.st);
+                                        setShowSuburbDropdown(false);
+                                    }}
+                                    style={{ padding: '0.8rem 1.2rem', cursor: 'pointer', fontSize: '0.95rem', color: '#000', borderBottom: '1px solid rgba(0,0,0,0.03)', fontWeight: 700 }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                >
+                                    🏙️ {item.s}, {item.st}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                  </div>
+                  <input 
+                    name="state" 
+                    type="text" 
+                    placeholder="State" 
+                    value={stateInput}
+                    onChange={(e) => setStateInput(e.target.value)}
+                    required 
+                    style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} 
+                  />
+                </div>
               </div>
-            )}
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Work Email</label>
-                <input name="email" type="email" placeholder="master@example.com" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
+                <input name="email" type="email" placeholder="email@example.com" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 <label style={{ fontSize: '0.85rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Secure Password</label>
@@ -251,13 +300,16 @@ function RegisterContent() {
               </div>
             </div>
 
-            <SubmitButton />
+            <SubmitButton isBusiness={isBusiness} />
           </form>
         )}
 
         {!isBusiness && !formState?.success && (
           <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '2rem' }}>
-            <SocialLoginButtons mode="up" />
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quick Access</span>
+            </div>
+            <SocialLoginButtons mode="up" compact={true} />
           </div>
         )}
         
