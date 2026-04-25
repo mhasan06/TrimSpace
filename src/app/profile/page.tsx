@@ -137,16 +137,11 @@ export default function ProfilePage() {
             </form>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
             <Link href="/favorites" style={{ textDecoration: 'none', background: '#fff', padding: '2rem', borderRadius: '24px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
               <span style={{ fontSize: '2rem' }}>❤️</span>
               <span style={{ fontWeight: 900, color: '#000', fontSize: '1.1rem' }}>Saved Favorites</span>
               <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>Manage your premium collection.</span>
-            </Link>
-            <Link href="/report-issue" style={{ textDecoration: 'none', background: '#fff', padding: '2rem', borderRadius: '24px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '1rem', boxShadow: '0 10px 20px rgba(0,0,0,0.02)' }}>
-              <span style={{ fontSize: '2rem' }}>🆘</span>
-              <span style={{ fontWeight: 900, color: '#000', fontSize: '1.1rem' }}>Help & Support</span>
-              <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 600 }}>Report issues or get concierge help.</span>
             </Link>
           </div>
         </div>

@@ -210,9 +210,7 @@ export default function CustomerDashboardClient({
                     </Link>
                 </div>
 
-                <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
-                
-                <Link href="/report-issue" style={{ width: '100%', background: '#fff', color: '#64748b', textAlign: 'center', padding: '0.8rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 700, border: '1px solid #e2e8f0', marginBottom: '1.5rem', fontSize: '0.85rem' }}>Report an Issue</Link>
+                <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
 
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <div style={{ background: '#f8fafc', padding: '0.8rem 1.2rem', borderRadius: '18px' }}>
