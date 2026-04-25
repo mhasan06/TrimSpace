@@ -12,7 +12,8 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user?.id) {
+    const user = session?.user as any;
+    if (user?.id) {
       loadFavorites();
     }
   }, [session]);
