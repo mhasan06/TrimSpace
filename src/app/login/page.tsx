@@ -1,8 +1,9 @@
 
 
+"use client";
 import Link from "next/link";
 
-export default async function LoginGateway() {
+export default function LoginGateway() {
   return (
     <main style={{ 
       display: 'flex', 
