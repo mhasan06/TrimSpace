@@ -211,13 +211,24 @@ export default function NavHeader() {
                       Log in or sign up
                     </Link>
                   ) : (
-                    <Link 
-                      href="/my-bookings" 
-                      onClick={() => setShowMenu(false)}
-                      style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}
-                    >
-                      My Bookings
-                    </Link>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <Link 
+                        href={role === 'MERCHANT' ? "/dashboard" : "/my-bookings"} 
+                        onClick={() => setShowMenu(false)}
+                        style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}
+                      >
+                        {role === 'MERCHANT' ? "Partner Dashboard" : "My Bookings"}
+                      </Link>
+                      {role === 'MERCHANT' && (
+                        <>
+                          <Link href="/dashboard/ledger" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Financial Ledger</Link>
+                          <Link href="/dashboard/variables" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Business Settings</Link>
+                        </>
+                      )}
+                      {role === 'ADMIN' && (
+                        <Link href="/admin" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Admin Portal</Link>
+                      )}
+                    </div>
                   )}
                   <Link href="/gift" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
                   <Link href="/support" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>

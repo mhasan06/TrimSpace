@@ -19,11 +19,25 @@ export default function MobileBottomNav() {
 
   if (!isMobile) return null;
 
+  const role = (session?.user as any)?.role;
+
   const navItems = [
     { label: "Discover", icon: "🔍", path: "/" },
-    { label: "Bookings", icon: "📅", path: session ? "/my-bookings" : "/login" },
-    { label: "Favorites", icon: "❤️", path: session ? "/favorites" : "/login" },
-    { label: "Profile", icon: "👤", path: session ? "/profile" : "/login" },
+    { 
+      label: "Bookings", 
+      icon: "📅", 
+      path: !session ? "/login" : (role === 'MERCHANT' ? "/dashboard" : "/my-bookings") 
+    },
+    { 
+      label: role === 'MERCHANT' ? "Ledger" : "Favorites", 
+      icon: role === 'MERCHANT' ? "💰" : "❤️", 
+      path: !session ? "/login" : (role === 'MERCHANT' ? "/dashboard/ledger" : "/favorites") 
+    },
+    { 
+      label: "Profile", 
+      icon: "👤", 
+      path: !session ? "/login" : (role === 'MERCHANT' ? "/dashboard/variables" : "/profile") 
+    },
   ];
 
   return (
