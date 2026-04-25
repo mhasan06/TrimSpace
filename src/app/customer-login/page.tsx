@@ -61,11 +61,27 @@ export default function CustomerLogin() {
         borderRight: '1px solid rgba(0,0,0,0.05)'
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontSize: '3.2rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '1rem', color: '#000' }}>
-            Elevate Your Experience.
+          <h2 style={{ 
+            fontSize: '3.8rem', 
+            fontWeight: 950, 
+            letterSpacing: '-0.04em', 
+            lineHeight: 1, 
+            marginBottom: '1.2rem', 
+            color: '#000',
+            textShadow: '0 0 40px rgba(255,255,255,0.8)' 
+          }}>
+            The Space for Excellence.
           </h2>
-          <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#334155', maxWidth: '450px', opacity: 0.9 }}>
-            Join the connoisseurs of self-care. Book your next visit with world-class experts.
+          <p style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: 700, 
+            color: '#1e293b', 
+            maxWidth: '500px', 
+            opacity: 1,
+            lineHeight: 1.5,
+            textShadow: '0 0 20px rgba(255,255,255,0.5)'
+          }}>
+            Enter a world-class marketplace where premium grooming meets effortless booking.
           </p>
         </div>
       </div>
