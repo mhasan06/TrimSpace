@@ -96,63 +96,64 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section className={styles.heroSection} style={{ 
-        padding: '120px 20px', 
+        padding: '160px 20px', 
         textAlign: 'center', 
-        background: 'linear-gradient(180deg, #f8fafc 0%, var(--background) 100%)',
+        background: '#ffffff',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        height: '70vh',
-        minHeight: '600px'
+        minHeight: '650px'
       }}>
         <div style={{ maxWidth: '1000px', width: '100%' }}>
-          <h1 style={{ fontSize: '4.5rem', fontWeight: 950, marginBottom: '0.5rem', letterSpacing: '-0.04em', lineHeight: 1, color: '#020617' }}>
+          <h1 style={{ fontSize: '5rem', fontWeight: 900, marginBottom: '1.5rem', letterSpacing: '-0.05em', lineHeight: 1, color: '#000000' }}>
             Book local self-care services.
           </h1>
-          <p style={{ fontSize: '1.4rem', color: '#475569', marginBottom: '4rem', fontWeight: 500, letterSpacing: '-0.01em' }}>
+          <p style={{ fontSize: '1.5rem', color: '#111111', marginBottom: '5rem', fontWeight: 400, letterSpacing: '-0.01em', opacity: 0.9 }}>
             Top-rated salons, barbers, and beauty experts trusted worldwide.
           </p>
           
-          <div className="glass" style={{ 
+          <div style={{ 
             display: 'flex', 
             background: '#fff', 
-            borderRadius: '24px', 
-            padding: '12px', 
-            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.1)',
+            borderRadius: '16px', 
+            padding: '8px', 
+            boxShadow: '0 4px 30px rgba(0,0,0,0.06)',
             flexWrap: 'wrap',
             gap: '0',
-            border: '1px solid #f1f5f9',
-            maxWidth: '900px',
-            margin: '0 auto'
+            border: '1px solid #e2e8f0',
+            maxWidth: '1000px',
+            margin: '0 auto',
+            position: 'relative',
+            zIndex: 10
           }}>
-            <div style={{ flex: 2, minWidth: '250px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
-              <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Service or Venue</label>
+            {/* Service Search */}
+            <div style={{ flex: 1, minWidth: '300px', padding: '16px 24px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
+              <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.6 }}>Service or Venue</label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input 
                   type="text" 
-                  placeholder="Haircut, Spa, Barber..." 
+                  placeholder="What service are you looking for?" 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  style={{ border: 'none', flex: 1, outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent', minWidth: '0' }}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 500, background: 'transparent', minWidth: '0' }}
                 />
                 <select 
                   value={selectedCategory || ""} 
                   onChange={(e) => setSelectedCategory(e.target.value || null)}
                   style={{ 
                     border: 'none', 
-                    background: '#f1f5f9', 
-                    padding: '4px 8px', 
+                    background: '#f8fafc', 
+                    padding: '6px 12px', 
                     borderRadius: '8px', 
-                    fontSize: '0.75rem', 
-                    fontWeight: 800, 
-                    color: 'var(--primary)',
+                    fontSize: '0.85rem', 
+                    fontWeight: 700, 
+                    color: '#000',
                     cursor: 'pointer',
-                    outline: 'none',
-                    whiteSpace: 'nowrap'
+                    outline: 'none'
                   }}
                 >
-                  <option value="">All Types</option>
-                  <option value="BARBER">Barbershop</option>
+                  <option value="">All Services</option>
+                  <option value="BARBER">Barber</option>
                   <option value="SALON">Hair Salon</option>
                   <option value="SPA">Spa & Wellness</option>
                   <option value="SKIN">Skin Care</option>
@@ -160,89 +161,57 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                 </select>
               </div>
             </div>
-            <div style={{ flex: 1.2, minWidth: '180px', padding: '12px 16px', textAlign: 'left', borderRight: 'none', position: 'relative' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Where?</label>
+            
+            {/* Location Search */}
+            <div style={{ flex: 1, minWidth: '300px', padding: '16px 24px', textAlign: 'left', position: 'relative' }}>
+              <label style={{ fontSize: '0.7rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', display: 'block', marginBottom: '6px', opacity: 0.6 }}>Where</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input 
+                  type="text" 
+                  placeholder="Current Location" 
+                  value={where}
+                  onChange={(e) => { setWhere(e.target.value); setShowSuburbs(true); }}
+                  onFocus={() => setShowSuburbs(true)}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#000', fontSize: '1.1rem', fontWeight: 500, background: 'transparent', minWidth: '0' }}
+                />
                 <button 
                   onClick={handleUseCurrentLocation}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: 0, opacity: isLocating ? 0.5 : 1 }}
+                  disabled={isLocating}
+                  style={{ border: 'none', background: '#f8fafc', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#000' }}
                   title="Use my location"
                 >
                   {isLocating ? '⌛' : '📍'}
                 </button>
               </div>
-              <input 
-                type="text" 
-                placeholder="Suburb or City" 
-                value={where}
-                onChange={(e) => {
-                  setWhere(e.target.value);
-                  setShowSuburbs(true);
-                }}
-                onFocus={() => setShowSuburbs(true)}
-                onBlur={() => setTimeout(() => setShowSuburbs(false), 200)}
-                style={{ border: 'none', width: '100%', outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
-              />
-
-              {/* Suburb Dropdown */}
+              
               {showSuburbs && matchingSuburbs.length > 0 && (
-                <div style={{ 
-                  position: 'absolute', 
-                  top: '100%', 
-                  left: 0, 
-                  right: 0, 
-                  background: 'white', 
-                  zIndex: 2147483647, // Max Z-index to ensure it is above everything
-                  marginTop: '10px', 
-                  borderRadius: '16px', 
-                  overflow: 'hidden', 
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
-                  border: '1px solid #eef2f6',
-                  padding: '0.5rem'
-                }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 2147483647, borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', marginTop: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
                   {matchingSuburbs.map(s => (
                     <div 
                       key={s} 
                       onClick={() => { setWhere(s); setShowSuburbs(false); }}
-                      style={{ 
-                        padding: '0.8rem 1rem', 
-                        cursor: 'pointer', 
-                        fontSize: '0.95rem', 
-                        fontWeight: 700, 
-                        color: '#334155', 
-                        transition: 'all 0.2s',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.8rem'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#f1f5f9';
-                        e.currentTarget.style.color = 'var(--primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = '#334155';
-                      }}
+                      style={{ padding: '12px 20px', cursor: 'pointer', borderBottom: '1px solid #f8fafc', fontSize: '0.95rem', fontWeight: 600, color: '#1a1a1a', textAlign: 'left' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                     >
-                      <span style={{ fontSize: '1.2rem' }}>📍</span>
-                      <span>{s}</span>
+                      🏙️ {s}
                     </div>
                   ))}
                 </div>
               )}
             </div>
+
             <button style={{ 
-              background: 'var(--primary)', 
-              color: '#fff', 
+              background: '#000000', 
+              color: '#ffffff', 
               border: 'none', 
-              padding: '0 3rem', 
-              borderRadius: '14px', 
-              fontWeight: 900, 
+              padding: '0 40px', 
+              borderRadius: '12px', 
+              fontSize: '1rem', 
+              fontWeight: 700, 
+              margin: '8px',
               cursor: 'pointer',
-              fontSize: '1.1rem',
-              transition: 'background 0.2s',
-              margin: '4px'
+              transition: 'transform 0.2s'
             }}>
               Search
             </button>
