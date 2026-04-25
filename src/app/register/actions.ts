@@ -62,7 +62,16 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { success: true, message: "Business Registered Successfully! You may now login." };
 
     } else {
-      await prisma.user.create({ data: { email, name, phone, password: hashedPassword, role: "CUSTOMER" } });
+      await prisma.user.create({ 
+        data: { 
+          email, 
+          name, 
+          phone: `${phoneCode}${phone}`, 
+          password: hashedPassword, 
+          role: "CUSTOMER",
+          suburb: formData.get("suburb") as string
+        } 
+      });
       return { success: true, message: "Customer Account Registered! You may now login." };
     }
   } catch (error) {

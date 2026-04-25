@@ -102,6 +102,13 @@ function RegisterContent() {
               </div>
             </div>
 
+            {!isBusiness && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Your Suburb</label>
+                <input name="suburb" type="text" placeholder="e.g. Bondi Beach" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Email Address</label>
               <input name="email" type="email" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
