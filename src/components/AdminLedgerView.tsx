@@ -66,7 +66,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
     setIsAddingNote(false);
   };
 
-  const handleResolve = async (resolution: 'PAYOUT' | 'REFUND') => {
+  const handleResolve = async (resolution: 'PAYOUT' | 'REFUND' | 'NO_ACTION') => {
     if (!resolvingEvent || !resolutionMemo) return;
     setIsResolving(true);
     const res = await resolveDisputeAction(resolvingEvent.id, resolution, resolutionMemo);
@@ -92,7 +92,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
       if (disputeSubTab === 'pending') {
         return event.isDisputed && event.disputeStatus === 'PENDING';
       } else {
-        return event.disputeStatus && (event.disputeStatus === 'RESOLVED_PAYOUT' || event.disputeStatus === 'RESOLVED_REFUND');
+        return event.disputeStatus && (event.disputeStatus === 'RESOLVED_PAYOUT' || event.disputeStatus === 'RESOLVED_REFUND' || event.disputeStatus === 'RESOLVED_NO_ACTION');
       }
     }
 
@@ -265,8 +265,8 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
             {resolvingEvent.disputeStatus?.startsWith('RESOLVED') ? (
               <div style={{ 
                 padding: '1.5rem', borderRadius: '20px', 
-                background: resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                border: `1px solid ${resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444'}`
+                background: resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : (resolvingEvent.disputeStatus === 'RESOLVED_REFUND' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(100, 116, 139, 0.1)'),
+                border: `1px solid ${resolvingEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : (resolvingEvent.disputeStatus === 'RESOLVED_REFUND' ? '#ef4444' : '#64748b')}`
               }}>
                 <div style={{ fontWeight: 900, fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Final Resolution Summary:</div>
                 <div style={{ fontSize: '0.95rem', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
@@ -304,6 +304,13 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                     style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
                   >
                     REFUND CUSTOMER
+                  </button>
+                  <button 
+                    onClick={() => handleResolve('NO_ACTION')}
+                    disabled={isResolving || !resolutionMemo}
+                    style={{ flex: 1, background: '#334155', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isResolving || !resolutionMemo ? 0.5 : 1 }}
+                  >
+                    NO ACTION
                   </button>
                 </div>
               </div>

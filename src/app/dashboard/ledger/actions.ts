@@ -26,7 +26,7 @@ export async function flagDisputeAction(appointmentId: string, reason: string) {
   }
 }
 
-export async function resolveDisputeAction(appointmentId: string, resolution: 'PAYOUT' | 'REFUND', memo: string) {
+export async function resolveDisputeAction(appointmentId: string, resolution: 'PAYOUT' | 'REFUND' | 'NO_ACTION', memo: string) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || (session.user as any).role !== 'ADMIN') {
@@ -35,7 +35,9 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
 
     const adminName = session.user?.name || "Platform Admin";
 
-    const status = resolution === 'PAYOUT' ? 'RESOLVED_PAYOUT' : 'RESOLVED_REFUND';
+    let status = 'RESOLVED_PAYOUT';
+    if (resolution === 'REFUND') status = 'RESOLVED_REFUND';
+    if (resolution === 'NO_ACTION') status = 'RESOLVED_NO_ACTION';
     
     await prisma.appointment.update({
       where: { id: appointmentId },
@@ -50,6 +52,7 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
 
     revalidatePath('/admin/ledger');
     revalidatePath('/dashboard/ledger');
+    revalidatePath('/my-bookings');
     return { success: true };
   } catch (error) {
     console.error("Failed to resolve dispute:", error);
