@@ -106,9 +106,12 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
         background: 'linear-gradient(180deg, #f0f4ff 0%, var(--background) 100%)'
       }}>
         <div style={{ maxWidth: '800px', width: '100%' }}>
-          <h1 style={{ fontSize: '3.5rem', fontWeight: 900, marginBottom: '2rem', lineHeight: 1.1, color: '#1e293b' }}>
-            Style, delivered.<br/><span style={{ color: 'var(--primary)' }}>Book the best near you.</span>
+          <h1 style={{ fontSize: '4rem', fontWeight: 900, marginBottom: '0.75rem', lineHeight: 1.1, color: '#0f172a' }}>
+            Book local self-care services
           </h1>
+          <p style={{ fontSize: '1.2rem', color: '#64748b', marginBottom: '3rem', fontWeight: 500, lineHeight: 1.5, maxWidth: '700px', margin: '0 auto 3rem' }}>
+            Discover top-rated salons, barbers, medspas, wellness studios and beauty experts trusted by millions worldwide
+          </p>
           
           <div className="glass" style={{ 
             display: 'flex', 
