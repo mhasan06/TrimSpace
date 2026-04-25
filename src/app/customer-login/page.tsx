@@ -53,25 +53,24 @@ export default function CustomerLogin() {
     <main style={{ 
       display: 'flex', 
       flexDirection: isMobile ? 'column' : 'row',
-      minHeight: 'calc(100vh - 80px)', 
+      minHeight: isMobile ? 'calc(100vh - 70px)' : 'calc(100vh - 80px)', 
       background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
       overflowX: 'hidden',
-      color: '#000'
+      color: '#000',
+      paddingBottom: isMobile ? '80px' : '0' // space for bottom nav
     }}>
-      {/* ─── LEFT: CINEMATIC IMAGE (CONDENSED ON MOBILE) ─── */}
-      <div style={{ 
-        flex: isMobile ? 'none' : 1.2, 
-        height: isMobile ? '150px' : 'auto',
-        background: `linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.4)), url('/luxury_barbershop.png') center/cover no-repeat`,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        padding: isMobile ? '1rem' : '5rem',
-        position: 'relative',
-        borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.05)',
-        borderBottom: isMobile ? '1px solid rgba(0,0,0,0.05)' : 'none'
-      }}>
-        {!isMobile && (
+      {/* ─── LEFT: CINEMATIC IMAGE (HIDDEN ON MOBILE) ─── */}
+      {!isMobile && (
+        <div style={{ 
+          flex: 1.2, 
+          background: `linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.4)), url('/luxury_barbershop.png') center/cover no-repeat`,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          padding: '5rem',
+          position: 'relative',
+          borderRight: '1px solid rgba(0,0,0,0.05)'
+        }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 style={{ fontSize: '3.8rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '1rem', color: '#000', textShadow: '0 0 40px rgba(255,255,255,0.8)' }}>
               The Space for Excellence.
@@ -80,19 +79,16 @@ export default function CustomerLogin() {
               Enter a world-class marketplace where premium grooming meets effortless booking.
             </p>
           </div>
-        )}
-        {isMobile && (
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 950, textAlign: 'center', color: '#000', textShadow: '0 0 20px rgba(255,255,255,1)' }}>The Space for Excellence.</h2>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* ─── RIGHT: LOGIN FORM ─── */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
         flexDirection: 'column', 
-        justifyContent: isMobile ? 'flex-start' : 'center', 
-        padding: isMobile ? '1.5rem' : '5rem', 
+        justifyContent: 'center', 
+        padding: isMobile ? '2rem 1.2rem' : '5rem', 
         background: isMobile ? 'transparent' : 'rgba(255,255,255,0.4)',
         backdropFilter: isMobile ? 'none' : 'blur(30px)',
         WebkitBackdropFilter: isMobile ? 'none' : 'blur(30px)'
