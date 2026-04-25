@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updateTenantBranding } from "../app/dashboard/settings/actions";
 import { getTerminology } from "@/lib/terminology";
-import ImageUpload from "./ImageUpload";
+import { AU_SUBURBS } from "@/lib/constants";
 
 function PersonaPreview({ category }: { category: string }) {
     const t = getTerminology(category);
@@ -88,19 +88,9 @@ export default function BrandingManager({
     const [saving, setSaving] = useState(false);
     const [showSuburbDropdown, setShowSuburbDropdown] = useState(false);
 
-    // Common Australian Suburbs & States for Autocomplete
-    const SUBURB_DATA = [
-        { s: "Sydney", st: "NSW" }, { s: "Bondi Beach", st: "NSW" }, { s: "Surry Hills", st: "NSW" },
-        { s: "Paddington", st: "NSW" }, { s: "Darlinghurst", st: "NSW" }, { s: "Melbourne", st: "VIC" },
-        { s: "South Yarra", st: "VIC" }, { s: "Brisbane", st: "QLD" }, { s: "Fortitude Valley", st: "QLD" },
-        { s: "Perth", st: "WA" }, { s: "Adelaide", st: "SA" }, { s: "Parramatta", st: "NSW" },
-        { s: "Chatswood", st: "NSW" }, { s: "Manly", st: "NSW" }, { s: "Cronulla", st: "NSW" },
-        { s: "Richmond", st: "VIC" }, { s: "Fitzroy", st: "VIC" }, { s: "Newtown", st: "NSW" }
-    ];
-
-    const matchingSuburbs = SUBURB_DATA.filter(item => 
+    const matchingSuburbs = AU_SUBURBS.filter(item => 
         suburb && item.s.toLowerCase().includes(suburb.toLowerCase())
-    ).slice(0, 5);
+    ).slice(0, 8);
 
     const updateGallerySlot = (index: number, url: string) => {
         const newGallery = [...gallery];

@@ -4,6 +4,7 @@ import { registerAction } from "./actions";
 import { useFormStatus } from "react-dom";
 import { useSearchParams } from "next/navigation";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
+import { AU_SUBURBS } from "@/lib/constants";
 
 function RegisterContent() {
   const searchParams = useSearchParams();
@@ -13,18 +14,9 @@ function RegisterContent() {
   const [stateInput, setStateInput] = useState("");
   const [showSuburbDropdown, setShowSuburbDropdown] = useState(false);
 
-  const SUBURB_DATA = [
-      { s: "Sydney", st: "NSW" }, { s: "Bondi Beach", st: "NSW" }, { s: "Surry Hills", st: "NSW" },
-      { s: "Paddington", st: "NSW" }, { s: "Darlinghurst", st: "NSW" }, { s: "Melbourne", st: "VIC" },
-      { s: "South Yarra", st: "VIC" }, { s: "Brisbane", st: "QLD" }, { s: "Fortitude Valley", st: "QLD" },
-      { s: "Perth", st: "WA" }, { s: "Adelaide", st: "SA" }, { s: "Parramatta", st: "NSW" },
-      { s: "Chatswood", st: "NSW" }, { s: "Manly", st: "NSW" }, { s: "Cronulla", st: "NSW" },
-      { s: "Richmond", st: "VIC" }, { s: "Fitzroy", st: "VIC" }, { s: "Newtown", st: "NSW" }
-  ];
-
-  const matchingSuburbs = SUBURB_DATA.filter(item => 
+  const matchingSuburbs = AU_SUBURBS.filter(item => 
       suburbInput && item.s.toLowerCase().includes(suburbInput.toLowerCase())
-  ).slice(0, 5);
+  ).slice(0, 8);
 
   useEffect(() => {
     if (searchParams.get("type") === "business") {
