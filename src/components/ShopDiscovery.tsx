@@ -115,7 +115,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
             color: '#000000',
             whiteSpace: 'nowrap'
           }}>
-            Book local self-care services.
+            Elevate your style. Book your perfect space.
           </h1>
           <p style={{ 
             fontSize: '1.25rem', 
@@ -126,7 +126,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
             opacity: 0.9,
             whiteSpace: 'nowrap'
           }}>
-            Top-rated salons, barbers, and beauty experts trusted worldwide.
+            Discover Australia's top-rated grooming and wellness experts.
           </p>
           
           <div style={{ 
