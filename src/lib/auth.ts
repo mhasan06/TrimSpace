@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role, 
             tenantId: user.tenantId, 
             tenantName: user.tenantName,
-            image: user.image 
+            image: user.avatarUrl 
           };
         }
         return null;
@@ -86,7 +86,7 @@ export const authOptions: NextAuthOptions = {
             data: {
               email: user.email,
               name: user.name,
-              image: user.image,
+              avatarUrl: user.image,
               role: "CUSTOMER",
               isActive: true
             }
@@ -103,20 +103,20 @@ export const authOptions: NextAuthOptions = {
         token.tenantId = (user as any).tenantId;
         token.tenantName = (user as any).tenantName;
         token.id = user.id;
-        token.picture = (user as any).image || (user as any).picture;
+        token.picture = (user as any).image || (user as any).picture || (user as any).avatarUrl;
       }
 
       // SOCIAL LOGIN ENRICHMENT: Fetch missing data if social login
       if (!token.role) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email! },
-          select: { id: true, role: true, tenantId: true, image: true }
+          select: { id: true, role: true, tenantId: true, avatarUrl: true }
         });
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
           token.tenantId = dbUser.tenantId;
-          if (!token.picture) token.picture = dbUser.image;
+          if (!token.picture) token.picture = dbUser.avatarUrl;
         }
       }
       return token;
