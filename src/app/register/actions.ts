@@ -10,6 +10,7 @@ export async function registerAction(prevState: any, formData: FormData) {
   const shopName = formData.get("shopName") as string;
 
   const phone = formData.get("phone") as string;
+  const phoneCode = (formData.get("phoneCode") as string) || "+61";
 
   if (!email || !password || !name || !phone) {
     return { error: "Missing required profile fields (Name, Phone, Email, Password)." };
@@ -29,7 +30,6 @@ export async function registerAction(prevState: any, formData: FormData) {
       const street = formData.get("street") as string;
       const suburb = formData.get("suburb") as string;
       const state = formData.get("state") as string;
-      const phoneCode = formData.get("phoneCode") as string;
 
       if (!shopName || !street || !suburb || !state) {
         return { error: "Missing required business fields (Shop Name, Street, Suburb, State)." };
