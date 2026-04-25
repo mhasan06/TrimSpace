@@ -59,7 +59,6 @@ export default function CustomerDashboardClient({
             gap: isMobile ? '1.5rem' : '2rem',
             fontFamily: 'Inter, system-ui, sans-serif'
         }}>
-            {/* ... Invoice and Profile Modals remain unchanged ... */}
             {isProfileOpen && (
                 <CustomerProfileManager 
                     user={user} 
@@ -211,7 +210,7 @@ export default function CustomerDashboardClient({
                 </div>
 
                 <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
-
+                
                 <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <div style={{ background: '#f8fafc', padding: '0.8rem 1.2rem', borderRadius: '18px' }}>
                         <p style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.2rem' }}>Email</p>
@@ -353,45 +352,82 @@ export default function CustomerDashboardClient({
                                         {group.services.map((service: any, idx: number) => {
                                             const sTime = new Date(service.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
                                             return (
-                                                <div key={service.id || idx} style={{ 
-                                                    background: 'white', padding: '0.8rem 1rem', borderRadius: '16px', 
-                                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                                    boxShadow: '0 4px 6px rgba(0,0,0,0.02)', gap: '0.5rem'
-                                                }}>
-                                                    <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-                                                        <div style={{ width: '3px', height: '20px', background: service.status === 'CANCELLED' ? '#ef4444' : '#6366f1', borderRadius: '2px' }} />
-                                                        <div style={{ minWidth: 0 }}>
-                                                            <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8' }}>{sTime}</p>
-                                                            <p style={{ 
-                                                                margin: 0, 
-                                                                fontSize: '0.85rem', 
-                                                                fontWeight: 700, 
-                                                                color: '#1e293b',
-                                                                overflow: 'hidden',
-                                                                textOverflow: 'ellipsis',
-                                                                whiteSpace: 'nowrap'
-                                                            }}>
-                                                                {service.name}
-                                                                {service.status === 'CANCELLED' && <span style={{ color: '#ef4444', marginLeft: '0.4rem' }}>(CANCELLED)</span>}
-                                                            </p>
+                                                <div key={service.id || idx} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                                    <div style={{ 
+                                                        background: 'white', padding: '0.8rem 1rem', borderRadius: '16px', 
+                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                        boxShadow: '0 4px 6px rgba(0,0,0,0.02)', gap: '0.5rem'
+                                                    }}>
+                                                        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                                                            <div style={{ width: '3px', height: '20px', background: service.status === 'CANCELLED' ? '#ef4444' : (service.isDisputed ? '#f59e0b' : '#6366f1'), borderRadius: '2px' }} />
+                                                            <div style={{ minWidth: 0 }}>
+                                                                <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8' }}>{sTime}</p>
+                                                                <p style={{ 
+                                                                    margin: 0, 
+                                                                    fontSize: '0.85rem', 
+                                                                    fontWeight: 700, 
+                                                                    color: '#1e293b',
+                                                                    overflow: 'hidden',
+                                                                    textOverflow: 'ellipsis',
+                                                                    whiteSpace: 'nowrap'
+                                                                }}>
+                                                                    {service.name}
+                                                                    {service.status === 'CANCELLED' && <span style={{ color: '#ef4444', marginLeft: '0.4rem' }}>(CANCELLED)</span>}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                                            {service.isDisputed ? (
+                                                                <button 
+                                                                    onClick={() => setExpandedDisputeId(expandedDisputeId === service.id ? null : service.id)}
+                                                                    style={{ 
+                                                                        background: '#fff7ed', color: '#f59e0b', padding: '0.5rem 0.8rem', borderRadius: '10px', 
+                                                                        border: '1px solid #f59e0b', fontSize: '0.65rem', fontWeight: 800, cursor: 'pointer' 
+                                                                    }}
+                                                                >
+                                                                    {expandedDisputeId === service.id ? 'HIDE NOTES' : 'UNDER INVESTIGATION'}
+                                                                </button>
+                                                            ) : (
+                                                                <RaiseDisputeButton 
+                                                                    appointmentId={service.id}
+                                                                    serviceName={service.name}
+                                                                    date={service.startTime}
+                                                                />
+                                                            )}
+                                                            {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
+                                                                <CancelButton 
+                                                                    appointmentId={service.id} 
+                                                                    amountPaidStripe={service.amountPaidStripe} 
+                                                                    amountPaidGift={service.amountPaidGift} 
+                                                                    label="Cancel"
+                                                                    small
+                                                                />
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                        <RaiseDisputeButton 
-                                                            appointmentId={service.id}
-                                                            serviceName={service.name}
-                                                            date={service.startTime}
-                                                        />
-                                                        {activeTab === 'appointments' && service.status !== 'CANCELLED' && (
-                                                            <CancelButton 
-                                                                appointmentId={service.id} 
-                                                                amountPaidStripe={service.amountPaidStripe} 
-                                                                amountPaidGift={service.amountPaidGift} 
-                                                                label="Cancel"
-                                                                small
-                                                            />
-                                                        )}
-                                                    </div>
+
+                                                    {/* Conversation Notes */}
+                                                    {expandedDisputeId === service.id && (
+                                                        <div style={{ 
+                                                            background: '#fffbeb', borderRadius: '16px', padding: '1rem', border: '1px solid #fef3c7',
+                                                            display: 'flex', flexDirection: 'column', gap: '0.8rem'
+                                                        }}>
+                                                            <h5 style={{ fontSize: '0.75rem', fontWeight: 900, color: '#92400e', textTransform: 'uppercase', margin: 0 }}>Support Dialogue</h5>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                                                <div style={{ background: 'white', padding: '0.8rem', borderRadius: '12px', border: '1px solid #fef3c7' }}>
+                                                                    <p style={{ fontSize: '0.65rem', color: '#92400e', fontWeight: 800, marginBottom: '0.2rem' }}>You (Customer)</p>
+                                                                    <p style={{ fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>{service.disputeReason || "Report logged."}</p>
+                                                                </div>
+                                                                {disputeNotes.filter((n: any) => n.appointmentId === service.id).map((note: any) => (
+                                                                    <div key={note.id} style={{ background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', border: '1px solid #e2e8f0', alignSelf: 'flex-start', maxWidth: '90%' }}>
+                                                                        <p style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '0.2rem' }}>{note.authorName} ({note.authorRole})</p>
+                                                                        <p style={{ fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>{note.content}</p>
+                                                                        <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.2rem' }}>{new Date(note.createdAt).toLocaleString()}</p>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
