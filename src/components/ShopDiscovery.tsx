@@ -96,31 +96,31 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section className={styles.heroSection} style={{ 
-        padding: '140px 20px', 
+        padding: '100px 20px', 
         textAlign: 'center', 
         background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        minHeight: '600px',
+        minHeight: '500px',
         position: 'relative'
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', position: 'relative', zIndex: 1 }}>
           <h1 style={{ 
-            fontSize: '3.6rem', 
+            fontSize: '4rem', 
             fontWeight: 950, 
-            marginBottom: '1rem', 
+            marginBottom: '0.8rem', 
             letterSpacing: '-0.04em', 
             lineHeight: 1.1, 
             color: '#000000',
             whiteSpace: 'nowrap'
           }}>
-            Elevate your style - Secure a space designed for you
+            Elevate your style - Secure a space
           </h1>
           <p style={{ 
             fontSize: '1.25rem', 
             color: '#475569', 
-            marginBottom: '4.5rem', 
+            marginBottom: '3.5rem', 
             fontWeight: 500, 
             letterSpacing: '-0.01em', 
             opacity: 0.9,
