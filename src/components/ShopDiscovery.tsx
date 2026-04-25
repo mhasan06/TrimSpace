@@ -24,9 +24,12 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
   const [showSuburbs, setShowSuburbs] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
 
-  // Extract unique suburbs from existing shops for autocomplete
+  // Extract unique suburbs from existing shops + add common ones for "live" feel
   const allSuburbs = useMemo(() => {
     const s = new Set<string>();
+    // Pre-seed with major regions for better discovery feel
+    ["Sydney", "Bondi Beach", "Surry Hills", "Paddington", "Darlinghurst", "Parramatta", "Chatswood", "Manly", "Cronulla"].forEach(reg => s.add(reg));
+    
     initialTenants.forEach(t => {
       if (t.address) {
         const parts = t.address.split(',');
@@ -37,8 +40,8 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
   }, [initialTenants]);
 
   const matchingSuburbs = useMemo(() => {
-    if (!where || where.length < 2) return [];
-    return allSuburbs.filter(s => s.toLowerCase().includes(where.toLowerCase())).slice(0, 5);
+    if (!where || where.length < 1) return []; // Trigger on 1 character
+    return allSuburbs.filter(s => s.toLowerCase().includes(where.toLowerCase())).slice(0, 8);
   }, [allSuburbs, where]);
 
   const filteredTenants = useMemo(() => {
@@ -166,28 +169,47 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
 
               {/* Suburb Dropdown */}
               {showSuburbs && matchingSuburbs.length > 0 && (
-                <div className="glass" style={{ 
+                <div style={{ 
                   position: 'absolute', 
                   top: '100%', 
                   left: 0, 
                   right: 0, 
                   background: 'white', 
-                  zIndex: 100, 
+                  zIndex: 2147483647, // Max Z-index to ensure it is above everything
                   marginTop: '10px', 
-                  borderRadius: '12px', 
+                  borderRadius: '16px', 
                   overflow: 'hidden', 
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                  border: '1px solid #f1f5f9'
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                  border: '1px solid #eef2f6',
+                  padding: '0.5rem'
                 }}>
                   {matchingSuburbs.map(s => (
                     <div 
                       key={s} 
                       onClick={() => { setWhere(s); setShowSuburbs(false); }}
-                      style={{ padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600, color: '#475569', transition: 'background 0.2s' }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      style={{ 
+                        padding: '0.8rem 1rem', 
+                        cursor: 'pointer', 
+                        fontSize: '0.95rem', 
+                        fontWeight: 700, 
+                        color: '#334155', 
+                        transition: 'all 0.2s',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.8rem'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#f1f5f9';
+                        e.currentTarget.style.color = 'var(--primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.color = '#334155';
+                      }}
                     >
-                      🏙️ {s}
+                      <span style={{ fontSize: '1.2rem' }}>📍</span>
+                      <span>{s}</span>
                     </div>
                   ))}
                 </div>
