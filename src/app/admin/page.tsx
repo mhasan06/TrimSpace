@@ -1,5 +1,6 @@
 import styles from "../dashboard/page.module.css";
 import { prisma } from "@/lib/prisma";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function AdminOverview() {
   // Global System Mathematical Scrapers: Bypassing Prisma Drift using Raw SQL
@@ -50,8 +51,9 @@ export default async function AdminOverview() {
            <h1>Global Platform Summary</h1>
            <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem' }}>Real-time production metrics aggregating all deployed Tenants across AWS.</p>
         </div>
-        <div className={styles.profileStats}>
+        <div className={styles.profileStats} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <span className={styles.badge} style={{ color: '#ff4444', border: '1px solid #ff4444' }}>System Status: Operational All Clusters</span>
+          <LogoutButton />
         </div>
       </header>
       

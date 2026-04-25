@@ -11,6 +11,7 @@ import { getTerminology } from "@/lib/terminology";
 import TrendBarChart from "@/components/TrendBarChart";
 import { getActiveTenantContext } from "@/lib/support";
 import { redirect } from "next/navigation";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardOverview({ searchParams }: { searchParams: { date?: string, appointmentId?: string } }) {
   const params = await searchParams;
@@ -213,6 +214,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
         <div className={styles.profileStats} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <DashboardAlerts initialAlerts={alerts as any} />
           <span className={styles.badge} style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>{new Date(targetDateStr).toDateString()}</span>
+          <LogoutButton />
         </div>
       </header>
 

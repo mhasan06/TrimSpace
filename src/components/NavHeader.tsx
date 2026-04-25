@@ -213,9 +213,12 @@ export default function NavHeader() {
                 </div>
               )}
 
-              {/* For Customers */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>For connoisseurs</h3>
+              {/* Role-Based Menu Options */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h3 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {role === 'MERCHANT' ? "Master Command" : (role === 'ADMIN' ? "Platform Admin" : "For Connoisseurs")}
+                </h3>
+                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {!session ? (
                     <Link 
@@ -228,27 +231,32 @@ export default function NavHeader() {
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <Link 
-                        href={role === 'MERCHANT' ? "/dashboard" : "/my-bookings"} 
+                        href={role === 'MERCHANT' ? "/dashboard" : (role === 'ADMIN' ? "/admin" : "/my-bookings")} 
                         onClick={() => setShowMenu(false)}
                         style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}
                       >
-                        {role === 'MERCHANT' ? "Partner Dashboard" : "My Bookings"}
+                        {role === 'MERCHANT' ? "Partner Dashboard" : (role === 'ADMIN' ? "Admin Portal" : "My Bookings")}
                       </Link>
+                      
                       {role === 'MERCHANT' && (
                         <>
                           <Link href="/dashboard/ledger" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Financial Ledger</Link>
                           <Link href="/dashboard/variables" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Business Settings</Link>
                         </>
                       )}
-                      {role === 'ADMIN' && (
-                        <Link href="/admin" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Admin Portal</Link>
-                      )}
                     </div>
                   )}
-                  <Link href="/gift" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
-                  <Link href="/download" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Download App</Link>
-                  <Link href="/support" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
-                  {isMobile && (
+
+                  {/* Customer-Only Links: Hide for Merchant/Admin */}
+                  {(!role || role === 'CUSTOMER') && (
+                    <>
+                      <Link href="/gift" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
+                      <Link href="/download" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Download App</Link>
+                      <Link href="/support" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
+                    </>
+                  )}
+
+                  {isMobile && !session && (
                     <>
                       <div style={{ height: '1px', background: '#f1f5f9', margin: '0.5rem 0' }}></div>
                       <Link href="/register?type=business" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
