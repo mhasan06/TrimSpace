@@ -382,11 +382,14 @@ export default function CustomerDashboardClient({
                                                                 <button 
                                                                     onClick={() => setExpandedDisputeId(expandedDisputeId === service.id ? null : service.id)}
                                                                     style={{ 
-                                                                        background: '#fff7ed', color: '#f59e0b', padding: '0.5rem 0.8rem', borderRadius: '10px', 
-                                                                        border: '1px solid #f59e0b', fontSize: '0.65rem', fontWeight: 800, cursor: 'pointer' 
+                                                                        background: service.disputeStatus?.startsWith('RESOLVED') ? '#f0fdf4' : '#fff7ed', 
+                                                                        color: service.disputeStatus?.startsWith('RESOLVED') ? '#10b981' : '#f59e0b', 
+                                                                        padding: '0.5rem 0.8rem', borderRadius: '10px', 
+                                                                        border: `1px solid ${service.disputeStatus?.startsWith('RESOLVED') ? '#10b981' : '#f59e0b'}`, 
+                                                                        fontSize: '0.65rem', fontWeight: 800, cursor: 'pointer' 
                                                                     }}
                                                                 >
-                                                                    {expandedDisputeId === service.id ? 'HIDE NOTES' : 'UNDER INVESTIGATION'}
+                                                                    {expandedDisputeId === service.id ? 'HIDE NOTES' : (service.disputeStatus?.startsWith('RESOLVED') ? 'RESOLVED' : 'UNDER INVESTIGATION')}
                                                                 </button>
                                                             ) : (
                                                                 <RaiseDisputeButton 

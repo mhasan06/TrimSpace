@@ -21,9 +21,9 @@ export default function MobileBottomNav() {
 
   const navItems = [
     { label: "Discover", icon: "🔍", path: "/" },
-    { label: "Bookings", icon: "📅", path: session ? "/my-bookings" : "/customer-login" },
-    { label: "Favorites", icon: "❤️", path: session ? "/favorites" : "/customer-login" },
-    { label: "Profile", icon: "👤", path: session ? "/profile" : "/customer-login" },
+    { label: "Bookings", icon: "📅", path: session ? "/my-bookings" : "/login" },
+    { label: "Favorites", icon: "❤️", path: session ? "/favorites" : "/login" },
+    { label: "Profile", icon: "👤", path: session ? "/profile" : "/login" },
   ];
 
   return (
@@ -46,7 +46,7 @@ export default function MobileBottomNav() {
     }}>
       {navItems.map((item) => {
         // Match active path exactly OR if it's the login redirect path
-        const isActive = pathname === item.path || (pathname === "/customer-login" && item.path === "/customer-login");
+        const isActive = pathname === item.path || (pathname === "/login" && item.path === "/login");
         
         return (
           <Link 
