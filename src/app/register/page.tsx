@@ -329,7 +329,7 @@ export default function RegisterPage() {
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ isBusiness }: { isBusiness: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button 
@@ -351,7 +351,7 @@ function SubmitButton() {
       onMouseEnter={(e) => !pending && (e.currentTarget.style.transform = 'translateY(-2px)')}
       onMouseLeave={(e) => !pending && (e.currentTarget.style.transform = 'none')}
     >
-      {pending ? 'Processing...' : 'Complete Master Application'}
+      {pending ? 'Processing...' : (isBusiness ? 'Complete Master Application' : 'Join the Community')}
     </button>
   );
 }
