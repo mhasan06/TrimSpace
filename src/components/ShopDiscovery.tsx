@@ -105,7 +105,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
             gap: '8px',
             border: '1px solid #eef2f6'
           }}>
-            <div style={{ flex: 1.5, minWidth: '220px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
+            <div style={{ flex: 2, minWidth: '250px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
               <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Service or Venue</label>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <input 
@@ -113,7 +113,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                   placeholder="Haircut, Spa, Barber..." 
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  style={{ border: 'none', flex: 1, outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent' }}
+                  style={{ border: 'none', flex: 1, outline: 'none', color: '#334155', fontSize: '1rem', fontWeight: 600, background: 'transparent', minWidth: '0' }}
                 />
                 <select 
                   value={selectedCategory || ""} 
@@ -127,7 +127,8 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                     fontWeight: 800, 
                     color: 'var(--primary)',
                     cursor: 'pointer',
-                    outline: 'none'
+                    outline: 'none',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   <option value="">All Types</option>
@@ -139,7 +140,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                 </select>
               </div>
             </div>
-            <div style={{ flex: 1, minWidth: '150px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9', position: 'relative' }}>
+            <div style={{ flex: 1.2, minWidth: '180px', padding: '12px 16px', textAlign: 'left', borderRight: 'none', position: 'relative' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                 <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase' }}>Where?</label>
                 <button 
@@ -192,20 +193,17 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                 </div>
               )}
             </div>
-            <div style={{ flex: 0.8, minWidth: '120px', padding: '12px 16px', textAlign: 'left' }}>
-              <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>When?</label>
-              <div style={{ color: '#334155', fontSize: '1rem', fontWeight: 600 }}>Any Date</div>
-            </div>
             <button style={{ 
               background: 'var(--primary)', 
               color: '#fff', 
               border: 'none', 
-              padding: '0 2.5rem', 
+              padding: '0 3rem', 
               borderRadius: '14px', 
               fontWeight: 900, 
               cursor: 'pointer',
-              fontSize: '1rem',
-              transition: 'background 0.2s'
+              fontSize: '1.1rem',
+              transition: 'background 0.2s',
+              margin: '4px'
             }}>
               Search
             </button>
