@@ -11,7 +11,6 @@ import { getTerminology } from "@/lib/terminology";
 import TrendBarChart from "@/components/TrendBarChart";
 import { getActiveTenantContext } from "@/lib/support";
 import { redirect } from "next/navigation";
-import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardOverview({ searchParams }: { searchParams: { date?: string, appointmentId?: string } }) {
   const params = await searchParams;
@@ -206,18 +205,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
 
   return (
     <>
-      <header className={`${styles.header} glass`}>
-        <div>
-           <h1 style={{ color: 'var(--foreground)', margin: 0 }}>Dashboard Overview</h1>
-           <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem', fontWeight: 700 }}>Business Intelligence & Planning</p>
-        </div>
-        <div className={styles.profileStats} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <DashboardAlerts initialAlerts={alerts as any} />
-          <span className={styles.badge} style={{ fontSize: '1rem', padding: '0.5rem 1rem' }}>{new Date(targetDateStr).toDateString()}</span>
-          <LogoutButton />
-        </div>
-      </header>
-
       {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>

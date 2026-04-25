@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { getTerminology } from "@/lib/terminology";
 import { getActiveTenantContext } from "@/lib/support";
 import SupportSessionBanner from "@/components/SupportSessionBanner";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const context = await getActiveTenantContext();
@@ -88,6 +89,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       <main className={styles.mainContent}>
+        <header className={`${styles.header} glass`} style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 2rem', borderRadius: '16px' }}>
+          <div>
+             <h1 style={{ color: 'var(--foreground)', margin: 0, fontSize: '1.5rem' }}>Master Command</h1>
+             <p style={{ color: 'var(--accent)', marginTop: '0.2rem', fontSize: '0.8rem', fontWeight: 700 }}>{tenant?.name || 'Business Dashboard'}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <LogoutButton />
+          </div>
+        </header>
         {children}
       </main>
 

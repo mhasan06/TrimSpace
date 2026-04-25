@@ -3,6 +3,7 @@ import styles from "../dashboard/page.module.css";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import LogoutButton from "@/components/LogoutButton";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -35,6 +36,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
 
       <main className={styles.mainContent}>
+        <header className={`${styles.header} glass`} style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 2rem', borderRadius: '16px' }}>
+          <div>
+             <h1 style={{ color: 'var(--foreground)', margin: 0, fontSize: '1.5rem' }}>Platform Admin</h1>
+             <p style={{ color: 'var(--accent)', marginTop: '0.2rem', fontSize: '0.8rem', fontWeight: 700 }}>Global Superuser Environment</p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span style={{ color: '#ff4444', border: '1px solid #ff4444', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>System Status: Operational</span>
+            <LogoutButton />
+          </div>
+        </header>
         {children}
       </main>
     </div>
