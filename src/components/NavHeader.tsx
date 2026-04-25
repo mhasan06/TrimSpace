@@ -80,7 +80,7 @@ export default function NavHeader() {
         onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
-          List your business
+          Become a Partner
         </Link>
         
         {/* ─── MENU DROPDOWN ─── */}
