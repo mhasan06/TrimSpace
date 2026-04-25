@@ -232,3 +232,33 @@ export async function submitReview(appointmentId: string, rating: number, commen
     return { error: err.message };
   }
 }
+
+export async function addDisputeReply(appointmentId: string, content: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error("Unauthorized");
+    const user = session.user as any;
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId }
+    });
+
+    if (!appointment || appointment.customerId !== user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    await prisma.disputeNote.create({
+      data: {
+        appointmentId,
+        content,
+        authorName: user.name || "Customer",
+        authorRole: "CUSTOMER"
+      }
+    });
+
+    revalidatePath("/my-bookings");
+    return { success: true };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}

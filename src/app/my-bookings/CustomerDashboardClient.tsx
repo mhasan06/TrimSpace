@@ -8,6 +8,7 @@ import SessionHistoryTable from "./SessionHistoryTable";
 import InvoiceButton from "@/components/InvoiceButton";
 import CancelButton from "@/components/CancelButton";
 import RaiseDisputeButton from "@/components/RaiseDisputeButton";
+import { addDisputeReply } from "./actions";
 
 export default function CustomerDashboardClient({ 
     user, 
@@ -419,12 +420,42 @@ export default function CustomerDashboardClient({
                                                                     <p style={{ fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>{service.disputeReason || "Report logged."}</p>
                                                                 </div>
                                                                 {disputeNotes.filter((n: any) => n.appointmentId === service.id).map((note: any) => (
-                                                                    <div key={note.id} style={{ background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', border: '1px solid #e2e8f0', alignSelf: 'flex-start', maxWidth: '90%' }}>
-                                                                        <p style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 800, marginBottom: '0.2rem' }}>{note.authorName} ({note.authorRole})</p>
+                                                                    <div key={note.id} style={{ background: note.authorRole === 'CUSTOMER' ? '#fff' : '#f8fafc', padding: '0.8rem', borderRadius: '12px', border: '1px solid #e2e8f0', alignSelf: note.authorRole === 'CUSTOMER' ? 'flex-end' : 'flex-start', maxWidth: '90%' }}>
+                                                                        <p style={{ fontSize: '0.65rem', color: note.authorRole === 'CUSTOMER' ? '#6366f1' : '#64748b', fontWeight: 800, marginBottom: '0.2rem' }}>{note.authorName} ({note.authorRole})</p>
                                                                         <p style={{ fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>{note.content}</p>
                                                                         <p style={{ fontSize: '0.6rem', color: '#94a3b8', marginTop: '0.2rem' }}>{new Date(note.createdAt).toLocaleString()}</p>
                                                                     </div>
                                                                 ))}
+
+                                                                <div style={{ marginTop: '0.5rem', borderTop: '1px solid #fef3c7', paddingTop: '1rem' }}>
+                                                                    <form 
+                                                                        onSubmit={async (e) => {
+                                                                            e.preventDefault();
+                                                                            const form = e.currentTarget;
+                                                                            const content = (form.elements.namedItem('reply') as HTMLTextAreaElement).value;
+                                                                            if (!content.trim()) return;
+                                                                            
+                                                                            const res = await addDisputeReply(service.id, content);
+                                                                            if (res.success) {
+                                                                                form.reset();
+                                                                            }
+                                                                        }}
+                                                                        style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}
+                                                                    >
+                                                                        <textarea 
+                                                                            name="reply"
+                                                                            required
+                                                                            placeholder="Add a further note or reply..."
+                                                                            style={{ padding: '0.8rem', borderRadius: '12px', border: '1px solid #fef3c7', background: '#fff', fontSize: '0.85rem', fontWeight: 600, minHeight: '80px', outline: 'none' }}
+                                                                        />
+                                                                        <button 
+                                                                            type="submit"
+                                                                            style={{ alignSelf: 'flex-end', background: '#000', color: '#fff', padding: '0.5rem 1.5rem', borderRadius: '10px', border: 'none', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
+                                                                        >
+                                                                            SEND REPLY
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     )}
