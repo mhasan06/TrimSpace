@@ -159,6 +159,9 @@ export default function LoginGateway() {
             <p style={{ color: '#475569', fontSize: '0.85rem', lineHeight: 1.6, fontWeight: 600, margin: 0 }}>
               New to TrimSpace? <Link href="/register?type=business" style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Join as a Partner</Link> or <Link href="/register?type=customer" style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Create an Account</Link>
             </p>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
