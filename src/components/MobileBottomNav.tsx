@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
     { 
       label: role === 'MERCHANT' ? "Ledger" : "Favorites", 
       icon: role === 'MERCHANT' ? "💰" : "❤️", 
-      path: !session ? "/login" : (role === 'MERCHANT' ? "/dashboard/ledger" : "/favorites") 
+      path: !session ? (role === 'MERCHANT' ? "/login" : "/customer-login") : (role === 'MERCHANT' ? "/dashboard/ledger" : "/favorites") 
     },
     { 
       label: "Profile", 

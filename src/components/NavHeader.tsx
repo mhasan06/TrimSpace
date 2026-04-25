@@ -73,12 +73,21 @@ export default function NavHeader() {
         
         {!isMobile && (
           <>
-            <Link href="/gift" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
-              Share a Gift Experience
-            </Link>
             {!session && (
-              <Link href="/login" style={{ fontWeight: 700, fontSize: '0.95rem', color: '#000', textDecoration: 'none', opacity: 0.8 }}>
-                Log in
+              <Link href="/login" style={{ 
+                fontWeight: 800, 
+                fontSize: '0.95rem', 
+                color: '#000', 
+                textDecoration: 'none', 
+                padding: '0.8rem 1.4rem', 
+                borderRadius: '40px', 
+                border: '1px solid #e2e8f0',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                Log in or sign up
               </Link>
             )}
             <Link href="/register?type=business" style={{ 
@@ -231,6 +240,7 @@ export default function NavHeader() {
                     </div>
                   )}
                   <Link href="/gift" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Share a Gift Experience</Link>
+                  <Link href="/download" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Download App</Link>
                   <Link href="/support" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}>Help and support</Link>
                   {isMobile && (
                     <>

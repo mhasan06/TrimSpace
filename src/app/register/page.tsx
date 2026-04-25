@@ -261,7 +261,7 @@ function RegisterContent() {
         )}
         
         <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem', fontWeight: 600, marginTop: '2rem' }}>
-          Already part of the community? <Link href="/login" style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Sign In</Link>
+          Already part of the community? <Link href={isBusiness ? "/partner-login" : "/customer-login"} style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Sign In</Link>
         </p>
       </main>
     </div>
