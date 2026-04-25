@@ -34,12 +34,33 @@
   letter-spacing: -3px;
 }
 
+@media (max-width: 1024px) {
+  .heroTitle {
+    font-size: 3rem;
+    letter-spacing: -1.5px;
+  }
+}
+
+@media (max-width: 600px) {
+  .heroTitle {
+    font-size: 2.5rem;
+    letter-spacing: -1px;
+  }
+}
+
 .heroSubtitle {
   font-size: 1.5rem;
   opacity: 0.7;
   line-height: 1.4;
   margin-bottom: 3.5rem;
   max-width: 500px;
+}
+
+@media (max-width: 600px) {
+  .heroSubtitle {
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -59,6 +80,8 @@
   .badgeGroup {
     flex-direction: column;
     align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
   }
 }
 
@@ -66,6 +89,12 @@
   height: 50px;
   cursor: pointer;
   transition: transform 0.2s;
+}
+
+@media (max-width: 600px) {
+  .storeBadge {
+    height: 44px;
+  }
 }
 
 .storeBadge:hover {
@@ -81,6 +110,18 @@
   border-radius: 16px;
   width: fit-content;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 600px) {
+  .qrContainer {
+    flex-direction: column;
+    text-align: center;
+    width: 100%;
+    max-width: 280px;
+  }
+  .qrText {
+    text-align: center !important;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -116,6 +157,7 @@
   position: relative;
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .phoneImage {
@@ -123,6 +165,12 @@
   max-width: 500px;
   height: auto;
   filter: drop-shadow(0 20px 50px rgba(212, 175, 55, 0.2));
+}
+
+@media (max-width: 600px) {
+  .phoneImage {
+    max-width: 280px;
+  }
 }
 
 .floatingBadge {
@@ -138,4 +186,13 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  z-index: 2;
+}
+
+@media (max-width: 600px) {
+  .floatingBadge {
+    right: 5%;
+    padding: 0.6rem 1rem;
+    font-size: 0.7rem;
+  }
 }

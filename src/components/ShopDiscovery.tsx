@@ -78,15 +78,16 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', position: 'relative', zIndex: 1 }}>
           <h1 style={{ 
-            fontSize: isMobile ? '2.5rem' : '4rem', 
+            fontSize: isMobile ? '2.5rem' : 'clamp(3rem, 5vw, 4rem)', 
             fontWeight: 950, 
             marginBottom: '0.8rem', 
             letterSpacing: '-0.04em', 
             lineHeight: 1.1, 
             color: '#000000',
-            maxWidth: isMobile ? '100%' : 'none'
+            maxWidth: '100%',
+            whiteSpace: isMobile ? 'normal' : 'nowrap'
           }}>
-            Elevate your style<br/>Secure a space
+            Elevate your style. Secure a space.
           </h1>
           <p style={{ 
             fontSize: isMobile ? '1.1rem' : '1.25rem', 

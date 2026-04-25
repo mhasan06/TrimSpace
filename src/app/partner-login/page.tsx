@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,6 +12,14 @@ export default function PartnerLogin() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotOpen, setIsForgotOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,29 +50,34 @@ export default function PartnerLogin() {
   return (
     <main style={{ 
       display: 'flex', 
-      height: 'calc(100vh - 80px)', 
+      flexDirection: isMobile ? 'column' : 'row',
+      minHeight: isMobile ? '100vh' : 'calc(100vh - 80px)', 
       background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
-      overflow: 'hidden',
+      overflowX: 'hidden',
       color: '#000'
     }}>
       {/* ─── LEFT: CINEMATIC IMAGE ─── */}
       <div style={{ 
-        flex: 1.2, 
-        background: `linear-gradient(to right, transparent 70%, rgba(255,255,255,0.8)), url('/luxury_barbershop.png') center/cover no-repeat`,
+        flex: isMobile ? 'none' : 1.2, 
+        height: isMobile ? '25vh' : 'auto',
+        background: `linear-gradient(to ${isMobile ? 'bottom' : 'right'}, transparent 70%, rgba(255,255,255,0.8)), url('/luxury_barbershop.png') center/cover no-repeat`,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
-        padding: '5rem',
+        padding: isMobile ? '2rem' : '5rem',
         position: 'relative',
-        borderRight: '1px solid rgba(0,0,0,0.05)'
+        borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.05)',
+        borderBottom: isMobile ? '1px solid rgba(0,0,0,0.05)' : 'none'
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontSize: '3.2rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '1rem', color: '#000' }}>
+          <h2 style={{ fontSize: isMobile ? '2rem' : '3.2rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.8rem', color: '#000' }}>
             Empower Your Mastery.
           </h2>
-          <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#334155', maxWidth: '450px', opacity: 0.9 }}>
-            Manage your operations with precision. Access your shop dashboard and team controls.
-          </p>
+          {!isMobile && (
+            <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#334155', maxWidth: '450px', opacity: 0.9 }}>
+              Manage your operations with precision. Access your shop dashboard and team controls.
+            </p>
+          )}
         </div>
       </div>
 
@@ -75,16 +87,16 @@ export default function PartnerLogin() {
         display: 'flex', 
         flexDirection: 'column', 
         justifyContent: 'center', 
-        padding: '5rem', 
+        padding: isMobile ? '2rem' : '5rem', 
         background: 'rgba(255,255,255,0.4)',
         backdropFilter: 'blur(30px)',
         WebkitBackdropFilter: 'blur(30px)'
       }}>
-        <div style={{ maxWidth: '400px' }}>
-          <h1 style={{ fontSize: '2.4rem', fontWeight: 950, marginBottom: '0.8rem', letterSpacing: '-0.02em', color: '#000' }}>
+        <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }}>
+          <h1 style={{ fontSize: isMobile ? '2rem' : '2.4rem', fontWeight: 950, marginBottom: '0.8rem', letterSpacing: '-0.02em', color: '#000' }}>
             Master Access
           </h1>
-          <p style={{ color: '#475569', fontSize: '1rem', marginBottom: '2.5rem', fontWeight: 600 }}>
+          <p style={{ color: '#475569', fontSize: isMobile ? '1rem' : '1.1rem', marginBottom: isMobile ? '2rem' : '2.5rem', fontWeight: 600 }}>
             Secure sign in for business partners and shop owners.
           </p>
           
@@ -92,7 +104,7 @@ export default function PartnerLogin() {
 
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="email" style={{ fontSize: '0.85rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Work Email</label>
+              <label htmlFor="email" style={{ fontSize: '0.8rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Work Email</label>
               <input 
                 type="email" 
                 id="email" 
@@ -100,11 +112,11 @@ export default function PartnerLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="owner@business.com" 
                 required 
-                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 500 }}
+                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }}
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="password" style={{ fontSize: '0.85rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
+              <label htmlFor="password" style={{ fontSize: '0.8rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
               <input 
                 type="password" 
                 id="password" 
@@ -137,21 +149,19 @@ export default function PartnerLogin() {
                 fontSize: '1rem', 
                 fontWeight: 800, 
                 cursor: isLoading ? 'not-allowed' : 'pointer', 
-                transition: 'transform 0.2s',
+                transition: 'all 0.2s',
                 opacity: isLoading ? 0.7 : 1 
               }}
-              onMouseEnter={(e) => !isLoading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => !isLoading && (e.currentTarget.style.transform = 'none')}
               >
               {isLoading ? 'Authenticating...' : 'Secure Master Log In'}
             </button>
           </form>
 
-          <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
-            <p style={{ color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>
+          <div style={{ marginTop: isMobile ? '2rem' : '3rem', paddingTop: '2rem', borderTop: '1px solid rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            <p style={{ color: '#475569', fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>
               New to TrimSpace? <Link href="/register?type=business" style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Join as Partner</Link>
             </p>
-            <p style={{ marginTop: '0.8rem', color: '#64748b', fontSize: '0.85rem', fontWeight: 500 }}>
+            <p style={{ marginTop: '0.8rem', color: '#64748b', fontSize: '0.85rem', fontWeight: 500, margin: '0.8rem 0 0' }}>
               Not a business? <Link href="/customer-login" style={{ color: '#000', fontWeight: 700, textDecoration: 'none' }}>Customer Login</Link>
             </p>
           </div>
