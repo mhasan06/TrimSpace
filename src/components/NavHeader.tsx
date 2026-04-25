@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function NavHeader() {
   const { data: session } = useSession();
@@ -30,6 +31,11 @@ export default function NavHeader() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const pathname = usePathname();
+  const isInternal = pathname.startsWith('/admin') || pathname.startsWith('/dashboard');
+
+  if (isInternal) return null;
 
   return (
     <header style={{ 

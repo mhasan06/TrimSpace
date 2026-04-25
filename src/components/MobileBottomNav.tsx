@@ -17,7 +17,7 @@ export default function MobileBottomNav() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  if (!isMobile) return null;
+  if (!isMobile || pathname.startsWith('/admin') || pathname.startsWith('/dashboard')) return null;
 
   const role = (session?.user as any)?.role;
 
