@@ -22,15 +22,42 @@ export async function registerAction(prevState: any, formData: FormData) {
 
   try {
     if (accountType === "business") {
-      if (!shopName) return { error: "Shop Name is required for Business accounts." };
+      const shopName = formData.get("shopName") as string;
+      const category = formData.get("category") as string;
+      const businessName = formData.get("businessName") as string;
+      const abn = formData.get("abn") as string;
+      const street = formData.get("street") as string;
+      const suburb = formData.get("suburb") as string;
+      const state = formData.get("state") as string;
+      const phoneCode = formData.get("phoneCode") as string;
+
+      if (!shopName || !street || !suburb || !state) {
+        return { error: "Missing required business fields (Shop Name, Street, Suburb, State)." };
+      }
+
       const slug = shopName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      
       const existingTenant = await prisma.tenant.findUnique({ where: { slug } });
       if (existingTenant) return { error: "A business with a similar name already exists! Please adjust your Shop Name." };
 
+      const fullAddress = `${street}, ${suburb}, ${state}, Australia`;
+
       await prisma.$transaction(async (tx) => {
-        const tenant = await tx.tenant.create({ data: { name: shopName, slug } });
-        await tx.user.create({ data: { email, name, phone, password: hashedPassword, role: "BARBER", tenantId: tenant.id } });
+        const tenant = await tx.tenant.create({ 
+          data: { 
+            name: shopName, 
+            slug,
+            category,
+            businessName,
+            abn,
+            street,
+            suburb,
+            state,
+            address: fullAddress,
+            phoneCode,
+            phone
+          } 
+        });
+        await tx.user.create({ data: { email, name, phone: `${phoneCode}${phone}`, password: hashedPassword, role: "BARBER", tenantId: tenant.id } });
       });
       return { success: true, message: "Business Registered Successfully! You may now login." };
 

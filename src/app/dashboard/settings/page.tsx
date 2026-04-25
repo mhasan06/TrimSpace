@@ -44,6 +44,12 @@ export default async function ShopSettings() {
                   initialCustomerPhotos={tenant?.customerPhotos || []}
                   initialDescription={tenant?.description || ""}
                   initialPhone={tenant?.phone || ""}
+                  initialStreet={tenant?.street || ""}
+                  initialSuburb={tenant?.suburb || ""}
+                  initialState={tenant?.state || ""}
+                  initialPhoneCode={tenant?.phoneCode || "+61"}
+                  initialBusinessName={tenant?.businessName || ""}
+                  initialWebsite={tenant?.website || ""}
                />
             </div>
 

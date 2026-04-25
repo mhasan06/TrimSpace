@@ -11,13 +11,27 @@ datasource db {
 
 model Tenant {
   id        String   @id @default(cuid())
-  name      String
+  name      String   // Shop Name
   slug      String   @unique
-  address   String?
+  
+  // Physical Address (Split)
+  street    String?
+  suburb    String?
+  state     String?
+  country   String?  @default("Australia")
+  address   String?  // Formatted full address for quick rendering
+  
+  // Contact Details
+  phoneCode String?  @default("+61")
   phone     String?
+  website   String?
+
+  // Business Registration Info
+  businessName String? // Legal Entity Name
   abn       String?  @default("00 000 000 000")
+  
   isActive  Boolean  @default(false)
-  category  String?  @default("BARBER") // BARBER, SALON, SPA
+  category  String?  @default("BARBER") // BARBER, SALON, SPA, SKIN, NAILS
   templateId String? @default("LUXURY") // LUXURY, VINTAGE, MINIMAL
   shopImage  String?
   galleryImages String[] @default([])

@@ -5,25 +5,49 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export async function updateTenantBranding(tenantId: string, name: string, slug: string, address?: string, category?: string, templateId?: string, abn?: string, shopImage?: string, galleryImages?: string[], customerPhotos?: string[], description?: string, phone?: string) {
-   const session = await getServerSession(authOptions);
-   const user = session?.user as any;
-   if (!session) return { error: "Unauthorized" };
-   
-   const isPlatformAdmin = user.role === 'ADMIN';
-   const isShopOwner = user.tenantId === tenantId;
-   if (!isPlatformAdmin && !isShopOwner) return { error: "Unauthorized" };
-   try {
-       // 1. Attempt High-Fidelity Update
-       await (prisma.tenant as any).update({ 
-         where: { id: tenantId }, 
-         data: { name, slug, address, category, templateId, abn, shopImage, galleryImages, customerPhotos, description, phone } 
-       });
-       
-       revalidatePath("/dashboard/settings");
-       revalidatePath(`/${slug}`);
-       revalidatePath("/");
-       return { success: true };
+export async function updateTenantBranding(
+  tenantId: string, 
+  name: string, 
+  slug: string, 
+  address?: string, 
+  category?: string, 
+  templateId?: string, 
+  abn?: string, 
+  shopImage?: string, 
+  galleryImages?: string[], 
+  customerPhotos?: string[], 
+  description?: string, 
+  phone?: string,
+  street?: string,
+  suburb?: string,
+  state?: string,
+  phoneCode?: string,
+  businessName?: string,
+  website?: string
+) {
+    const session = await getServerSession(authOptions);
+    const user = session?.user as any;
+    if (!session) return { error: "Unauthorized" };
+    
+    const isPlatformAdmin = user.role === 'ADMIN';
+    const isShopOwner = user.tenantId === tenantId;
+    if (!isPlatformAdmin && !isShopOwner) return { error: "Unauthorized" };
+
+    const fullAddress = street && suburb && state ? `${street}, ${suburb}, ${state}, Australia` : address;
+
+    try {
+        await (prisma.tenant as any).update({ 
+          where: { id: tenantId }, 
+          data: { 
+            name, slug, address: fullAddress, category, templateId, abn, shopImage, galleryImages, customerPhotos, description, phone,
+            street, suburb, state, phoneCode, businessName, website
+          } 
+        });
+        
+        revalidatePath("/dashboard/settings");
+        revalidatePath(`/${slug}`);
+        revalidatePath("/");
+        return { success: true };
    } catch(err: any) {
        console.warn("Full branding update failed, trying fallback...", err.message);
        try {

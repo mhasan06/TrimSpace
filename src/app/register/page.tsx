@@ -47,19 +47,61 @@ function RegisterContent() {
         ) : (
           <form action={clientAction} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
             {isBusiness && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Your Shop Name</label>
-                <input name="shopName" type="text" placeholder="e.g. Skyline Barbers" required={isBusiness} style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
-              </div>
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Shop Category</label>
+                  <select name="category" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }}>
+                    <option value="BARBER">Barbershop</option>
+                    <option value="SALON">Hair Salon</option>
+                    <option value="SPA">Spa & Wellness</option>
+                    <option value="SKIN">Skin Care</option>
+                    <option value="NAILS">Nails</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Public Shop Name</label>
+                  <input name="shopName" type="text" placeholder="e.g. Skyline Barbers" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Legal Business Name</label>
+                  <input name="businessName" type="text" placeholder="e.g. Skyline Grooming Pty Ltd" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>ABN (Australian Business Number)</label>
+                  <input name="abn" type="text" placeholder="00 000 000 000" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                </div>
+                
+                <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                  <label style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>Physical Location</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <input name="street" type="text" placeholder="Street Address" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <input name="suburb" type="text" placeholder="Suburb" required style={{ flex: 2, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                      <input name="state" type="text" placeholder="State" required style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Full Name</label>
               <input name="name" type="text" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Phone Number</label>
-              <input name="phone" type="tel" required placeholder="+1 234 567 890" style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select name="phoneCode" style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', width: '90px' }}>
+                  <option value="+61">+61 (AU)</option>
+                  <option value="+1">+1 (US)</option>
+                  <option value="+44">+44 (UK)</option>
+                  <option value="+64">+64 (NZ)</option>
+                </select>
+                <input name="phone" type="tel" required placeholder="0400 000 000" style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />
+              </div>
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600 }}>Email Address</label>
               <input name="email" type="email" required style={{ padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)' }} />

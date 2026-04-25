@@ -47,7 +47,8 @@ function PersonaPreview({ category }: { category: string }) {
 }
 
 export default function BrandingManager({ 
-    tenantId, initialName, initialSlug, initialAddress, initialCategory, initialTemplate, initialABN, initialShopImage, initialGallery = [], initialCustomerPhotos = [], initialDescription = "", initialPhone = ""
+    tenantId, initialName, initialSlug, initialAddress, initialCategory, initialTemplate, initialABN, initialShopImage, initialGallery = [], initialCustomerPhotos = [], initialDescription = "", initialPhone = "",
+    initialStreet = "", initialSuburb = "", initialState = "", initialPhoneCode = "+61", initialBusinessName = "", initialWebsite = ""
 }: { 
     tenantId: string, 
     initialName: string, 
@@ -60,15 +61,26 @@ export default function BrandingManager({
     initialGallery?: string[],
     initialCustomerPhotos?: string[],
     initialDescription?: string,
-    initialPhone?: string
+    initialPhone?: string,
+    initialStreet?: string,
+    initialSuburb?: string,
+    initialState?: string,
+    initialPhoneCode?: string,
+    initialBusinessName?: string,
+    initialWebsite?: string
 }) {
     const [name, setName] = useState(initialName || "");
     const [slug, setSlug] = useState(initialSlug || "");
-    const [address, setAddress] = useState(initialAddress || "");
+    const [street, setStreet] = useState(initialStreet || "");
+    const [suburb, setSuburb] = useState(initialSuburb || "");
+    const [state, setState] = useState(initialState || "");
+    const [phoneCode, setPhoneCode] = useState(initialPhoneCode || "+61");
     const [phone, setPhone] = useState(initialPhone || "");
     const [category, setCategory] = useState(initialCategory || "BARBER");
     const [templateId, setTemplateId] = useState(initialTemplate || "LUXURY");
     const [abn, setAbn] = useState(initialABN || "00 000 000 000");
+    const [businessName, setBusinessName] = useState(initialBusinessName || "");
+    const [website, setWebsite] = useState(initialWebsite || "");
     const [shopImage, setShopImage] = useState(initialShopImage || "");
     const [gallery, setGallery] = useState<string[]>(initialGallery || []);
     const [customerPhotos, setCustomerPhotos] = useState<string[]>(initialCustomerPhotos || []);
@@ -91,7 +103,10 @@ export default function BrandingManager({
 
     const handleSave = async () => {
         setSaving(true);
-        const res = await updateTenantBranding(tenantId, name, slug, address, category, templateId, abn, shopImage, gallery, customerPhotos, description, phone);
+        const res = await updateTenantBranding(
+            tenantId, name, slug, "", category, templateId, abn, shopImage, gallery, customerPhotos, description, phone,
+            street, suburb, state, phoneCode, businessName, website
+        );
         if (res?.error) {
             alert(res.error);
         } else {
@@ -106,7 +121,7 @@ export default function BrandingManager({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Shop Name</label>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Shop Name (Public)</label>
                             <input 
                                 type="text" 
                                 value={name} 
@@ -123,42 +138,64 @@ export default function BrandingManager({
                             >
                                 <option value="BARBER">Barbershop</option>
                                 <option value="SALON">Hair Salon</option>
-                                <option value="SPA">Beauty & Spa</option>
+                                <option value="SPA">Spa & Wellness</option>
+                                <option value="SKIN">Skin Care</option>
+                                <option value="NAILS">Nails</option>
                             </select>
                         </div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Contact Phone</label>
+
+                    <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                        <label style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>Legal & Registration</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.7rem', opacity: 0.5 }}>Legal Entity Name</label>
+                                <input type="text" value={businessName} onChange={(e) => setBusinessName(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.7rem', opacity: 0.5 }}>ABN</label>
+                                    <input type="text" value={abn} onChange={(e) => setAbn(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.7rem', opacity: 0.5 }}>Website</label>
+                                    <input type="text" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ padding: '1rem', border: '1px solid var(--border)', borderRadius: '12px', background: 'rgba(255,255,255,0.02)' }}>
+                        <label style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem', display: 'block' }}>Physical Address</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <input type="text" placeholder="Street" value={street} onChange={(e) => setStreet(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                                <input type="text" placeholder="Suburb" value={suburb} onChange={(e) => setSuburb(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                                <input type="text" placeholder="State" value={state} onChange={(e) => setState(e.target.value)} style={{ width: '100%', padding: '0.6rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Contact Phone</label>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <select value={phoneCode} onChange={(e) => setPhoneCode(e.target.value)} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--background)', color: 'var(--foreground)', width: '90px' }}>
+                                <option value="+61">+61</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+64">+64</option>
+                            </select>
                             <input 
                                 type="tel" 
                                 value={phone} 
                                 onChange={(e) => setPhone(e.target.value)} 
-                                placeholder="+1 234 567 8900"
-                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
-                            />
-                        </div>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Tax ID / ABN</label>
-                            <input 
-                                type="text" 
-                                value={abn} 
-                                onChange={(e) => setAbn(e.target.value)} 
-                                style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
+                                placeholder="0400 000 000"
+                                style={{ flex: 1, padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
                             />
                         </div>
                     </div>
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Physical Address</label>
-                        <input 
-                            type="text" 
-                            value={address} 
-                            onChange={(e) => setAddress(e.target.value)} 
-                            style={{ width: '100%', padding: '0.8rem', background: 'var(--background)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--foreground)' }} 
-                        />
-                    </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>About / Description</label>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', opacity: 0.6, fontWeight: 700, textTransform: 'uppercase' }}>Storefront Description</label>
                         <textarea 
                             value={description} 
                             onChange={(e) => setDescription(e.target.value)} 
