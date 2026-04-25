@@ -10,6 +10,8 @@ type Tenant = {
   slug: string;
   category: string | null;
   address: string | null;
+  suburb?: string | null;
+  description?: string | null;
   phone?: string | null;
   isActive: boolean;
   shopImage?: string | null;
@@ -32,15 +34,15 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
     
     initialTenants.forEach(t => {
       // Prioritize explicit suburb field
-      if ((t as any).suburb) {
-        s.add((t as any).suburb);
+      if (t.suburb) {
+        s.add(t.suburb);
       } else if (t.address) {
         // Fallback for legacy address strings
         const parts = t.address.split(',');
         if (parts.length > 0) s.add(parts[0].trim());
       }
     });
-    return Array.from(s).filter(Boolean).sort();
+    return Array.from(s).filter(Boolean).sort() as string[];
   }, [initialTenants]);
 
   const matchingSuburbs = useMemo(() => {
@@ -54,7 +56,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
         t.name.toLowerCase().includes(query.toLowerCase()) || 
         (t.description?.toLowerCase().includes(query.toLowerCase()));
       
-      const shopSuburb = (t as any).suburb?.toLowerCase() || "";
+      const shopSuburb = t.suburb?.toLowerCase() || "";
       const shopAddress = t.address?.toLowerCase() || "";
       const matchesWhere = !where || shopSuburb.includes(where.toLowerCase()) || shopAddress.includes(where.toLowerCase());
       
