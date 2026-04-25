@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import NavHeader from "@/components/NavHeader";
 import Providers from "@/components/Providers";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Providers>
           <NavHeader />
           {children}
+          <MobileBottomNav />
         </Providers>
       </body>
     </html>
