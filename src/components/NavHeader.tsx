@@ -57,7 +57,15 @@ export default function NavHeader() {
             <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
           </svg>
         </div>
-        {!isMobile && <h1 style={{ fontSize: '1.5rem', fontWeight: 950, color: '#000', margin: 0, letterSpacing: '-0.8px' }}>TrimSpace</h1>}
+        <h1 style={{ 
+          fontSize: isMobile ? '1.2rem' : '1.5rem', 
+          fontWeight: 950, 
+          color: '#000', 
+          margin: 0, 
+          letterSpacing: '-0.8px' 
+        }}>
+          TrimSpace
+        </h1>
       </Link>
       
       {/* ─── NAV LINKS ─── */}

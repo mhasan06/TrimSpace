@@ -72,35 +72,38 @@ export default function GiftCardsPage() {
                 }}>
                     {/* Card Preview */}
                     <div style={{ flex: 1, width: '100%' }}>
-                        <div style={{ 
-                            aspectRatio: '1.6/1', 
-                            borderRadius: '32px', 
-                            background: `url('/trimspace_gift_card_premium_1777127041061.png') center/cover no-repeat`,
-                            boxShadow: '0 30px 60px rgba(0,0,0,0.15)',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            border: '1px solid rgba(255,255,255,0.1)'
-                        }}>
                             <div style={{ 
-                                position: 'absolute', 
-                                bottom: '2rem', 
-                                right: '2rem', 
-                                background: 'rgba(255,255,255,0.9)', 
-                                backdropFilter: 'blur(10px)',
-                                padding: '0.8rem 1.5rem', 
-                                borderRadius: '16px',
-                                fontWeight: 900,
-                                fontSize: '1.8rem',
-                                color: '#000',
-                                boxShadow: '0 10px 20px rgba(0,0,0,0.1)'
+                                aspectRatio: '1.6/1', 
+                                borderRadius: '32px', 
+                                background: `url('/trimspace_gift_card_premium_1777127041061.png') center/cover no-repeat`,
+                                boxShadow: '0 30px 60px rgba(0,0,0,0.15)',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                padding: '2rem',
+                                border: '1px solid rgba(255,255,255,0.1)'
                             }}>
-                                ${customAmount || amount}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                                    <div style={{ background: 'rgba(0,0,0,0.8)', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.1em' }}>SAMPLE</div>
+                                    <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 950, margin: 0, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>TrimSpace</h2>
+                                </div>
+
+                                <div style={{ 
+                                    alignSelf: 'flex-end',
+                                    background: 'rgba(255,255,255,0.95)', 
+                                    backdropFilter: 'blur(10px)',
+                                    padding: '0.8rem 1.5rem', 
+                                    borderRadius: '16px',
+                                    fontWeight: 900,
+                                    fontSize: '1.8rem',
+                                    color: '#000',
+                                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+                                }}>
+                                    ${customAmount || amount}
+                                </div>
                             </div>
-                        </div>
                         <p style={{ textAlign: 'center', marginTop: '1.5rem', color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>Digital Gift Experience Preview</p>
                     </div>
 

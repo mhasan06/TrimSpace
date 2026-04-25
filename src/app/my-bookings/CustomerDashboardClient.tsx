@@ -226,8 +226,11 @@ export default function CustomerDashboardClient({
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: isMobile ? '1.5rem' : '2rem', width: '100%' }}>
                 
                 <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                        <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>{getGreeting()}, {user.name.split(' ')[0]}!</h1>
+                    <div style={{ marginBottom: '2.5rem' }}>
+                        <h1 style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: 900, color: '#1e293b', marginBottom: '0.2rem' }}>
+                            {getGreeting()}, {user.name ? user.name.split(' ')[0] : 'Connoisseur'}!
+                        </h1>
+                        <p style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>Welcome back to your premium command center.</p>
                         {nextBooking && (
                             <p style={{ fontSize: isMobile ? '0.8rem' : '0.9rem', color: '#6366f1', fontWeight: 700 }}>
                                 📅 Next visit: {new Date(nextBooking.startTime).toLocaleDateString('en-AU', { day: '2-digit', month: 'short' })} at {new Date(nextBooking.startTime).toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' })}
