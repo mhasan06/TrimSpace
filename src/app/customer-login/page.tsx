@@ -58,55 +58,32 @@ export default function CustomerLogin() {
       overflowX: 'hidden',
       color: '#000'
     }}>
-      {/* ─── LEFT: CINEMATIC IMAGE ─── */}
+      {/* ─── LEFT: CINEMATIC IMAGE (CONDENSED ON MOBILE) ─── */}
       <div style={{ 
-        flex: 1.2, 
-        minHeight: isMobile ? '40vh' : 'auto',
-        background: `linear-gradient(to right, transparent 70%, rgba(255,255,255,0.8)), url('/luxury_barbershop.png') center/cover no-repeat`,
+        flex: isMobile ? 'none' : 1.2, 
+        height: isMobile ? '150px' : 'auto',
+        background: `linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.4)), url('/luxury_barbershop.png') center/cover no-repeat`,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-end',
-        padding: isMobile ? '2rem' : '5rem',
+        justifyContent: 'center',
+        padding: isMobile ? '1rem' : '5rem',
         position: 'relative',
         borderRight: isMobile ? 'none' : '1px solid rgba(0,0,0,0.05)',
         borderBottom: isMobile ? '1px solid rgba(0,0,0,0.05)' : 'none'
       }}>
-        <div style={{ 
-          position: 'relative', 
-          zIndex: 1,
-          background: isMobile ? 'rgba(255,255,255,0.7)' : 'transparent',
-          backdropFilter: isMobile ? 'blur(10px)' : 'none',
-          padding: isMobile ? '1.5rem' : '0',
-          borderRadius: isMobile ? '24px' : '0'
-        }}>
-          <h2 style={{ 
-            fontSize: isMobile ? '2.2rem' : '3.8rem', 
-            fontWeight: 950, 
-            letterSpacing: '-0.04em', 
-            lineHeight: 1.1, 
-            marginBottom: '1rem', 
-            color: '#000',
-            textShadow: '0 0 40px rgba(255,255,255,0.8)' 
-          }}>
-            The Space for Excellence.
-          </h2>
-          <p style={{ 
-            fontSize: isMobile ? '1.1rem' : '1.25rem', 
-            fontWeight: 700, 
-            color: '#1e293b', 
-            maxWidth: '500px', 
-            opacity: 1,
-            lineHeight: 1.5,
-            textShadow: '0 0 20px rgba(255,255,255,0.8)',
-            background: !isMobile ? 'rgba(255,255,255,0.4)' : 'transparent',
-            padding: !isMobile ? '0.5rem 1rem' : '0',
-            borderRadius: '12px',
-            marginLeft: !isMobile ? '-1rem' : '0',
-            backdropFilter: !isMobile ? 'blur(10px)' : 'none'
-          }}>
-            Enter a world-class marketplace where premium grooming meets effortless booking.
-          </p>
-        </div>
+        {!isMobile && (
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ fontSize: '3.8rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '1rem', color: '#000', textShadow: '0 0 40px rgba(255,255,255,0.8)' }}>
+              The Space for Excellence.
+            </h2>
+            <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', maxWidth: '500px', opacity: 1, lineHeight: 1.5, textShadow: '0 0 20px rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.4)', padding: '0.5rem 1rem', borderRadius: '12px', marginLeft: '-1rem', backdropFilter: 'blur(10px)' }}>
+              Enter a world-class marketplace where premium grooming meets effortless booking.
+            </p>
+          </div>
+        )}
+        {isMobile && (
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 950, textAlign: 'center', color: '#000', textShadow: '0 0 20px rgba(255,255,255,1)' }}>The Space for Excellence.</h2>
+        )}
       </div>
 
       {/* ─── RIGHT: LOGIN FORM ─── */}
@@ -114,25 +91,25 @@ export default function CustomerLogin() {
         flex: 1, 
         display: 'flex', 
         flexDirection: 'column', 
-        justifyContent: 'center', 
-        padding: isMobile ? '3rem 1.5rem' : '5rem', 
+        justifyContent: isMobile ? 'flex-start' : 'center', 
+        padding: isMobile ? '1.5rem' : '5rem', 
         background: isMobile ? 'transparent' : 'rgba(255,255,255,0.4)',
         backdropFilter: isMobile ? 'none' : 'blur(30px)',
         WebkitBackdropFilter: isMobile ? 'none' : 'blur(30px)'
       }}>
         <div style={{ maxWidth: '400px', width: '100%', margin: '0 auto' }}>
-          <h1 style={{ fontSize: isMobile ? '2rem' : '2.4rem', fontWeight: 950, marginBottom: '0.8rem', letterSpacing: '-0.02em', color: '#000' }}>
+          <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.4rem', fontWeight: 950, marginBottom: '0.4rem', letterSpacing: '-0.02em', color: '#000' }}>
             Customer Access
           </h1>
-          <p style={{ color: '#475569', fontSize: '1rem', marginBottom: '2.5rem', fontWeight: 600 }}>
-            Sign in to manage your appointments and history.
+          <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '1.5rem', fontWeight: 600 }}>
+            Sign in to manage your appointments.
           </p>
           
-          {error && <div style={{ color: '#ff4444', marginBottom: '1.5rem', textAlign: 'center', background: 'rgba(255,0,0,0.05)', padding: '0.8rem', borderRadius: '12px', fontWeight: 700, fontSize: '0.9rem', border: '1px solid rgba(255,0,0,0.1)' }}>{error}</div>}
+          {error && <div style={{ color: '#ff4444', marginBottom: '1.2rem', textAlign: 'center', background: 'rgba(255,0,0,0.05)', padding: '0.8rem', borderRadius: '12px', fontWeight: 700, fontSize: '0.85rem', border: '1px solid rgba(255,0,0,0.1)' }}>{error}</div>}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="email" style={{ fontSize: '0.85rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</label>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label htmlFor="email" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</label>
               <input 
                 type="email" 
                 id="email" 
@@ -140,11 +117,11 @@ export default function CustomerLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="connoisseur@example.com" 
                 required 
-                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 500 }}
+                style={{ padding: '0.9rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 500 }}
               />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <label htmlFor="password" style={{ fontSize: '0.85rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label htmlFor="password" style={{ fontSize: '0.75rem', fontWeight: 800, color: '#000', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
               <input 
                 type="password" 
                 id="password" 
@@ -152,13 +129,13 @@ export default function CustomerLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" 
                 required 
-                style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem' }}
+                style={{ padding: '0.9rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem' }}
               />
               <div style={{ textAlign: 'right' }}>
                 <button 
                   type="button" 
                   onClick={() => setIsForgotOpen(true)}
-                  style={{ background: 'none', border: 'none', color: '#475569', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700, padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#475569', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 700, padding: 0 }}
                 >
                   Forgot Password?
                 </button>
@@ -169,7 +146,7 @@ export default function CustomerLogin() {
               disabled={isLoading}
               style={{ 
                 width: '100%', 
-                padding: '1.2rem', 
+                padding: '1rem', 
                 borderRadius: '12px', 
                 background: '#000', 
                 color: '#fff', 
@@ -178,20 +155,19 @@ export default function CustomerLogin() {
                 fontWeight: 800, 
                 cursor: isLoading ? 'not-allowed' : 'pointer', 
                 transition: 'transform 0.2s',
-                opacity: isLoading ? 0.7 : 1 
+                opacity: isLoading ? 0.7 : 1,
+                marginTop: '0.5rem'
               }}
-              onMouseEnter={(e) => !isLoading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => !isLoading && (e.currentTarget.style.transform = 'none')}
               >
-              {isLoading ? 'Processing...' : 'Sign In as Connoisseur'}
+              {isLoading ? 'Processing...' : 'Sign In'}
             </button>
           </form>
 
-          <div style={{ margin: '2rem 0' }}>
+          <div style={{ margin: '1.5rem 0' }}>
             <SocialLoginButtons mode="up" compact={true} />
           </div>
 
-          <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.95rem', fontWeight: 600 }}>
+          <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.9rem', fontWeight: 600 }}>
             New here? <Link href="/register?type=customer" style={{ color: '#000', fontWeight: 900, textDecoration: 'none' }}>Create an account</Link>
           </p>
         </div>
@@ -204,4 +180,5 @@ export default function CustomerLogin() {
       />
     </main>
   );
+}
 }
