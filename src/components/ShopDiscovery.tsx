@@ -97,31 +97,33 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section className={styles.heroSection} style={{ 
         height: '70vh', 
-        minHeight: '500px', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
+      <div style={{ 
+        padding: '120px 20px', 
         textAlign: 'center', 
-        padding: '0 1rem',
-        background: 'linear-gradient(180deg, #f0f4ff 0%, var(--background) 100%)'
+        background: 'linear-gradient(180deg, #f8fafc 0%, var(--background) 100%)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }}>
-        <div style={{ maxWidth: '800px', width: '100%' }}>
-          <h1 style={{ fontSize: '4rem', fontWeight: 900, marginBottom: '0.75rem', lineHeight: 1.1, color: '#0f172a' }}>
-            Book local self-care services
+        <div style={{ maxWidth: '1000px', width: '100%' }}>
+          <h1 style={{ fontSize: '4.5rem', fontWeight: 950, marginBottom: '0.5rem', letterSpacing: '-0.04em', lineHeight: 1, color: '#020617' }}>
+            Book local self-care services.
           </h1>
-          <p style={{ fontSize: '1.2rem', color: '#64748b', marginBottom: '3rem', fontWeight: 500, lineHeight: 1.5, maxWidth: '700px', margin: '0 auto 3rem' }}>
-            Discover top-rated salons, barbers, medspas, wellness studios and beauty experts trusted by millions worldwide
+          <p style={{ fontSize: '1.4rem', color: '#475569', marginBottom: '4rem', fontWeight: 500, letterSpacing: '-0.01em' }}>
+            Top-rated salons, barbers, and beauty experts trusted worldwide.
           </p>
           
           <div className="glass" style={{ 
             display: 'flex', 
             background: '#fff', 
-            borderRadius: '20px', 
-            padding: '10px', 
-            boxShadow: '0 20px 50px rgba(0,0,0,0.08)',
+            borderRadius: '24px', 
+            padding: '12px', 
+            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.1)',
             flexWrap: 'wrap',
-            gap: '8px',
-            border: '1px solid #eef2f6'
+            gap: '0',
+            border: '1px solid #f1f5f9',
+            maxWidth: '900px',
+            margin: '0 auto'
           }}>
             <div style={{ flex: 2, minWidth: '250px', padding: '12px 16px', textAlign: 'left', borderRight: '1px solid #f1f5f9' }}>
               <label style={{ fontSize: '0.65rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Service or Venue</label>
