@@ -141,5 +141,3 @@ export default async function LoginGateway() {
     </main>
   );
 }
-  );
-}
