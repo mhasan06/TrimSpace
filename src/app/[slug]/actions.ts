@@ -145,16 +145,23 @@ export async function createBookingTransaction(
         const priorityFee = localIndex === 0 ? 0.50 : 0;
         const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
 
+        const safeStripeId = stripePaymentIntentId || null;
+        const safeGiftCardId = giftCardId || null;
+        const finalStripeAmt = Math.max(0, stripePerApp || 0);
+        const finalGiftAmt = Math.max(0, giftPerApp || 0);
+
         // AWAIT EACH CALL DIRECTLY IN THE LOOP
         await prisma.$executeRaw`
           INSERT INTO "Appointment" (
             "id", "startTime", "endTime", "status", "customerId", 
             "barberId", "serviceId", "tenantId", "paymentMethod", "paymentStatus", 
-            "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", "giftCardId", "updatedAt"
+            "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", 
+            "giftCardId", "emailSent", "cancellationFee", "updatedAt", "createdAt"
           ) VALUES (
             ${id}, ${currentStartTime}, ${currentEndTime}, 'CONFIRMED', ${userId}, 
             ${assignedBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
-            ${safeStripeId}, ${bookingGroupId}, ${stripePerApp}, ${giftPerApp}, ${safeGiftCardId}, NOW()
+            ${safeStripeId}, ${bookingGroupId}, ${finalStripeAmt}, ${finalGiftAmt}, 
+            ${safeGiftCardId}, false, 0, NOW(), NOW()
           )
         `;
       }
