@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useMemo, useCallback } from "react";
 import styles from "../app/[slug]/page.module.css";
 import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTransaction, fetchBarbers } from "../app/[slug]/actions";
 import { useSession, signIn } from "next-auth/react";
@@ -52,9 +52,9 @@ export default function BookingFlow({
   const [isPending, startTransition] = useTransition();
 
   // Load barbers on mount
-  useState(() => {
+  useEffect(() => {
     fetchBarbers(tenantSlug).then((data) => setBarbers(data as any));
-  });
+  }, [tenantSlug]);
 
   const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -73,7 +73,7 @@ export default function BookingFlow({
   const [slots, setSlots] = useState<string[]>([]);
   const [slotReason, setSlotReason] = useState<string | null>(null);
 
-  const addToCart = (service: Service) => {
+  const addToCart = useCallback((service: Service) => {
     setMultiCart((prev) => {
       const currentCart = prev[currentPersonIndex] || [];
       const existing = currentCart.find(item => item.service.id === service.id);
@@ -89,28 +89,29 @@ export default function BookingFlow({
       
       return { ...prev, [currentPersonIndex]: updatedCart };
     });
-  };
+  }, [currentPersonIndex]);
 
-  const updateQuantity = (id: string, delta: number) => {
+  const updateQuantity = useCallback((id: string, delta: number) => {
     setMultiCart((prev) => {
       const currentCart = prev[currentPersonIndex] || [];
       const updatedCart = currentCart.map(item => item.service.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item).filter(item => item.quantity > 0);
       return { ...prev, [currentPersonIndex]: updatedCart };
     });
-  };
+  }, [currentPersonIndex]);
 
-  const currentCart = multiCart[currentPersonIndex] || [];
-  const allCartItems = Object.values(multiCart).flat();
-  const totalPrice = allCartItems.reduce((total, item) => total + (item.service.price * item.quantity), 0);
+  const allCartItems = useMemo(() => Object.values(multiCart).flat(), [multiCart]);
+  const currentCart = useMemo(() => multiCart[currentPersonIndex] || [], [multiCart, currentPersonIndex]);
+  const currentCartIds = useMemo(() => new Set(currentCart.map(i => i.service.id)), [currentCart]);
+  const totalPrice = useMemo(() => allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0), [allCartItems]);
 
-  const nextPerson = () => {
+  const nextPerson = useCallback(() => {
     if (currentPersonIndex < partySize - 1) {
       setCurrentPersonIndex(currentPersonIndex + 1);
       setMultiCart(prev => ({ ...prev, [currentPersonIndex + 1]: prev[currentPersonIndex + 1] || [] }));
     } else {
       moveToCalendar();
     }
-  };
+  }, [currentPersonIndex, partySize]);
 
   const prevPerson = () => {
     if (currentPersonIndex > 0) {
@@ -392,7 +393,7 @@ export default function BookingFlow({
                         {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.8rem', lineHeight: 1.5, maxWidth: '80%' }}>{srv.description}</p>}
                    </div>
                    <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
-                        {currentCart.find(i => i.service.id === srv.id) ? (
+                        {currentCartIds.has(srv.id) ? (
                             <button 
                                 onClick={() => addToCart(srv)}
                                 style={{ 
