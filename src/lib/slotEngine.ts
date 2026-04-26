@@ -56,11 +56,13 @@ export async function getAvailableSlots(
   }
 
   // 5. Fetch all existing appointments for this exact date (UTC Bounds)
-  const startOfDay = new Date(targetDate.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
-  startOfDay.setHours(0,0,0,0);
+  // targetDate is "YYYY-MM-DD". We need to fetch a window that covers the full Sydney day in UTC.
+  // Sydney 00:00 is 14 hours behind UTC (AEST). We fetch a wide window to be safe.
+  const startOfDay = new Date(`${targetDate}T00:00:00Z`);
+  startOfDay.setHours(startOfDay.getHours() - 14); // Shift to cover Sydney start-of-day
   
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setHours(23,59,59,999);
+  const endOfDay = new Date(`${targetDate}T23:59:59Z`);
+  endOfDay.setHours(endOfDay.getHours() + 11); // Shift to cover Sydney end-of-day
 
   const existingAppointments: any[] = await prisma.$queryRaw`
     SELECT "startTime", "endTime" 
