@@ -107,17 +107,11 @@ export async function POST(req: Request) {
         giftDiscount: giftDiscount.toString(),
         giftCardId: giftCardId,
         isGroup: (isGroup || false).toString(),
-        // Format: [{s: id, q: qty, p: personIdx}, ...]
-        cart: JSON.stringify(
-          Object.keys(body.multiCart || { 0: cart }).flatMap(pIdx => {
-            const items = body.multiCart ? body.multiCart[Number(pIdx)] : cart;
-            return items.map((i: any) => ({
-              s: i.service.id,
-              q: i.quantity,
-              p: Number(pIdx)
-            }));
-          })
-        ).substring(0, 500), // Safety truncation for Stripe limits
+        // Compact Format: sId:q:p|sId:q:p to fit Stripe limits
+        cart: Object.keys(body.multiCart || { 0: cart }).flatMap(pIdx => {
+          const items = body.multiCart ? body.multiCart[Number(pIdx)] : cart;
+          return items.map((i: any) => `${i.service.id}:${i.quantity}:${pIdx}`);
+        }).join('|').substring(0, 500), 
       },
     });
 

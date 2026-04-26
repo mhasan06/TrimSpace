@@ -37,8 +37,18 @@ export async function fulfillBooking(sessionId: string) {
     }
 
     // 2. Extract Metadata
-    const { tenantSlug, targetDate, selectedTime, userId, cart: cartJson, giftDiscount, giftCardId, isGroup: isGroupStr } = session.metadata || {};
-    const cart = JSON.parse(cartJson || "[]");
+    const { tenantSlug, targetDate, selectedTime, userId, cart: cartRaw, giftDiscount, giftCardId, isGroup: isGroupStr } = session.metadata || {};
+    
+    // Parse Compact Format: sId:q:p|sId:q:p
+    const cart = (cartRaw || "").split('|').filter(Boolean).map(itemStr => {
+      const [s, q, p] = itemStr.split(':');
+      return {
+        s,
+        q: parseInt(q || "1"),
+        p: parseInt(p || "0")
+      };
+    });
+
     const amountPaidGift = parseFloat(giftDiscount || "0");
     const isGroup = isGroupStr === 'true';
 
