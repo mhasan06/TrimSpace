@@ -18,13 +18,11 @@ export async function fetchBarbers(tenantSlug: string) {
   const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
   if (!tenant) return [];
 
-  // Fetch only active barbers for this tenant
+  // Fetch only barbers assigned to this specific shop
   const barbers = await prisma.user.findMany({
     where: { 
       role: 'BARBER',
-      activeInShops: {
-        some: { slug: tenantSlug }
-      }
+      tenant: { slug: tenantSlug }
     },
     select: { id: true, name: true }
   });
