@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import styles from "../app/[slug]/page.module.css";
-import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTransaction } from "../app/[slug]/actions";
+import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTransaction, fetchBarbers } from "../app/[slug]/actions";
 import { useSession, signIn } from "next-auth/react";
 import { getTerminology } from "@/lib/terminology";
 
