@@ -302,7 +302,6 @@ export default function BookingFlow({
                 <p style={{ color: '#64748b', padding: '3rem', textAlign: 'center', background: '#f8fafc', borderRadius: '20px' }}>No services available for booking at this time.</p>
               )}
             </div>
-          </div>
         </>
       )}
 
