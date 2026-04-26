@@ -121,14 +121,19 @@ function RegisterContent() {
 
         {formState?.success ? (
           <div style={{ padding: '2rem', textAlign: 'center' }}>
-            <div style={{ width: '60px', height: '60px', background: '#000', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: '#fff' }}>
+            <div style={{ width: '60px', height: '60px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', color: '#fff' }}>
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
             </div>
-            <h2 style={{ color: '#000', marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 950 }}>Application Received</h2>
+            <h2 style={{ color: '#000', marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 950 }}>
+              {isBusiness ? "Application Received" : "Welcome to the Community!"}
+            </h2>
             <p style={{ color: '#475569', fontSize: '1rem', fontWeight: 600, lineHeight: 1.6, marginBottom: '2rem' }}>
-              A concierge will contact you shortly to verify your mastery and complete your activation.
+              {formState.message || (isBusiness 
+                ? "A concierge will contact you shortly to verify your mastery and complete your activation."
+                : "Your account has been created. Please check your email to verify your account before logging in.")
+              }
             </p>
             <Link href="/login" style={{ display: 'inline-block', padding: '1rem 2.5rem', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: '40px', fontWeight: 800, fontSize: '1rem' }}>Return to Login</Link>
           </div>
