@@ -81,14 +81,15 @@ export async function createBookingTransaction(
     let processedCount = 0;
     let rollingStartTime = new Date(baseStartTime);
 
-    const appointmentPromises = cart.flatMap(item => {
+    // TRUE SEQUENTIAL ENGINE: We process each item one-by-one to avoid connection pool competition
+    for (const item of cart) {
       const service = services.find(s => s.id === item.serviceId);
       const duration = service?.durationMinutes || 45;
       
       const safeGiftCardId = (giftCardId && giftCardId.trim() !== '') ? giftCardId : null;
       const safeStripeId = (stripePaymentIntentId && stripePaymentIntentId.trim() !== '') ? stripePaymentIntentId : null;
 
-      return Array(item.quantity).fill(null).map(async () => {
+      for (let i = 0; i < item.quantity; i++) {
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
         const localIndex = processedCount++;
         
@@ -108,7 +109,8 @@ export async function createBookingTransaction(
         const priorityFee = localIndex === 0 ? 0.50 : 0;
         const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
 
-        return prisma.$executeRaw`
+        // AWAIT EACH CALL DIRECTLY IN THE LOOP
+        await prisma.$executeRaw`
           INSERT INTO "Appointment" (
             "id", "startTime", "endTime", "status", "customerId", 
             "barberId", "serviceId", "tenantId", "paymentMethod", "paymentStatus", 
@@ -119,12 +121,7 @@ export async function createBookingTransaction(
             ${safeStripeId}, ${bookingGroupId}, ${stripePerApp}, ${giftPerApp}, ${safeGiftCardId}, NOW()
           )
         `;
-      });
-    });
-
-    // Use a sequential loop instead of Promise.all to respect low connection limits in serverless
-    for (const apptPromise of appointmentPromises) {
-      await apptPromise;
+      }
     }
     // ... revalidation and returns follow
 
