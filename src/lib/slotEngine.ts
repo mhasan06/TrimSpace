@@ -111,56 +111,94 @@ export async function getAvailableSlots(
   const requiredWindow = calculateRequiredWindow(serviceGroups);
   const lanesNeeded = serviceGroups.length;
 
+  const slotObjects: { time: string, finishTime: string }[] = [];
+
   // Iterate over 30 minute chunks
-  for (let currentSlot = openMins; currentSlot + requiredWindow <= closeMins; currentSlot += 30) {
-    const projectedEndTime = currentSlot + requiredWindow;
-
+  for (let currentSlot = openMins; currentSlot <= closeMins - 15; currentSlot += 30) {
     // Check if overlaps with lunch strictly
-    let overlapsLunch = false;
     if (lunchStartMins !== null && lunchEndMins !== null) {
-      if ((currentSlot >= lunchStartMins && currentSlot < lunchEndMins) || 
-          (projectedEndTime > lunchStartMins && projectedEndTime <= lunchEndMins) ||
-          (currentSlot <= lunchStartMins && projectedEndTime >= lunchEndMins)) {
-        overlapsLunch = true;
-      }
+      if (currentSlot >= lunchStartMins && currentSlot < lunchEndMins) continue;
     }
-    if (overlapsLunch) continue;
 
-    // Concurrency Calculation
-    // We check availability in 5-minute segments across the required window
-    let isWindowFeasible = true;
+    /**
+     * DYNAMIC LANE SIMULATION
+     * We simulate assigning each person to the next available lane.
+     */
+    const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
     
-    // For Smart Packing, we need 'staffCount' lanes available for the 'requiredWindow'.
-    // Actually, we need to ensure that the SUM of availability across all lanes can take the workload.
-    // Simpler: We need 'staffCount' lanes available simultaneously for the required duration.
+    // Tracks when each barber lane becomes free for THIS group
+    let laneFreeTimes = new Array(staffCount).fill(currentSlot);
     
-    for (let segment = currentSlot; segment < projectedEndTime; segment += 5) {
-      let activeBookingsAtSegment = 0;
+    // Sort people by duration (descending) to pack efficiently
+    const sortedPeople = [...personDurations].sort((a, b) => b - a);
+
+    let isPossible = true;
+    for (const duration of sortedPeople) {
+      // Find the lane that becomes free EARLIEST for this person
+      // But we must also account for existingAppointments in that lane!
       
-      for (const appt of existingAppointments) {
-        const sStart = toSydneyTime(appt.startTime);
-        const sEnd = toSydneyTime(appt.endTime);
-        const apptStart = sStart.hours * 60 + sStart.minutes;
-        const apptEnd = sEnd.hours * 60 + sEnd.minutes;
+      let bestLaneIdx = -1;
+      let earliestStartTime = Infinity;
 
-        if (segment >= apptStart && segment < apptEnd) {
-          activeBookingsAtSegment++;
+      for (let l = 0; l < staffCount; l++) {
+        let candidateStart = laneFreeTimes[l];
+        
+        // Find the first window in this lane that can take the duration
+        // (Simplified: We just push it until a window is free)
+        let foundWindow = false;
+        while (candidateStart + duration <= closeMins) {
+           let overlap = false;
+           // In Group mode without specific barbers, we assume we can find A lane.
+           // To be safe, we check if at least ONE lane is free at any given moment.
+           // However, to calculate Finish Time, we need to pick a lane.
+           
+           // Check if this specific lane segment is busy with an existing appt
+           // (This is a simplification: we check total occupancy at each segment)
+           let laneOccupancyMax = 0;
+           for (let seg = candidateStart; seg < candidateStart + duration; seg += 5) {
+              let busyAtSeg = 0;
+              for (const a of existingAppointments) {
+                const s = toSydneyTime(a.startTime);
+                const e = toSydneyTime(a.endTime);
+                if (seg >= (s.hours*60+s.minutes) && seg < (e.hours*60+e.minutes)) busyAtSeg++;
+              }
+              laneOccupancyMax = Math.max(laneOccupancyMax, busyAtSeg);
+           }
+
+           if (laneOccupancyMax < staffCount) {
+             foundWindow = true;
+             break;
+           }
+           candidateStart += 5;
+        }
+
+        if (foundWindow && candidateStart < earliestStartTime) {
+          earliestStartTime = candidateStart;
+          bestLaneIdx = l;
         }
       }
 
-      if (activeBookingsAtSegment + lanesNeeded > staffCount) {
-        isWindowFeasible = false;
+      if (bestLaneIdx === -1) {
+        isPossible = false;
         break;
       }
+
+      laneFreeTimes[bestLaneIdx] = earliestStartTime + duration;
     }
 
-    if (isWindowFeasible) {
-      availableSlots.push(minsToTime(currentSlot));
+    if (isPossible) {
+      const maxFinish = Math.max(...laneFreeTimes);
+      if (maxFinish <= closeMins) {
+        slotObjects.push({ 
+          time: minsToTime(currentSlot), 
+          finishTime: minsToTime(maxFinish) 
+        });
+      }
     }
   }
 
   return { 
-    availableSlots, 
+    availableSlots: slotObjects, 
     reason: null, 
     debug: { capacity: staffCount, mode: isGroup ? "GROUP" : "SOLO", count: serviceGroups.length }
   };

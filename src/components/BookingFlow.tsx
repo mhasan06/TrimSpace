@@ -113,16 +113,13 @@ export default function BookingFlow({
     return Math.max(0, ...personDurations);
   }, [serviceGroups]);
 
-  const getFinishTime = useCallback((timeStr: string) => {
+  const format12h = useCallback((timeStr: string) => {
+    if (!timeStr) return "";
     const [h, m] = timeStr.split(':').map(Number);
-    const startMins = h * 60 + m;
-    const endMins = startMins + maxDuration;
-    const endH = Math.floor(endMins / 60);
-    const endM = (endMins % 60).toString().padStart(2, '0');
-    const period = endH >= 12 ? 'PM' : 'AM';
-    const displayH = endH > 12 ? endH - 12 : (endH === 0 ? 12 : endH);
-    return `${displayH}:${endM} ${period}`;
-  }, [maxDuration]);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+    return `${displayH}:${m.toString().padStart(2, '0')} ${period}`;
+  }, []);
 
   const nextPerson = useCallback(() => {
     if (currentPersonIndex < partySize - 1) {
@@ -531,10 +528,10 @@ export default function BookingFlow({
                ) : (
                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '1rem' }}>
                       {slots.length === 0 && <p style={{ opacity: 0.5, textAlign: 'center', gridColumn: '1 / -1', padding: '3rem' }}>No slots available this date.</p>}
-                      {slots.map(t => (
+                      {slots.map((s: any) => (
                           <button 
-                             key={t} 
-                             onClick={() => handleTimeSelect(t)}
+                             key={s.time} 
+                             onClick={() => handleTimeSelect(s.time)}
                              style={{ 
                                 padding: '0.8rem 0.5rem', 
                                 background: '#fff', 
@@ -552,8 +549,8 @@ export default function BookingFlow({
                              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                              >
-                             <span style={{ fontSize: '0.9rem' }}>{t}</span>
-                             <span style={{ fontSize: '0.6rem', opacity: 0.6, fontWeight: 700 }}>Ends {getFinishTime(t)}</span>
+                             <span style={{ fontSize: '0.95rem' }}>{s.time}</span>
+                             <span style={{ fontSize: '0.65rem', opacity: 0.6, fontWeight: 700 }}>Ends {format12h(s.finishTime)}</span>
                           </button>
                       ))}
                    </div>
