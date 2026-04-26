@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { Prisma } from "@prisma/client";
 import { getSydneyTodayStr, toSydneyTime, getSydneyDayOfWeek } from "./date-utils";
 
 /**
@@ -68,7 +69,7 @@ export async function getAvailableSlots(
     AND "status" != 'CANCELLED'
     AND "startTime" >= ${startOfDay} 
     AND "startTime" <= ${endOfDay}
-    ${preferredBarberId ? prisma.raw(`AND "barberId" = '${preferredBarberId}'`) : prisma.raw('')}
+    ${preferredBarberId ? Prisma.raw(`AND "barberId" = '${preferredBarberId}'`) : Prisma.raw('')}
   `;
 
   // 6. Slot Calculation Setup
