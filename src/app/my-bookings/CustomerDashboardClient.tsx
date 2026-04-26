@@ -86,15 +86,19 @@ export default function CustomerDashboardClient({
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '1rem' : '2rem', marginBottom: '2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? '1rem' : '2rem', marginBottom: '2rem' }}>
                             <div>
                                 <p style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Billed To</p>
                                 <p style={{ margin: 0, fontWeight: 800, fontSize: '1rem' }}>{user.name}</p>
                                 <p style={{ margin: '0.1rem 0', opacity: 0.6, fontSize: '0.85rem' }}>{user.email}</p>
                             </div>
+                            <div style={{ textAlign: isMobile ? 'left' : 'center' }}>
+                                <p style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Booking Created</p>
+                                <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem' }}>{viewingInvoice.createdAt ? new Date(viewingInvoice.createdAt).toLocaleString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A'}</p>
+                            </div>
                             <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
                                 <p style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Session Date</p>
-                                <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem' }}>{new Date(viewingInvoice.startTime).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                <p style={{ margin: 0, fontWeight: 800, fontSize: '0.9rem' }}>{new Date(viewingInvoice.startTime).toLocaleString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                             </div>
                         </div>
 
