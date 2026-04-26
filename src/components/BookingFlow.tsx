@@ -75,8 +75,19 @@ export default function BookingFlow({
 
   const addToCart = (service: Service) => {
     setMultiCart((prev) => {
-      // "One Person = One Service" Rule: Replace whatever they have
-      return { ...prev, [currentPersonIndex]: [{ service, quantity: 1 }] };
+      const currentCart = prev[currentPersonIndex] || [];
+      const existing = currentCart.find(item => item.service.id === service.id);
+      
+      let updatedCart;
+      if (existing) {
+        // Toggle OFF: If already selected, remove it
+        updatedCart = currentCart.filter(item => item.service.id !== service.id);
+      } else {
+        // Toggle ON: Add to the selection list
+        updatedCart = [...currentCart, { service, quantity: 1 }];
+      }
+      
+      return { ...prev, [currentPersonIndex]: updatedCart };
     });
   };
 
@@ -343,7 +354,13 @@ export default function BookingFlow({
                 )}
               </div>
               
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <button 
+                  onClick={() => setStage("PARTY_SIZE")}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Change Party
+                </button>
                 <button 
                   onClick={() => setStage("BARBERS")}
                   style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
