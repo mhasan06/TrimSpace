@@ -29,7 +29,7 @@ export default function BookingFlow({
 }) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
-  const [stage, setStage] = useState<"BARBERS" | "SERVICES" | "CALENDAR" | "PAYMENT">("BARBERS");
+  const [stage, setStage] = useState<"PARTY_SIZE" | "BARBERS" | "SERVICES" | "CALENDAR" | "PAYMENT">("PARTY_SIZE");
   const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
   const [barbers, setBarbers] = useState<{ id: string; name: string | null }[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -227,20 +227,59 @@ export default function BookingFlow({
       
       {/* Visual Progress Steps */}
       <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {["Professional", "Select", "Schedule", "Payment"].map((s: string, i: number) => (
+          {["Party", "Professional", "Select", "Schedule", "Payment"].map((s: string, i: number) => (
              <div key={s} style={{ 
                 fontWeight: 800, 
                 fontSize: '0.85rem', 
-                color: (i === 0 && stage === 'BARBERS') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
+                color: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
              }}>
-                <span style={{ height: '20px', width: '20px', borderRadius: '50%', background: (i === 0 && stage === 'BARBERS') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{i+1}</span>
+                <span style={{ height: '20px', width: '20px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{i+1}</span>
                 {s}
              </div>
           ))}
       </div>
+
+      {stage === "PARTY_SIZE" && (
+          <div style={{ background: '#fff', padding: '4rem 3rem', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+             <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem' }}>Welcome to {terminology.shopLabel || 'TrimSpace'}</h2>
+             <p style={{ color: '#64748b', marginBottom: '3rem', fontSize: '1.1rem', fontWeight: 500 }}>How many people are joining us today?</p>
+             
+             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button 
+                    key={n}
+                    onClick={() => {
+                      setPartySize(n);
+                      setIsGroupBooking(n > 1);
+                      setStage("BARBERS");
+                    }}
+                    style={{ 
+                      width: '80px', 
+                      height: '80px', 
+                      borderRadius: '24px', 
+                      border: '2px solid #e2e8f0', 
+                      background: '#fff', 
+                      fontSize: '1.5rem', 
+                      fontWeight: 900, 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = 'inherit'; }}
+                  >
+                    {n}
+                  </button>
+                ))}
+             </div>
+          </div>
+      )}
 
       {stage === "BARBERS" && (
           <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
@@ -299,51 +338,21 @@ export default function BookingFlow({
                 </h2>
                 {partySize > 1 && (
                   <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: 600 }}>
-                    Please select services for connoisseur {currentPersonIndex + 1} of {partySize}
+                    Please select the service for connoisseur {currentPersonIndex + 1} of {partySize}
                   </p>
                 )}
               </div>
               
-              <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.05)', padding: '0.3rem', borderRadius: '14px', border: '1px solid var(--border)' }}>
-                {!allCartItems.length && (
-                  <>
-                    <button 
-                      onClick={() => { setPartySize(1); setIsGroupBooking(false); }}
-                      style={{ 
-                        padding: '0.6rem 1.2rem', 
-                        borderRadius: '10px', 
-                        border: 'none', 
-                        fontSize: '0.85rem', 
-                        fontWeight: 700, 
-                        cursor: 'pointer',
-                        background: partySize === 1 ? 'var(--primary)' : 'transparent',
-                        color: partySize === 1 ? 'white' : 'var(--foreground)',
-                        transition: 'all 0.2s ease'
-                      }}
-                    >
-                      Solo
-                    </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0 0.5rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.6, textTransform: 'uppercase' }}>Group of</span>
-                      <select 
-                        value={partySize} 
-                        onChange={(e) => {
-                          const size = Number(e.target.value);
-                          setPartySize(size);
-                          setIsGroupBooking(size > 1);
-                        }}
-                        style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.2rem 0.5rem', fontWeight: 800, color: 'var(--primary)', cursor: 'pointer' }}
-                      >
-                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                    </div>
-                  </>
-                )}
-                {allCartItems.length > 0 && (
-                   <div style={{ padding: '0.6rem 1.2rem', fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)' }}>
-                      Party of {partySize}
-                   </div>
-                )}
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button 
+                  onClick={() => setStage("BARBERS")}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Change Professional
+                </button>
+                <div style={{ padding: '0.6rem 1.2rem', background: 'rgba(0,0,0,0.05)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)' }}>
+                  {partySize} {partySize === 1 ? 'Customer' : 'Customers'}
+                </div>
               </div>
             </div>
             
@@ -397,6 +406,33 @@ export default function BookingFlow({
                 <p style={{ color: '#64748b', padding: '3rem', textAlign: 'center', background: '#f8fafc', borderRadius: '20px' }}>No services available for booking at this time.</p>
               )}
             </div>
+
+            {currentCart.length > 0 && (
+              <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', background: 'rgba(99,102,241,0.05)', borderRadius: '24px', border: '1px solid var(--primary)' }}>
+                <p style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem', color: '#1e293b' }}>
+                   Excellent choice! Ready to proceed?
+                </p>
+                <button 
+                  onClick={nextPerson}
+                  style={{ 
+                    padding: '1.2rem 3rem', 
+                    background: 'var(--primary)', 
+                    color: '#fff', 
+                    borderRadius: '16px', 
+                    border: 'none', 
+                    fontWeight: 900, 
+                    fontSize: '1.2rem', 
+                    cursor: 'pointer',
+                    boxShadow: '0 20px 40px -10px rgba(99,102,241,0.4)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                >
+                  {currentPersonIndex < partySize - 1 ? `Confirm & Add Person ${currentPersonIndex + 2}` : 'Confirm & Choose Time'}
+                </button>
+              </div>
+            )}
         </>
       )}
 
