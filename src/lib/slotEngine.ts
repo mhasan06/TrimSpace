@@ -121,79 +121,50 @@ export async function getAvailableSlots(
     }
 
     /**
-     * DYNAMIC LANE SIMULATION
-     * We simulate assigning each person to the next available lane.
+     * SIMULTANEOUS START ENGINE
+     * For a premium group experience, all connoisseurs must start at the same time.
+     * We check if 'lanesNeeded' specialists are free at 'currentSlot'.
      */
-    const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
-    
-    // Tracks when each barber lane becomes free for THIS group
-    let laneFreeTimes = new Array(staffCount).fill(currentSlot);
-    
-    // Sort people by duration (descending) to pack efficiently
-    const sortedPeople = [...personDurations].sort((a, b) => b - a);
-
     let isPossible = true;
-    for (const duration of sortedPeople) {
-      // Find the lane that becomes free EARLIEST for this person
-      // But we must also account for existingAppointments in that lane!
-      
-      let bestLaneIdx = -1;
-      let earliestStartTime = Infinity;
+    const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
+    const maxIndivDuration = Math.max(...personDurations);
 
-      for (let l = 0; l < staffCount; l++) {
-        let candidateStart = laneFreeTimes[l];
-        
-        // Find the first window in this lane that can take the duration
-        // (Simplified: We just push it until a window is free)
-        let foundWindow = false;
-        while (candidateStart + duration <= closeMins) {
-           let overlap = false;
-           // In Group mode without specific barbers, we assume we can find A lane.
-           // To be safe, we check if at least ONE lane is free at any given moment.
-           // However, to calculate Finish Time, we need to pick a lane.
-           
-           // Check if this specific lane segment is busy with an existing appt
-           // (This is a simplification: we check total occupancy at each segment)
-           let laneOccupancyMax = 0;
-           for (let seg = candidateStart; seg < candidateStart + duration; seg += 5) {
-              let busyAtSeg = 0;
-              for (const a of existingAppointments) {
-                const s = toSydneyTime(a.startTime);
-                const e = toSydneyTime(a.endTime);
-                if (seg >= (s.hours*60+s.minutes) && seg < (e.hours*60+e.minutes)) busyAtSeg++;
-              }
-              laneOccupancyMax = Math.max(laneOccupancyMax, busyAtSeg);
-           }
-
-           if (laneOccupancyMax < staffCount) {
-             foundWindow = true;
-             break;
-           }
-           candidateStart += 5;
-        }
-
-        if (foundWindow && candidateStart < earliestStartTime) {
-          earliestStartTime = candidateStart;
-          bestLaneIdx = l;
-        }
+    // Check concurrency at the exact start of the slot
+    // We need 'lanesNeeded' lanes free simultaneously for their entire respective durations.
+    // To simplify and ensure they "start together", we check if we can fit each person's duration.
+    
+    // We'll track which lanes are busy to ensure we don't double count
+    let laneOccupancyBySegment: Record<number, number> = {};
+    
+    // Check every 5 mins from currentSlot to (currentSlot + maxIndivDuration)
+    for (let segment = currentSlot; segment < currentSlot + maxIndivDuration; segment += 5) {
+      let busyCount = 0;
+      for (const a of existingAppointments) {
+        const s = toSydneyTime(a.startTime);
+        const e = toSydneyTime(a.endTime);
+        const start = s.hours * 60 + s.minutes;
+        const end = e.hours * 60 + e.minutes;
+        if (segment >= start && segment < end) busyCount++;
       }
-
-      if (bestLaneIdx === -1) {
+      
+      // At the START (segment === currentSlot), we MUST have lanesNeeded free.
+      // Throughout the journey, we must ensure we don't exceed staffCount.
+      // Actually, since people don't switch barbers, we just need to ensure 
+      // that each person's lane is free for their specific duration.
+      
+      // Simpler: If at any point (busyCount + lanesNeeded) > staffCount, 
+      // it means we don't have enough barbers to sustain the group.
+      if (busyCount + lanesNeeded > staffCount) {
         isPossible = false;
         break;
       }
-
-      laneFreeTimes[bestLaneIdx] = earliestStartTime + duration;
     }
 
     if (isPossible) {
-      const maxFinish = Math.max(...laneFreeTimes);
-      if (maxFinish <= closeMins) {
-        slotObjects.push({ 
-          time: minsToTime(currentSlot), 
-          finishTime: minsToTime(maxFinish) 
-        });
-      }
+      slotObjects.push({ 
+        time: minsToTime(currentSlot), 
+        finishTime: minsToTime(currentSlot + maxIndivDuration) 
+      });
     }
   }
 
