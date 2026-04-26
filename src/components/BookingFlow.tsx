@@ -70,7 +70,7 @@ export default function BookingFlow({
   };
 
   const [targetDate, setTargetDate] = useState<string>(getTomorrow());
-  const [slots, setSlots] = useState<string[]>([]);
+  const [slots, setSlots] = useState<{ time: string, finishTime: string }[]>([]);
   const [slotReason, setSlotReason] = useState<string | null>(null);
 
   const addToCart = useCallback((service: Service) => {
