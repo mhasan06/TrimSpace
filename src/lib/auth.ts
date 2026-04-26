@@ -80,29 +80,34 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" || account?.provider === "facebook") {
-        if (!user.email) return false;
-        
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email }
-        });
-
-        if (!existingUser) {
-          // ONLY CUSTOMERS can use social login
-          await prisma.user.create({
-            data: {
-              email: user.email,
-              name: user.name,
-              avatarUrl: user.image,
-              role: "CUSTOMER",
-              isActive: true
-            }
+      try {
+        if (account?.provider === "google" || account?.provider === "facebook") {
+          if (!user.email) return false;
+          
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email }
           });
-        } else if (existingUser.isActive === false) {
-          return false; // Block disabled accounts
+
+          if (!existingUser) {
+            // New Social User -> Always CUSTOMER
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || "Valued Customer",
+                avatarUrl: user.image,
+                role: "CUSTOMER",
+                isActive: true
+              }
+            });
+          } else if (existingUser.isActive === false) {
+            return false; // Block disabled accounts
+          }
         }
+        return true;
+      } catch (error) {
+        console.error("Social Sign-In Error:", error);
+        return true; // Attempt to continue anyway
       }
-      return true;
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
