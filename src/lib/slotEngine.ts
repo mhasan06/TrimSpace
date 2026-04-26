@@ -173,6 +173,6 @@ export async function getAvailableSlots(
   return { 
     availableSlots, 
     reason: null, 
-    debug: { capacity: staffCount, mode: isGroup ? "GROUP" : "SOLO", count: groupSize }
+    debug: { capacity: staffCount, mode: isGroup ? "GROUP" : "SOLO", count: serviceDurations.length }
   };
 }
