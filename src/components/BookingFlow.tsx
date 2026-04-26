@@ -6,6 +6,7 @@ import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTran
 import { useSession, signIn } from "next-auth/react";
 import { getTerminology } from "@/lib/terminology";
 import SocialLoginButtons from "./SocialLoginButtons";
+import { AU_SUBURBS } from "@/lib/constants";
 
 export type Service = {
   id: string;
@@ -43,7 +44,13 @@ export default function BookingFlow({
   
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
-  const [regForm, setRegForm] = useState({ name: "", username: "", email: "", phone: "", password: "" });
+  const [regForm, setRegForm] = useState({ name: "", email: "", phone: "", password: "", street: "", suburb: "", state: "" });
+  const [showSubDropdown, setShowSubDropdown] = useState(false);
+  
+  const matchingSubs = useMemo(() => {
+    if (!regForm.suburb) return [];
+    return AU_SUBURBS.filter(item => item.s.toLowerCase().includes(regForm.suburb.toLowerCase())).slice(0, 8);
+  }, [regForm.suburb]);
   
   const [giftCode, setGiftCode] = useState("");
   const [appliedCard, setAppliedCard] = useState<{ id: string; balance: number } | null>(null);
@@ -616,20 +623,64 @@ export default function BookingFlow({
                             <button type="button" onClick={() => setIsLoginMode(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Create an account instead</button>
                         </div>
                   ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
-                                <input name="name" placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                                <input name="name" required placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>EMAIL</label>
-                                <input name="email" type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>MOBILE NUMBER</label>
+                                <input name="phone" required type="tel" placeholder="0400 000 000" value={regForm.phone} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                             </div>
                         </div>
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>PASSWORD</label>
-                            <input name="password" type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>EMAIL ADDRESS</label>
+                            <input name="email" required type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STREET ADDRESS</label>
+                            <input name="street" required placeholder="e.g. 123 Luxury Way" value={regForm.street} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative' }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SUBURB</label>
+                                <input 
+                                    name="suburb" 
+                                    required
+                                    placeholder="Suburb" 
+                                    value={regForm.suburb} 
+                                    onChange={handleRegChange}
+                                    onFocus={() => setShowSubDropdown(true)}
+                                    onBlur={() => setTimeout(() => setShowSubDropdown(false), 200)}
+                                    style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} 
+                                />
+                                {showSubDropdown && matchingSubs.length > 0 && (
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                        {matchingSubs.map(item => (
+                                            <div 
+                                                key={`${item.s}-${item.st}`}
+                                                onClick={() => setRegForm({ ...regForm, suburb: item.s, state: item.st })}
+                                                style={{ padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, borderBottom: '1px solid #f1f5f9' }}
+                                            >
+                                                {item.s}, {item.st}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STATE</label>
+                                <input name="state" required placeholder="State" value={regForm.state} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SECURE PASSWORD</label>
+                            <input name="password" required type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                         </div>
                         
                         <div onClick={saveBookingState} style={{ width: '100%', marginTop: '0.5rem' }}>

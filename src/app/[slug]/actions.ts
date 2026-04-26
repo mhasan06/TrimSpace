@@ -48,7 +48,10 @@ export async function registerCustomer(formData: any) {
         email,
         phone,
         password: hashedPassword,
-        role: "CUSTOMER"
+        role: "CUSTOMER",
+        street: formData.street,
+        suburb: formData.suburb,
+        state: formData.state
       }
     });
 
