@@ -70,8 +70,18 @@ export async function createBookingTransaction(
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
-    const baseStartTime = new Date(`${targetDateStr}T00:00:00Z`); 
-    baseStartTime.setUTCHours(h, m, 0, 0);
+    // Construct in Sydney Local context
+    const baseStartTime = new Date(`${targetDateStr}T${targetTimeStr}:00`);
+    
+    // If the server is in a different timezone, we need to be more explicit
+    // Best practice: Parse with a fixed timezone offset or use a timezone-aware constructor
+    // Since we standardize on Australia/Sydney, we'll use the offset-aware string approach
+    // Sydney is typically UTC+10 (AEST) or UTC+11 (AEDT). 
+    // We'll use a trick to get the correct UTC date for a Sydney local string:
+    const sydneyDate = new Date(new Date(`${targetDateStr}T${targetTimeStr}:00`).toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+    const serverDate = new Date(`${targetDateStr}T${targetTimeStr}:00`);
+    const offset = serverDate.getTime() - sydneyDate.getTime();
+    baseStartTime.setTime(baseStartTime.getTime() + offset);
 
     const paymentStatus = (paymentMethod === "CARD_ONLINE" || paymentMethod === "GIFT_CARD") ? "PAID" : "UNPAID";
     const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);

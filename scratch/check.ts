@@ -20,8 +20,9 @@ async function check() {
 
   const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   console.log("WEEKLY STAFF CONFIG:");
-  shops[0].businessHours.forEach((bh: any) => {
-    console.log(`${days[bh.dayOfWeek]}: ${bh.activeStaff} staff`);
+  console.log("\nAPPOINTMENTS ON 27th:");
+  appointments.forEach(a => {
+    console.log(`- Start: ${a.startTime.toISOString()}, End: ${a.endTime.toISOString()}, Barber: ${a.barberId}`);
   });
   await prisma.$disconnect();
 }
