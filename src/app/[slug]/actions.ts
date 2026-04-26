@@ -81,8 +81,9 @@ export async function createBookingTransaction(
     if (activeBarbers.length === 0) throw new Error("The shop does not have any active staff to accept appointments.");
 
     // Fetch service durations for accurate scheduling
+    const serviceIds = cart.map((i: any) => i.serviceId || i.s || i.service?.id).filter(Boolean);
     const services = await prisma.service.findMany({
-      where: { id: { in: cart.map(i => i.serviceId) } }
+      where: { id: { in: serviceIds } }
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
@@ -109,10 +110,12 @@ export async function createBookingTransaction(
 
     // TRUE SEQUENTIAL ENGINE: We process each item one-by-one to avoid connection pool competition
     for (const item of cart) {
-      // Handle both full object (direct call) and compact metadata (from Stripe)
-      const serviceId = (item as any).serviceId || (item as any).s;
+      // Handle all possible input shapes: serviceId, s (compact), or service.id (frontend)
+      const serviceId = (item as any).serviceId || (item as any).s || (item as any).service?.id;
       const quantity = (item as any).quantity || (item as any).q;
-      const personIndex = (item as any).p || 0; // Explicit person index from metadata
+      const personIndex = (item as any).p || 0; 
+
+      if (!serviceId) continue; // Safety skip for malformed items
 
       const service = services.find(s => s.id === serviceId);
       const duration = service?.durationMinutes || 45;
