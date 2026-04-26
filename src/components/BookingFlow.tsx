@@ -31,7 +31,7 @@ export default function BookingFlow({
   const terminology = getTerminology(category);
   const [stage, setStage] = useState<"BARBERS" | "SERVICES" | "CALENDAR" | "PAYMENT">("BARBERS");
   const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
-  const [barbers, setBarbers] = useState<{ id: string; name: string }[]>([]);
+  const [barbers, setBarbers] = useState<{ id: string; name: string | null }[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
@@ -53,7 +53,7 @@ export default function BookingFlow({
 
   // Load barbers on mount
   useState(() => {
-    fetchBarbers(tenantSlug).then(setBarbers);
+    fetchBarbers(tenantSlug).then((data) => setBarbers(data as any));
   });
 
   const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
@@ -283,7 +283,7 @@ export default function BookingFlow({
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                   >
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🧔</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>{b.name}</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>{b.name || 'Professional'}</div>
                   </button>
                 ))}
              </div>
