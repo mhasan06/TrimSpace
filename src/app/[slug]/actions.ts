@@ -5,11 +5,11 @@ import { getAvailableSlots } from "@/lib/slotEngine";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
-export async function fetchPublicSlots(tenantSlug: string, dateStr: string, totalDurationMinutes: number) {
+export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceDurations: number[], isGroup: boolean = false) {
    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
-   const slots = await getAvailableSlots(tenant.id, dateStr, totalDurationMinutes);
+   const slots = await getAvailableSlots(tenant.id, dateStr, serviceDurations, isGroup);
    return slots;
 }
 
@@ -46,6 +46,7 @@ export async function createBookingTransaction(
   targetTimeStr: string,
   paymentMethod: string,
   userId: string,
+  isGroup: boolean = false, // New parameter
   stripePaymentIntentId?: string,
   giftCardId?: string,
   amountPaidGift: number = 0
@@ -56,27 +57,30 @@ export async function createBookingTransaction(
     const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
     if (!tenant) throw new Error("Tenant not found");
 
-    const defaultBarber = await prisma.user.findFirst({ where: { tenantId: tenant.id, role: "BARBER" } });
-    if (!defaultBarber) throw new Error("The shop does not have an assigned Barber to accept appointments.");
+    // Fetch ALL active barbers for this shop to support load balancing
+    const activeBarbers = await prisma.user.findMany({ 
+      where: { tenantId: tenant.id, role: "BARBER" } 
+    });
+    
+    if (activeBarbers.length === 0) throw new Error("The shop does not have any active staff to accept appointments.");
 
-    // Fetch service durations for accurate endTime
+    // Fetch service durations for accurate scheduling
     const services = await prisma.service.findMany({
       where: { id: { in: cart.map(i => i.serviceId) } }
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
-    const startDate = new Date(`${targetDateStr}T00:00:00Z`); 
-    startDate.setUTCHours(h, m, 0, 0);
+    const baseStartTime = new Date(`${targetDateStr}T00:00:00Z`); 
+    baseStartTime.setUTCHours(h, m, 0, 0);
 
     const paymentStatus = (paymentMethod === "CARD_ONLINE" || paymentMethod === "GIFT_CARD") ? "PAID" : "UNPAID";
-
-    // Calculate split per appointment (simplified: spread gift amount across first item or proportionally)
-    // For MVP: Spread gift amount across all appointments in the cart equally
     const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
     const giftPerApp = amountPaidGift / totalItems;
     const bookingGroupId = `grp_${Math.random().toString(36).substr(2, 9)}`;
 
     let processedCount = 0;
+    let rollingStartTime = new Date(baseStartTime);
+
     const appointmentPromises = cart.flatMap(item => {
       const service = services.find(s => s.id === item.serviceId);
       const duration = service?.durationMinutes || 45;
@@ -88,11 +92,21 @@ export async function createBookingTransaction(
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
         const localIndex = processedCount++;
         
-        // Add Priority Fee ($0.50) ONLY to the first service in the group
+        // Determine Start Time: Concurrent for groups, Sequential for solo
+        const currentStartTime = isGroup ? new Date(baseStartTime) : new Date(rollingStartTime);
+        const currentEndTime = new Date(currentStartTime.getTime() + 1000 * 60 * duration);
+
+        // Assign Barber: Round-robin for groups to balance load, default to first for solo
+        const barberIndex = isGroup ? (localIndex % activeBarbers.length) : 0;
+        const assignedBarber = activeBarbers[barberIndex];
+
+        // Increment rolling time ONLY if solo
+        if (!isGroup) {
+          rollingStartTime = new Date(currentEndTime);
+        }
+
         const priorityFee = localIndex === 0 ? 0.50 : 0;
         const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
-        
-        const endTime = new Date(startDate.getTime() + 1000 * 60 * duration);
 
         return prisma.$executeRaw`
           INSERT INTO "Appointment" (
@@ -100,8 +114,8 @@ export async function createBookingTransaction(
             "barberId", "serviceId", "tenantId", "paymentMethod", "paymentStatus", 
             "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", "giftCardId", "updatedAt"
           ) VALUES (
-            ${id}, ${startDate}, ${endTime}, 'CONFIRMED', ${userId}, 
-            ${defaultBarber.id}, ${item.serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
+            ${id}, ${currentStartTime}, ${currentEndTime}, 'CONFIRMED', ${userId}, 
+            ${assignedBarber.id}, ${item.serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
             ${safeStripeId}, ${bookingGroupId}, ${stripePerApp}, ${giftPerApp}, ${safeGiftCardId}, NOW()
           )
         `;
@@ -109,6 +123,7 @@ export async function createBookingTransaction(
     });
 
     await Promise.all(appointmentPromises);
+    // ... revalidation and returns follow
 
     // DEDUCT GIFT CARD BALANCE
     if (giftCardId && amountPaidGift > 0) {

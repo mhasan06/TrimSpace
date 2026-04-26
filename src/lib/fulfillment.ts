@@ -37,9 +37,10 @@ export async function fulfillBooking(sessionId: string) {
     }
 
     // 2. Extract Metadata
-    const { tenantSlug, targetDate, selectedTime, userId, cart: cartJson, giftDiscount, giftCardId } = session.metadata || {};
+    const { tenantSlug, targetDate, selectedTime, userId, cart: cartJson, giftDiscount, giftCardId, isGroup: isGroupStr } = session.metadata || {};
     const cart = JSON.parse(cartJson || "[]");
     const amountPaidGift = parseFloat(giftDiscount || "0");
+    const isGroup = isGroupStr === 'true';
 
     // 3. Create Database Records
     const result = await createBookingTransaction(
@@ -49,6 +50,7 @@ export async function fulfillBooking(sessionId: string) {
       selectedTime!, 
       "CARD_ONLINE", 
       userId!, 
+      isGroup, // 7th argument
       piId,
       giftCardId,
       amountPaidGift

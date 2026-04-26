@@ -5,7 +5,17 @@ import { getSydneyTodayStr, toSydneyTime, getSydneyDayOfWeek } from "./date-util
  * Enterprise Time Engine
  * Dynamically resolves Shop constraints + Barbers limit + Breaks to calculate available interval slots.
  */
-export async function getAvailableSlots(tenantId: string, requestedDateStr: string, totalServiceDurationMinutes: number) {
+/**
+ * Enterprise Time Engine V3 - CONCURRENT & SEQUENTIAL
+ * Dynamically resolves Shop constraints + Barbers limit + Breaks.
+ * Now supports 'Group Mode' for simultaneous parallel bookings.
+ */
+export async function getAvailableSlots(
+  tenantId: string, 
+  requestedDateStr: string, 
+  serviceDurations: number[], 
+  isGroup: boolean = false
+) {
   // 1. Check for Same-Day Prevention (SYDNEY CONTEXT)
   const today = getSydneyTodayStr();
   if (requestedDateStr <= today) {
@@ -22,7 +32,6 @@ export async function getAvailableSlots(tenantId: string, requestedDateStr: stri
   }
 
   // 3. Resolve target day of week (Sydney Context)
-  // Ensure we treat the input string as a local Sydney date
   const targetDate = new Date(`${requestedDateStr}T00:00:00`); 
   const dayOfWeek = getSydneyDayOfWeek(targetDate);
 
@@ -34,15 +43,23 @@ export async function getAvailableSlots(tenantId: string, requestedDateStr: stri
     return { availableSlots: [], reason: "No business hours configured for this day." };
   }
 
-  // 4. Resolve maximum simultaneous capacity based on Today's exact activeStaff configuration
+  // 4. Resolve maximum simultaneous capacity
   const staffCount = businessDay.activeStaff || 1;
 
   if (staffCount === 0) {
     return { availableSlots: [], reason: "No staff assigned to work on this day." };
   }
 
-  // 4. Fetch all existing appointments for this exact date (UTC Bounds)
-  // we use midnight to midnight in Sydney localized to UTC for the query
+  // 4b. Group Size Validation
+  const groupSize = serviceDurations.length;
+  if (isGroup && groupSize > staffCount) {
+    return { 
+      availableSlots: [], 
+      reason: `This group (size: ${groupSize}) exceeds our active staff capacity (${staffCount}) for this day. Please reduce group size or try a different day.` 
+    };
+  }
+
+  // 5. Fetch all existing appointments for this exact date (UTC Bounds)
   const startOfDay = new Date(targetDate.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
   startOfDay.setHours(0,0,0,0);
   
@@ -58,8 +75,7 @@ export async function getAvailableSlots(tenantId: string, requestedDateStr: stri
     AND "startTime" <= ${endOfDay}
   `;
 
-  // 5. Build Slot Engine Logic
-  // Convert HH:mm to minutes from midnight for easy math
+  // 6. Slot Calculation Setup
   const timeToMins = (timeStr: string) => {
     const [h, m] = timeStr.split(':').map(Number);
     return h * 60 + m;
@@ -78,9 +94,16 @@ export async function getAvailableSlots(tenantId: string, requestedDateStr: stri
 
   const availableSlots: string[] = [];
 
+  // Determine calculation parameters based on mode
+  const totalSequentialDuration = serviceDurations.reduce((a, b) => a + b, 0);
+  const maxGroupDuration = Math.max(...serviceDurations);
+  
+  // The window we need to find depends on the mode
+  const requiredWindow = isGroup ? maxGroupDuration : totalSequentialDuration;
+
   // Iterate over 30 minute chunks
-  for (let currentSlot = openMins; currentSlot + totalServiceDurationMinutes <= closeMins; currentSlot += 30) {
-    const projectedEndTime = currentSlot + totalServiceDurationMinutes;
+  for (let currentSlot = openMins; currentSlot + requiredWindow <= closeMins; currentSlot += 30) {
+    const projectedEndTime = currentSlot + requiredWindow;
 
     // Check if overlaps with lunch strictly
     let overlapsLunch = false;
@@ -91,35 +114,44 @@ export async function getAvailableSlots(tenantId: string, requestedDateStr: stri
         overlapsLunch = true;
       }
     }
-
     if (overlapsLunch) continue;
 
-    // Check concurrency capacity against existing appointments
-    let concurrentBookingsForSlot = 0;
+    // Concurrency Calculation
+    // For Solo mode: We need at least ONE lane free for the ENTIRE total duration.
+    // For Group mode: We need N lanes free (where N is group size) for the MAX duration of the group.
     
-    for (const appt of existingAppointments) {
-      // Use Sydney Time conversion for overlap checks
-      const sStart = toSydneyTime(appt.startTime);
-      const sEnd = toSydneyTime(appt.endTime);
+    // We check availability in 5-minute segments across the required window
+    let isWindowFeasible = true;
+    for (let segment = currentSlot; segment < projectedEndTime; segment += 5) {
+      let activeBookingsAtSegment = 0;
       
-      const apptStart = sStart.hours * 60 + sStart.minutes;
-      const apptEnd = sEnd.hours * 60 + sEnd.minutes;
+      for (const appt of existingAppointments) {
+        const sStart = toSydneyTime(appt.startTime);
+        const sEnd = toSydneyTime(appt.endTime);
+        const apptStart = sStart.hours * 60 + sStart.minutes;
+        const apptEnd = sEnd.hours * 60 + sEnd.minutes;
 
-      // Overlap calculation
-      if (Math.max(currentSlot, apptStart) < Math.min(projectedEndTime, apptEnd)) {
-        concurrentBookingsForSlot++;
+        if (segment >= apptStart && segment < apptEnd) {
+          activeBookingsAtSegment++;
+        }
+      }
+
+      // Check capacity for this segment
+      const neededLanes = isGroup ? groupSize : 1;
+      if (activeBookingsAtSegment + neededLanes > staffCount) {
+        isWindowFeasible = false;
+        break;
       }
     }
 
-    // Is there a Barber available to take this new slot block?
-    if (concurrentBookingsForSlot < staffCount) {
-       availableSlots.push(minsToTime(currentSlot));
+    if (isWindowFeasible) {
+      availableSlots.push(minsToTime(currentSlot));
     }
   }
 
   return { 
     availableSlots, 
     reason: null, 
-    debug: { capacity: staffCount, baseSlots: availableSlots.length }
+    debug: { capacity: staffCount, mode: isGroup ? "GROUP" : "SOLO", count: groupSize }
   };
 }

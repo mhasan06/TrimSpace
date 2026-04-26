@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     
     const session = await getServerSession(authOptions);
     const body = await req.json();
-    const { cart, tenantSlug, targetDate, selectedTime, userId, giftCode } = body;
+    const { cart, tenantSlug, targetDate, selectedTime, userId, giftCode, isGroup } = body;
 
     if (!cart || !tenantSlug || !targetDate || !selectedTime || !userId) {
       return NextResponse.json({ error: "Missing required booking data." }, { status: 400 });
@@ -106,6 +106,7 @@ export async function POST(req: Request) {
         giftCode: giftCode || "",
         giftDiscount: giftDiscount.toString(),
         giftCardId: giftCardId,
+        isGroup: (isGroup || false).toString(),
         cart: JSON.stringify(cart.map((i: any) => ({ serviceId: i.service.id, quantity: i.quantity }))),
       },
     });

@@ -33,6 +33,7 @@ export default function BookingFlow({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
+  const [isGroupBooking, setIsGroupBooking] = useState(false);
   
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [loginError, setLoginError] = useState("");
@@ -85,8 +86,8 @@ export default function BookingFlow({
   const fetchSlots = async (dateStr: string) => {
      setTargetDate(dateStr);
      setSelectedTime(null);
-     const totalDuration = cart.reduce((tot, item) => tot + (item.service.durationMinutes * item.quantity), 0);
-     const result = await fetchPublicSlots(tenantSlug, dateStr, totalDuration);
+     const serviceDurations = cart.map(item => Array(item.quantity).fill(item.service.durationMinutes)).flat();
+     const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, isGroupBooking);
      setSlots(result.availableSlots || []);
      setSlotReason(result.reason || null);
   };
@@ -200,8 +201,47 @@ export default function BookingFlow({
       </div>
 
       {stage === "SERVICES" && (
-          <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '3rem' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '2rem', color: '#0f172a' }}>{terminology.serviceLabelPlural}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>{terminology.serviceLabelPlural}</h2>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.05)', padding: '0.3rem', borderRadius: '14px', border: '1px solid var(--border)' }}>
+                <button 
+                  onClick={() => setIsGroupBooking(false)}
+                  style={{ 
+                    padding: '0.6rem 1.2rem', 
+                    borderRadius: '10px', 
+                    border: 'none', 
+                    fontSize: '0.85rem', 
+                    fontWeight: 700, 
+                    cursor: 'pointer',
+                    background: !isGroupBooking ? 'var(--primary)' : 'transparent',
+                    color: !isGroupBooking ? 'white' : 'var(--foreground)',
+                    boxShadow: !isGroupBooking ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Solo
+                </button>
+                <button 
+                  onClick={() => setIsGroupBooking(true)}
+                  style={{ 
+                    padding: '0.6rem 1.2rem', 
+                    borderRadius: '10px', 
+                    border: 'none', 
+                    fontSize: '0.85rem', 
+                    fontWeight: 700, 
+                    cursor: 'pointer',
+                    background: isGroupBooking ? 'var(--primary)' : 'transparent',
+                    color: isGroupBooking ? 'white' : 'var(--foreground)',
+                    boxShadow: isGroupBooking ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  Group
+                </button>
+              </div>
+            </div>
+            
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {initialServices.map((srv) => (
                 <div key={srv.id} style={cardStyle}>
