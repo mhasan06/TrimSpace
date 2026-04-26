@@ -23,7 +23,7 @@ export async function getAvailableSlots(
   const [businessDay, override, barbers] = await Promise.all([
     prisma.businessHours.findFirst({ where: { tenantId, dayOfWeek } }),
     prisma.scheduleOverride.findFirst({ where: { tenantId, date: requestedDateStr, isClosed: true } }),
-    prisma.barber.findMany({ where: { tenantId } })
+    prisma.user.findMany({ where: { tenantId, role: "BARBER", isActive: true } })
   ]);
 
   if (override) return { availableSlots: [], reason: override.reason || "Shop is closed." };
