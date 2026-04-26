@@ -118,18 +118,9 @@ export const authOptions: NextAuthOptions = {
         return true; // Attempt to continue anyway
       }
     },
-    async jwt({ token, user, trigger, session }) {
-      // 1. Initial Login: Capture data directly from the user object
-      if (user) {
-        token.id = user.id;
-        token.role = (user as any).role || "CUSTOMER"; // Default to CUSTOMER for new social logins
-        token.tenantId = (user as any).tenantId;
-        token.tenantName = (user as any).tenantName;
-        token.picture = (user as any).image || (user as any).picture || (user as any).avatarUrl;
-      }
-
-      // 2. Subsequent requests or missing role: Fetch from DB using email as the source of truth
-      if (!token.role || !token.id || typeof token.id === 'string' && token.id.startsWith('google-')) {
+    async jwt({ token, user, account }) {
+      // 1. Initial Handshake: If it's a social login, we MUST fetch the real DB ID immediately
+      if (account?.provider === "google" || account?.provider === "facebook") {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { email: token.email! },
@@ -142,9 +133,18 @@ export const authOptions: NextAuthOptions = {
             if (!token.picture) token.picture = dbUser.avatarUrl;
           }
         } catch (e) {
-          console.error("JWT DB Lookup failed:", e);
+          console.error("Critical JWT Identity Sync Failed:", e);
         }
+      } 
+      // 2. Credentials Login or Fallback
+      else if (user) {
+        token.id = user.id;
+        token.role = (user as any).role;
+        token.tenantId = (user as any).tenantId;
+        token.tenantName = (user as any).tenantName;
+        token.picture = (user as any).image || (user as any).picture || (user as any).avatarUrl;
       }
+
       return token;
     },
     async session({ session, token }) {
