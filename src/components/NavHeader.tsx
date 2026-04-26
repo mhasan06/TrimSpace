@@ -278,7 +278,7 @@ export default function NavHeader() {
               {session && (
                 <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '1rem', paddingTop: '1rem' }}>
                   <button 
-                    onClick={() => { signOut(); setShowMenu(false); }} 
+                    onClick={() => { signOut({ callbackUrl: '/' }); setShowMenu(false); }} 
                     style={{ border: 'none', background: 'none', color: '#ff4444', fontWeight: 800, fontSize: '0.95rem', textAlign: 'left', cursor: 'pointer', padding: 0 }}
                   >
                     Log out
