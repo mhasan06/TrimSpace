@@ -75,6 +75,8 @@ model User {
   street    String?
   gender    String?
   isActive  Boolean @default(true)
+  emailVerified DateTime?
+  verificationToken String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

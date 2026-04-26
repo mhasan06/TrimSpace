@@ -34,6 +34,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error("ACCOUNT_DISABLED: This account has been deactivated by an administrator.");
         }
 
+        // VERIFICATION CHECK: Strictly require email verification for credentials
+        if (user.emailVerified === null) {
+          throw new Error("EMAIL_NOT_VERIFIED: Please check your email and verify your account before logging in.");
+        }
+
         // ROLE ENFORCEMENT: Strictly gate based on the portal context
         const context = credentials.loginType;
         if (context === "CUSTOMER" && user.role !== "CUSTOMER") return null;
@@ -95,7 +100,8 @@ export const authOptions: NextAuthOptions = {
                 name: user.name || "Valued Customer",
                 avatarUrl: user.image,
                 role: "CUSTOMER",
-                isActive: true
+                isActive: true,
+                emailVerified: new Date()
               }
             });
           } else if (existingUser.isActive === false) {

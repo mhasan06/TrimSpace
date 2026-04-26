@@ -3,7 +3,9 @@
 import { prisma } from "@/lib/prisma";
 import { getAvailableSlots } from "@/lib/slotEngine";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import { sendVerificationEmail } from "@/lib/mailer";
 
 export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], preferredBarberId?: string) {
    console.log(`[Action] fetchPublicSlots called for ${tenantSlug} on ${dateStr}`);
@@ -40,6 +42,7 @@ export async function registerCustomer(formData: any) {
     });
     if (existing) throw new Error("Email or Username already taken");
 
+    const token = crypto.randomBytes(32).toString("hex");
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
@@ -51,10 +54,13 @@ export async function registerCustomer(formData: any) {
         role: "CUSTOMER",
         street: formData.street,
         suburb: formData.suburb,
-        state: formData.state
+        state: formData.state,
+        verificationToken: token,
+        emailVerified: null
       }
     });
 
+    await sendVerificationEmail(email, name, token);
     return { success: true, userId: user.id };
   } catch (err: any) {
     return { error: err.message };

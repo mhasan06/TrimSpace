@@ -1,6 +1,8 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { sendVerificationEmail } from "@/lib/mailer";
 
 export async function registerAction(prevState: any, formData: FormData) {
   const accountType = formData.get("accountType") as string;
@@ -41,6 +43,8 @@ export async function registerAction(prevState: any, formData: FormData) {
 
       const fullAddress = `${street}, ${suburb}, ${state}, Australia`;
 
+      const token = crypto.randomBytes(32).toString("hex");
+
       await prisma.$transaction(async (tx) => {
         const tenant = await tx.tenant.create({ 
           data: { 
@@ -57,9 +61,21 @@ export async function registerAction(prevState: any, formData: FormData) {
             phone
           } 
         });
-        await tx.user.create({ data: { email, name, phone: `${phoneCode}${phone}`, password: hashedPassword, role: "BARBER", tenantId: tenant.id } });
+        await tx.user.create({ 
+          data: { 
+            email, 
+            name, 
+            phone: `${phoneCode}${phone}`, 
+            password: hashedPassword, 
+            role: "BARBER", 
+            tenantId: tenant.id,
+            verificationToken: token,
+            emailVerified: null
+          } 
+        });
       });
-      return { success: true, message: "Business Registered Successfully! You may now login." };
+      await sendVerificationEmail(email, name, token);
+      return { success: true, message: "Application Received! Please check your email to verify your account." };
 
     } else {
       const street = formData.get("street") as string;
@@ -70,6 +86,7 @@ export async function registerAction(prevState: any, formData: FormData) {
         return { error: "Missing required location fields (Street, Suburb, State)." };
       }
 
+      const token = crypto.randomBytes(32).toString("hex");
       await prisma.user.create({ 
         data: { 
           email, 
@@ -79,10 +96,13 @@ export async function registerAction(prevState: any, formData: FormData) {
           role: "CUSTOMER",
           street,
           suburb,
-          state
+          state,
+          verificationToken: token,
+          emailVerified: null
         } 
       });
-      return { success: true, message: "Customer Account Registered! You may now login." };
+      await sendVerificationEmail(email, name, token);
+      return { success: true, message: "Registration successful! Please check your email to verify your account." };
     }
   } catch (error) {
     return { error: "An internal server error occurred." };
