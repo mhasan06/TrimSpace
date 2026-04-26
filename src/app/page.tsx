@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import ShopDiscovery from "@/components/ShopDiscovery";
 
 export default async function Home() {
-  // 1. Fetch real tenants
+  // 1. Fetch ONLY real, activated tenants
   const realTenants = await prisma.tenant.findMany({
+    where: { isActive: true },
     orderBy: { createdAt: 'desc' }
   });
 
@@ -31,10 +32,9 @@ export default async function Home() {
   // Combine real data with strategically chosen demo data for a robust marketplace feel
   const allTenants = [
       ...realTenants.map(t => ({ ...t, isLive: true })), 
-      ...demoPartners.map(t => ({ ...t, isLive: false }))
+      ...demoPartners.map(t => ({ ...t, isLive: false, isActive: true }))
   ].map(t => ({
       ...t,
-      isActive: true,
       rating: (t as any).rating || "5.0"
   })).slice(0, 24); // Show up to 24 for a clean 4-column grid
 
