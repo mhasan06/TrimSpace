@@ -313,7 +313,7 @@ export default function BookingFlow({
       </div>
 
       {stage === "PARTY_SIZE" && (
-          <div style={{ background: '#fff', padding: '2.5rem 1rem', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>Welcome</h2>
              <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 500 }}>How many people are joining us?</p>
              
@@ -352,7 +352,7 @@ export default function BookingFlow({
       )}
 
       {stage === "BARBERS" && (
-          <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
              <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
              <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
              
@@ -534,7 +534,7 @@ export default function BookingFlow({
       )}
 
       {stage === "CALENDAR" && (
-          <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
             <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Select a Time</h2>
             <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Choose your preferred date to see available openings.</p>
             
@@ -590,7 +590,7 @@ export default function BookingFlow({
       )}
 
       {stage === "PAYMENT" && (
-          <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
              {!session?.user ? (
                <div>
                   <button 
@@ -599,7 +599,7 @@ export default function BookingFlow({
                   >
                     ← Back to Schedule
                   </button>
-                  <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
+                  <h2 style={{ fontSize: 'min(2rem, 8vw)', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
                   {isLoginMode ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                             <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -617,7 +617,7 @@ export default function BookingFlow({
                         </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
                                 <input name="name" placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
@@ -653,7 +653,7 @@ export default function BookingFlow({
                </div>
              )}
 
-             <div style={{ marginTop: '2.5rem', padding: '2rem', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+             <div style={{ marginTop: '2.5rem', padding: 'clamp(1rem, 4vw, 2rem)', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
                 <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1.5rem' }}>Order Summary</h4>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem' }}>
