@@ -348,9 +348,18 @@ export default function BookingFlow({
                   {partySize > 1 ? `Person ${currentPersonIndex + 1} Selection` : terminology.serviceLabelPlural}
                 </h2>
                 {partySize > 1 && (
-                  <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: 600 }}>
-                    Please select the service for connoisseur {currentPersonIndex + 1} of {partySize}
-                  </p>
+                  <div style={{ 
+                    marginTop: '0.8rem', 
+                    background: 'rgba(99,102,241,0.08)', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '12px', 
+                    borderLeft: '4px solid var(--primary)',
+                    display: 'inline-block'
+                  }}>
+                    <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 800 }}>
+                      Choose the service for connoisseur {currentPersonIndex + 1} of {partySize}
+                    </p>
+                  </div>
                 )}
               </div>
               
@@ -384,19 +393,27 @@ export default function BookingFlow({
                    </div>
                    <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
                         {currentCart.find(i => i.service.id === srv.id) ? (
-                            <div style={{ 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                background: 'var(--primary)', 
-                                borderRadius: '50px', 
-                                padding: '0.6rem 1.5rem',
-                                color: '#fff',
-                                fontWeight: 800,
-                                gap: '0.5rem'
-                            }}>
+                            <button 
+                                onClick={() => addToCart(srv)}
+                                style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    background: 'var(--primary)', 
+                                    borderRadius: '50px', 
+                                    padding: '0.6rem 1.5rem',
+                                    color: '#fff',
+                                    fontWeight: 800,
+                                    gap: '0.5rem',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                            >
                                 <span>Selected</span>
                                 <span style={{ fontSize: '1.2rem' }}>✓</span>
-                            </div>
+                            </button>
                         ) : (
                             <button 
                              className="book-btn-hover"
