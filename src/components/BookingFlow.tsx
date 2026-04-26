@@ -33,6 +33,9 @@ export default function BookingFlow({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
+  const [partySize, setPartySize] = useState(1);
+  const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
+  const [multiCart, setMultiCart] = useState<Record<number, { service: Service; quantity: number }[]>>({ 0: [] });
   const [isGroupBooking, setIsGroupBooking] = useState(false);
   
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
@@ -44,7 +47,6 @@ export default function BookingFlow({
   const [giftError, setGiftError] = useState("");
   const [isValidatingGift, setIsValidatingGift] = useState(false);
   
-  const [cart, setCart] = useState<{ service: Service; quantity: number }[]>([]);
   const [isPending, startTransition] = useTransition();
 
   const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
@@ -65,18 +67,42 @@ export default function BookingFlow({
   const [slotReason, setSlotReason] = useState<string | null>(null);
 
   const addToCart = (service: Service) => {
-    setCart((prev) => {
-      const existing = prev.find(item => item.service.id === service.id);
-      if (existing) return prev.map(item => item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...prev, { service, quantity: 1 }];
+    setMultiCart((prev) => {
+      const currentCart = prev[currentPersonIndex] || [];
+      const existing = currentCart.find(item => item.service.id === service.id);
+      const updatedCart = existing 
+        ? currentCart.map(item => item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item)
+        : [...currentCart, { service, quantity: 1 }];
+      return { ...prev, [currentPersonIndex]: updatedCart };
     });
   };
 
   const updateQuantity = (id: string, delta: number) => {
-    setCart((prev) => prev.map(item => item.service.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item).filter(item => item.quantity > 0));
+    setMultiCart((prev) => {
+      const currentCart = prev[currentPersonIndex] || [];
+      const updatedCart = currentCart.map(item => item.service.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item).filter(item => item.quantity > 0);
+      return { ...prev, [currentPersonIndex]: updatedCart };
+    });
   };
 
-  const totalPrice = cart.reduce((total, item) => total + (item.service.price * item.quantity), 0);
+  const currentCart = multiCart[currentPersonIndex] || [];
+  const allCartItems = Object.values(multiCart).flat();
+  const totalPrice = allCartItems.reduce((total, item) => total + (item.service.price * item.quantity), 0);
+
+  const nextPerson = () => {
+    if (currentPersonIndex < partySize - 1) {
+      setCurrentPersonIndex(currentPersonIndex + 1);
+      setMultiCart(prev => ({ ...prev, [currentPersonIndex + 1]: prev[currentPersonIndex + 1] || [] }));
+    } else {
+      moveToCalendar();
+    }
+  };
+
+  const prevPerson = () => {
+    if (currentPersonIndex > 0) {
+      setCurrentPersonIndex(currentPersonIndex - 1);
+    }
+  };
 
   const moveToCalendar = async () => {
      setStage("CALENDAR");
@@ -84,17 +110,22 @@ export default function BookingFlow({
   };
 
   const fetchSlots = async (dateStr: string) => {
-     setTargetDate(dateStr);
-     setSelectedTime(null);
-     const serviceDurations = cart.map(item => Array(item.quantity).fill(item.service.durationMinutes)).flat();
-     const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, isGroupBooking);
-     setSlots(result.availableSlots || []);
-     setSlotReason(result.reason || null);
+      setTargetDate(dateStr);
+      setSelectedTime(null);
+      // Construct durations per person for simultaneous grouping
+      const serviceDurations = Object.keys(multiCart).map(key => {
+        const cartItems = multiCart[Number(key)];
+        return cartItems.reduce((acc, item) => acc + (item.service.durationMinutes * item.quantity), 0);
+      }).filter(d => d > 0);
+
+      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, partySize > 1);
+      setSlots(result.availableSlots || []);
+      setSlotReason(result.reason || null);
   };
 
   const handleTimeSelect = (timeStr: string) => {
-     setSelectedTime(timeStr);
-     setStage("PAYMENT");
+      setSelectedTime(timeStr);
+      setStage("PAYMENT");
   };
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -136,13 +167,22 @@ export default function BookingFlow({
         const response = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cart, tenantSlug, targetDate, selectedTime, userId: activeUserId, giftCode: appliedCard ? giftCode : null })
+          body: JSON.stringify({ 
+            cart: allCartItems, 
+            tenantSlug, 
+            targetDate, 
+            selectedTime, 
+            userId: activeUserId, 
+            giftCode: appliedCard ? giftCode : null,
+            isGroup: partySize > 1,
+            multiCart 
+          })
         });
 
         const checkoutData = await response.json();
         if (checkoutData.error) throw new Error(checkoutData.error);
         if (checkoutData.bypassStripe) {
-          const result = await createBookingTransaction(cart.map(i => ({ serviceId: i.service.id, quantity: i.quantity })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, undefined, checkoutData.giftCardId, checkoutData.giftDiscount);
+          const result = await createBookingTransaction(allCartItems.map(i => ({ serviceId: i.service.id, quantity: i.quantity })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, partySize > 1, checkoutData.giftCardId, checkoutData.giftDiscount);
           if (result.success) window.location.href = "/booking-confirmation?bypass=true";
           else throw new Error(result.error || "Failed to finalize booking.");
           return;
@@ -154,7 +194,6 @@ export default function BookingFlow({
     });
   };
 
-  // ─── STYLING OBJECTS (FRESHA LIGHT THEME) ───
   const cardStyle: React.CSSProperties = {
     background: '#fff',
     border: '1px solid #e2e8f0',
@@ -183,7 +222,6 @@ export default function BookingFlow({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
-      {/* Visual Progress Steps */}
       <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
           {["Select", "Schedule", "Payment"].map((s: string, i: number) => (
              <div key={s} style={{ 
@@ -203,43 +241,57 @@ export default function BookingFlow({
       {stage === "SERVICES" && (
         <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>{terminology.serviceLabelPlural}</h2>
+              <div>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>
+                  {partySize > 1 ? `Person ${currentPersonIndex + 1} Selection` : terminology.serviceLabelPlural}
+                </h2>
+                {partySize > 1 && (
+                  <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.5rem', fontWeight: 600 }}>
+                    Please select services for connoisseur {currentPersonIndex + 1} of {partySize}
+                  </p>
+                )}
+              </div>
               
               <div style={{ display: 'flex', gap: '0.5rem', background: 'rgba(0,0,0,0.05)', padding: '0.3rem', borderRadius: '14px', border: '1px solid var(--border)' }}>
-                <button 
-                  onClick={() => setIsGroupBooking(false)}
-                  style={{ 
-                    padding: '0.6rem 1.2rem', 
-                    borderRadius: '10px', 
-                    border: 'none', 
-                    fontSize: '0.85rem', 
-                    fontWeight: 700, 
-                    cursor: 'pointer',
-                    background: !isGroupBooking ? 'var(--primary)' : 'transparent',
-                    color: !isGroupBooking ? 'white' : 'var(--foreground)',
-                    boxShadow: !isGroupBooking ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Solo
-                </button>
-                <button 
-                  onClick={() => setIsGroupBooking(true)}
-                  style={{ 
-                    padding: '0.6rem 1.2rem', 
-                    borderRadius: '10px', 
-                    border: 'none', 
-                    fontSize: '0.85rem', 
-                    fontWeight: 700, 
-                    cursor: 'pointer',
-                    background: isGroupBooking ? 'var(--primary)' : 'transparent',
-                    color: isGroupBooking ? 'white' : 'var(--foreground)',
-                    boxShadow: isGroupBooking ? '0 4px 12px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  Group
-                </button>
+                {!allCartItems.length && (
+                  <>
+                    <button 
+                      onClick={() => { setPartySize(1); setIsGroupBooking(false); }}
+                      style={{ 
+                        padding: '0.6rem 1.2rem', 
+                        borderRadius: '10px', 
+                        border: 'none', 
+                        fontSize: '0.85rem', 
+                        fontWeight: 700, 
+                        cursor: 'pointer',
+                        background: partySize === 1 ? 'var(--primary)' : 'transparent',
+                        color: partySize === 1 ? 'white' : 'var(--foreground)',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      Solo
+                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0 0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.6, textTransform: 'uppercase' }}>Group of</span>
+                      <select 
+                        value={partySize} 
+                        onChange={(e) => {
+                          const size = Number(e.target.value);
+                          setPartySize(size);
+                          setIsGroupBooking(size > 1);
+                        }}
+                        style={{ background: 'white', border: '1px solid var(--border)', borderRadius: '8px', padding: '0.2rem 0.5rem', fontWeight: 800, color: 'var(--primary)', cursor: 'pointer' }}
+                      >
+                        {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                  </>
+                )}
+                {allCartItems.length > 0 && (
+                   <div style={{ padding: '0.6rem 1.2rem', fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)' }}>
+                      Party of {partySize}
+                   </div>
+                )}
               </div>
             </div>
             
@@ -253,48 +305,48 @@ export default function BookingFlow({
                         {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.8rem', lineHeight: 1.5, maxWidth: '80%' }}>{srv.description}</p>}
                    </div>
                    <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
-                       {cart.find(i => i.service.id === srv.id) ? (
-                           <div style={{ 
-                               display: 'flex', 
-                               alignItems: 'center', 
-                               background: '#f8fafc', 
-                               borderRadius: '50px', 
-                               border: '1px solid var(--primary)',
-                               padding: '0.4rem'
-                           }}>
-                               <button 
-                                   onClick={() => updateQuantity(srv.id, -1)}
-                                   style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
-                                   -
-                               </button>
-                               <span style={{ fontWeight: 800, minWidth: '20px', textAlign: 'center' }}>
-                                   {cart.find(i => i.service.id === srv.id)?.quantity}
-                               </span>
-                               <button 
-                                   onClick={() => addToCart(srv)}
-                                   style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
-                                   +
-                               </button>
-                           </div>
-                       ) : (
-                           <button 
-                            className="book-btn-hover"
-                            style={bookBtnStyle} 
-                            onClick={() => addToCart(srv)}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#000';
-                                e.currentTarget.style.color = '#fff';
-                                e.currentTarget.style.borderColor = '#000';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#fff';
-                                e.currentTarget.style.color = '#1e293b';
-                                e.currentTarget.style.borderColor = '#e2e8f0';
-                            }}
-                            >
-                            Book
-                           </button>
-                       )}
+                        {currentCart.find(i => i.service.id === srv.id) ? (
+                            <div style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                background: '#f8fafc', 
+                                borderRadius: '50px', 
+                                border: '1px solid var(--primary)',
+                                padding: '0.4rem'
+                            }}>
+                                <button 
+                                    onClick={() => updateQuantity(srv.id, -1)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
+                                    -
+                                </button>
+                                <span style={{ fontWeight: 800, minWidth: '20px', textAlign: 'center' }}>
+                                    {currentCart.find(i => i.service.id === srv.id)?.quantity}
+                                </span>
+                                <button 
+                                    onClick={() => addToCart(srv)}
+                                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
+                                    +
+                                </button>
+                            </div>
+                        ) : (
+                            <button 
+                             className="book-btn-hover"
+                             style={bookBtnStyle} 
+                             onClick={() => addToCart(srv)}
+                             onMouseEnter={(e) => {
+                                 e.currentTarget.style.background = '#000';
+                                 e.currentTarget.style.color = '#fff';
+                                 e.currentTarget.style.borderColor = '#000';
+                             }}
+                             onMouseLeave={(e) => {
+                                 e.currentTarget.style.background = '#fff';
+                                 e.currentTarget.style.color = '#1e293b';
+                                 e.currentTarget.style.borderColor = '#e2e8f0';
+                             }}
+                             >
+                             Book
+                            </button>
+                        )}
                    </div>
                 </div>
               ))}
@@ -393,16 +445,26 @@ export default function BookingFlow({
              <div style={{ marginTop: '2.5rem', padding: '2rem', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
                 <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1.5rem' }}>Order Summary</h4>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem' }}>
-                   {cart.map(item => (
-                      <div key={item.service.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                         <div style={{ color: '#1e293b', fontWeight: 600 }}>
-                            {item.service.name} <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>x{item.quantity}</span>
-                         </div>
-                         <span style={{ fontWeight: 800 }}>${(item.service.price * item.quantity).toFixed(2)}</span>
-                      </div>
-                   ))}
-                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem' }}>
+                    {Object.keys(multiCart).map(key => {
+                      const personIndex = Number(key);
+                      const items = multiCart[personIndex];
+                      if (!items || items.length === 0) return null;
+                      return (
+                        <div key={key} style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '12px' }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                            Connoisseur {personIndex + 1}
+                          </p>
+                          {items.map(item => (
+                            <div key={item.service.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.3rem' }}>
+                              <span style={{ fontWeight: 600 }}>{item.service.name} x{item.quantity}</span>
+                              <span style={{ fontWeight: 800 }}>${(item.service.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
                   <span style={{ color: '#64748b', fontWeight: 600 }}>Subtotal</span>
@@ -472,14 +534,28 @@ export default function BookingFlow({
       )}
 
       {/* Persistent Mini-Cart (Fresha Style) */}
-      {cart.length > 0 && stage !== 'PAYMENT' && (
+       {allCartItems.length > 0 && stage !== 'PAYMENT' && (
         <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '600px', background: '#000', color: '#fff', borderRadius: '24px', padding: '1.2rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-            <div>
-                <p style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 700 }}>{cart.length} {cart.length === 1 ? 'service' : 'services'} selected</p>
-                <p style={{ fontSize: '1.3rem', fontWeight: 900 }}>Total: ${(finalPrice + 0.50).toFixed(2)} AUD</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                {partySize > 1 && (
+                  <button onClick={prevPerson} disabled={currentPersonIndex === 0} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPersonIndex === 0 ? 'not-allowed' : 'pointer', fontSize: '1.2rem' }}>&lsaquo;</button>
+                )}
+                <div>
+                    <p style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 700 }}>
+                      {partySize > 1 ? `Person ${currentPersonIndex + 1} of ${partySize}` : `${allCartItems.length} services selected`}
+                    </p>
+                    <p style={{ fontSize: '1.3rem', fontWeight: 900 }}>Total: ${(finalPrice + 0.50).toFixed(2)} AUD</p>
+                </div>
             </div>
+            
             {stage === 'SERVICES' ? (
-                <button onClick={moveToCalendar} style={{ background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer' }}>Choose Time</button>
+                <button 
+                  onClick={nextPerson} 
+                  disabled={currentCart.length === 0}
+                  style={{ background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: 900, cursor: currentCart.length === 0 ? 'not-allowed' : 'pointer', opacity: currentCart.length === 0 ? 0.5 : 1 }}
+                >
+                  {currentPersonIndex < partySize - 1 ? 'Next Person' : 'Choose Time'}
+                </button>
             ) : (
                 <button onClick={() => setStage('PAYMENT')} style={{ background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer' }}>Review & Pay</button>
             )}

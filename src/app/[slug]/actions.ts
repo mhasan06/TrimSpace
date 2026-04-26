@@ -93,13 +93,18 @@ export async function createBookingTransaction(
 
     // TRUE SEQUENTIAL ENGINE: We process each item one-by-one to avoid connection pool competition
     for (const item of cart) {
-      const service = services.find(s => s.id === item.serviceId);
+      // Handle both full object (direct call) and compact metadata (from Stripe)
+      const serviceId = (item as any).serviceId || (item as any).s;
+      const quantity = (item as any).quantity || (item as any).q;
+      const personIndex = (item as any).p || 0; // Explicit person index from metadata
+
+      const service = services.find(s => s.id === serviceId);
       const duration = service?.durationMinutes || 45;
       
       const safeGiftCardId = (giftCardId && giftCardId.trim() !== '') ? giftCardId : null;
       const safeStripeId = (stripePaymentIntentId && stripePaymentIntentId.trim() !== '') ? stripePaymentIntentId : null;
 
-      for (let i = 0; i < item.quantity; i++) {
+      for (let i = 0; i < quantity; i++) {
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
         const localIndex = processedCount++;
         
@@ -107,8 +112,10 @@ export async function createBookingTransaction(
         const currentStartTime = isGroup ? new Date(baseStartTime) : new Date(rollingStartTime);
         const currentEndTime = new Date(currentStartTime.getTime() + 1000 * 60 * duration);
 
-        // Assign Barber: Round-robin for groups to balance load, default to first for solo
-        const barberIndex = isGroup ? (localIndex % activeBarbers.length) : 0;
+        // Assign Barber: 
+        // For groups, we use the EXPLICIT personIndex from the customer journey
+        // For solo, we use the first barber
+        const barberIndex = isGroup ? (personIndex % activeBarbers.length) : 0;
         const assignedBarber = activeBarbers[barberIndex];
 
         // Increment rolling time ONLY if solo
@@ -127,7 +134,7 @@ export async function createBookingTransaction(
             "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", "giftCardId", "updatedAt"
           ) VALUES (
             ${id}, ${currentStartTime}, ${currentEndTime}, 'CONFIRMED', ${userId}, 
-            ${assignedBarber.id}, ${item.serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
+            ${assignedBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
             ${safeStripeId}, ${bookingGroupId}, ${stripePerApp}, ${giftPerApp}, ${safeGiftCardId}, NOW()
           )
         `;
