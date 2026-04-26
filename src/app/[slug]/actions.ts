@@ -87,18 +87,29 @@ export async function createBookingTransaction(
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
-    // Construct in Sydney Local context
-    const baseStartTime = new Date(`${targetDateStr}T${targetTimeStr}:00`);
+    // 1. Resolve Sydney -> UTC Precision
+    // We create a Date object in Sydney context to find the true UTC moment
+    const sydneyFormatter = new Intl.DateTimeFormat('en-AU', {
+      timeZone: 'Australia/Sydney',
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric',
+      hour12: false
+    });
+
+    // To find the UTC offset for Sydney on THIS specific date:
+    const testDate = new Date(`${targetDateStr}T${targetTimeStr}:00Z`); // ISO Z
+    const sydneyParts = sydneyFormatter.formatToParts(testDate);
+    const sYear = parseInt(sydneyParts.find(p => p.type === 'year')?.value || "0");
+    const sMonth = parseInt(sydneyParts.find(p => p.type === 'month')?.value || "0");
+    const sDay = parseInt(sydneyParts.find(p => p.type === 'day')?.value || "0");
+    const sHour = parseInt(sydneyParts.find(p => p.type === 'hour')?.value || "0");
+    const sMin = parseInt(sydneyParts.find(p => p.type === 'minute')?.value || "0");
+
+    const sydneyLocalMoment = new Date(sYear, sMonth - 1, sDay, sHour, sMin);
+    const driftMs = sydneyLocalMoment.getTime() - testDate.getTime();
     
-    // If the server is in a different timezone, we need to be more explicit
-    // Best practice: Parse with a fixed timezone offset or use a timezone-aware constructor
-    // Since we standardize on Australia/Sydney, we'll use the offset-aware string approach
-    // Sydney is typically UTC+10 (AEST) or UTC+11 (AEDT). 
-    // We'll use a trick to get the correct UTC date for a Sydney local string:
-    const sydneyDate = new Date(new Date(`${targetDateStr}T${targetTimeStr}:00`).toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
-    const serverDate = new Date(`${targetDateStr}T${targetTimeStr}:00`);
-    const offset = serverDate.getTime() - sydneyDate.getTime();
-    baseStartTime.setTime(baseStartTime.getTime() + offset);
+    // Now we have the exact UTC date for "Sydney 9am"
+    const baseStartTime = new Date(new Date(`${targetDateStr}T${targetTimeStr}:00Z`).getTime() - driftMs);
 
     const paymentStatus = (paymentMethod === "CARD_ONLINE" || paymentMethod === "GIFT_CARD") ? "PAID" : "UNPAID";
     const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
@@ -127,20 +138,19 @@ export async function createBookingTransaction(
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
         const localIndex = processedCount++;
         
-        // Determine Start Time: Concurrent for groups, Sequential for solo
-        const currentStartTime = isGroup ? new Date(baseStartTime) : new Date(rollingStartTime);
+        // Determine Start Time: 
+        // With parallel staff, we can fit 'staffCount' people at the same time
+        // Every 'staffCount' people, we jump forward by the duration
+        const laneIndex = localIndex % activeBarbers.length;
+        const jumpIndex = Math.floor(localIndex / activeBarbers.length);
+        
+        // Calculate the actual start time based on parallel lanes
+        // P1 & P2 start at 9:00. P3 & P4 start at 9:45 (if staffCount=2)
+        const currentStartTime = new Date(baseStartTime.getTime() + (jumpIndex * 1000 * 60 * duration));
         const currentEndTime = new Date(currentStartTime.getTime() + 1000 * 60 * duration);
 
-        // Assign Barber: 
-        // For groups, we use the EXPLICIT personIndex from the customer journey
-        // For solo, we use the first barber
-        const barberIndex = isGroup ? (personIndex % activeBarbers.length) : 0;
-        const assignedBarber = activeBarbers[barberIndex];
-
-        // Increment rolling time ONLY if solo
-        if (!isGroup) {
-          rollingStartTime = new Date(currentEndTime);
-        }
+        // Assign Barber: Explicit lane assignment
+        const assignedBarber = activeBarbers[laneIndex];
 
         const priorityFee = localIndex === 0 ? 0.50 : 0;
         const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
