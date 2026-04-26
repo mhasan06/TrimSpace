@@ -63,20 +63,10 @@ export const authOptions: NextAuthOptions = {
       }
     }),
     GoogleProvider({
-      clientId: (() => {
-        const id = (process.env.GOOGLE_CLIENT_ID || "").trim();
-        console.log(`[AUTH_DIAGNOSTIC] Google Client ID: ${id ? 'FOUND' : 'MISSING'}`);
-        return id;
-      })(),
-      clientSecret: (() => {
-        const secret = (process.env.GOOGLE_CLIENT_SECRET || "").trim();
-        console.log(`[AUTH_DIAGNOSTIC] Google Client Secret: ${secret ? 'FOUND' : 'MISSING'}`);
-        console.log(`[AUTH_DIAGNOSTIC] NEXTAUTH_URL: ${process.env.NEXTAUTH_URL || 'MISSING'}`);
-        return secret;
-      })(),
+      clientId: (process.env.GOOGLE_CLIENT_ID || "").trim(),
+      clientSecret: (process.env.GOOGLE_CLIENT_SECRET || "").trim(),
       authorization: {
         params: {
-          prompt: "consent",
           access_type: "offline",
           response_type: "code"
         }
