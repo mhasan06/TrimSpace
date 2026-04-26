@@ -237,6 +237,16 @@ export default function NavHeader() {
                       >
                         {role === 'MERCHANT' ? "Partner Dashboard" : (role === 'ADMIN' ? "Admin Portal" : "My Bookings")}
                       </Link>
+
+                      {(!role || role === 'CUSTOMER') && session && (
+                        <Link 
+                          href="/my-bookings?tab=account" 
+                          onClick={() => setShowMenu(false)}
+                          style={{ textDecoration: 'none', color: '#000', fontWeight: 700, fontSize: '1rem' }}
+                        >
+                          Account setting
+                        </Link>
+                      )}
                       
                       {role === 'MERCHANT' && (
                         <>

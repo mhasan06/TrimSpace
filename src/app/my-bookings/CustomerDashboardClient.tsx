@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import CustomerProfileManager from "@/components/CustomerProfileManager";
 import CustomerLogoutButton from "@/components/CustomerLogoutButton";
@@ -10,7 +11,7 @@ import CancelButton from "@/components/CancelButton";
 import RaiseDisputeButton from "@/components/RaiseDisputeButton";
 import { addDisputeReply } from "./actions";
 
-export default function CustomerDashboardClient({ 
+function CustomerDashboardContent({ 
     user, 
     upcoming, 
     completed,
@@ -22,6 +23,13 @@ export default function CustomerDashboardClient({
     disputeNotes = []
 }: any) {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const searchParams = useSearchParams();
+    
+    useEffect(() => {
+        if (searchParams.get('tab') === 'account') {
+            setIsProfileOpen(true);
+        }
+    }, [searchParams]);
     const [activeTab, setActiveTab] = useState("appointments");
     const [viewingInvoice, setViewingInvoice] = useState<any>(null);
     const [expandedDisputeId, setExpandedDisputeId] = useState<string | null>(null);
@@ -184,34 +192,30 @@ export default function CustomerDashboardClient({
                     <button 
                         onClick={() => setIsProfileOpen(true)}
                         style={{ 
-                            background: 'transparent', 
+                            background: '#f8fafc', 
                             border: '1px solid #e2e8f0', 
-                            color: '#64748b', 
-                            padding: '0.5rem 1.2rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem', 
-                            fontWeight: 700, 
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Edit Profile
-                    </button>
-                    <Link 
-                        href="/profile"
-                        style={{ 
-                            background: 'transparent', 
-                            border: '1px solid #e2e8f0', 
-                            color: '#64748b', 
-                            padding: '0.5rem 1.2rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem', 
-                            fontWeight: 700, 
+                            color: '#1e293b', 
+                            padding: '0.8rem 1.5rem', 
+                            borderRadius: '16px', 
+                            fontSize: '0.9rem', 
+                            fontWeight: 800, 
                             cursor: 'pointer',
-                            textDecoration: 'none'
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.6rem',
+                            transition: 'all 0.2s'
                         }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
                     >
-                        Account Settings
-                    </Link>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Account setting
+                    </button>
                 </div>
 
                 <Link href="/" style={{ width: '100%', background: '#6366f1', color: 'white', textAlign: 'center', padding: '1rem', borderRadius: '18px', textDecoration: 'none', fontWeight: 800, boxShadow: '0 10px 25px rgba(99, 102, 241, 0.3)', marginBottom: '1.5rem', fontSize: isMobile ? '0.9rem' : '1rem' }}>Add New Appointment</Link>
@@ -483,5 +487,14 @@ export default function CustomerDashboardClient({
                 </div>
             </main>
         </div>
+    );
+}
+
+
+export default function CustomerDashboardClient(props: any) {
+    return (
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Loading your dashboard...</div>}>
+            <CustomerDashboardContent {...props} />
+        </Suspense>
     );
 }

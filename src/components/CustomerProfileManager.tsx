@@ -104,7 +104,7 @@ export default function CustomerProfileManager({
           maxHeight: '90vh', overflowY: 'auto'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' }}>Edit Profile</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' }}>Account setting</h3>
             <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>✕</button>
         </div>
 
