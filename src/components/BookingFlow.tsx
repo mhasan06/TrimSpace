@@ -201,6 +201,7 @@ export default function BookingFlow({
       </div>
 
       {stage === "SERVICES" && (
+        <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>{terminology.serviceLabelPlural}</h2>
               
@@ -302,6 +303,7 @@ export default function BookingFlow({
               )}
             </div>
           </div>
+        </>
       )}
 
       {stage === "CALENDAR" && (
