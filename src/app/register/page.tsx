@@ -174,7 +174,7 @@ function RegisterContent() {
                 <input name="name" type="text" placeholder="John Doe" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                <label style={{ fontSize: '0.8rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Phone</label>
+                <label style={{ fontSize: '0.8rem', color: '#000', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mobile Number</label>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <select name="phoneCode" style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', color: '#000', width: '90px', fontWeight: 700 }}>
                     <option value="+61">+61</option>
@@ -190,11 +190,14 @@ function RegisterContent() {
                 {isBusiness ? "Physical Boutique Address" : "Your Primary Location"}
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                {isBusiness && (
-                  <input name="street" type="text" placeholder="Street Address" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
-                  <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>Street Address</label>
+                  <input name="street" type="text" placeholder="e.g. 123 Luxury Way" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', position: 'relative' }}>
+                    <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>Suburb</label>
                     <input 
                         name="suburb" 
                         type="text" 
@@ -226,15 +229,19 @@ function RegisterContent() {
                         </div>
                     )}
                   </div>
-                  <input 
-                    name="state" 
-                    type="text" 
-                    placeholder="State" 
-                    value={stateInput}
-                    onChange={(e) => setStateInput(e.target.value)}
-                    required 
-                    style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} 
-                  />
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>State</label>
+                    <input 
+                      name="state" 
+                      type="text" 
+                      placeholder="State" 
+                      value={stateInput}
+                      onChange={(e) => setStateInput(e.target.value)}
+                      required 
+                      style={{ width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -296,7 +303,7 @@ function SubmitButton({ isBusiness }: { isBusiness: boolean }) {
         transition: 'all 0.2s'
       }}
     >
-      {pending ? 'Processing...' : (isBusiness ? 'Complete Master Application' : 'Join the Community')}
+      {pending ? 'Processing...' : 'Join the Community'}
     </button>
   );
 }

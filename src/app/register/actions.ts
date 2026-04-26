@@ -62,6 +62,14 @@ export async function registerAction(prevState: any, formData: FormData) {
       return { success: true, message: "Business Registered Successfully! You may now login." };
 
     } else {
+      const street = formData.get("street") as string;
+      const suburb = formData.get("suburb") as string;
+      const state = formData.get("state") as string;
+
+      if (!suburb || !state || !street) {
+        return { error: "Missing required location fields (Street, Suburb, State)." };
+      }
+
       await prisma.user.create({ 
         data: { 
           email, 
@@ -69,7 +77,9 @@ export async function registerAction(prevState: any, formData: FormData) {
           phone: `${phoneCode}${phone}`, 
           password: hashedPassword, 
           role: "CUSTOMER",
-          suburb: formData.get("suburb") as string
+          street,
+          suburb,
+          state
         } 
       });
       return { success: true, message: "Customer Account Registered! You may now login." };

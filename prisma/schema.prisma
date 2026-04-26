@@ -72,6 +72,7 @@ model User {
   avatarUrl String?
   suburb    String?
   state     String?
+  street    String?
   gender    String?
   isActive  Boolean @default(true)
   createdAt DateTime @default(now())
