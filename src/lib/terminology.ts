@@ -7,6 +7,7 @@ export interface Terminology {
   serviceLabelPlural: string;
   actionVerb: string;
   rosterLabel: string;
+  shopLabel: string;
   industryIcon: string;
 }
 
@@ -18,6 +19,7 @@ const terms: Record<ShopCategory, Terminology> = {
     serviceLabelPlural: "Services",
     actionVerb: "Trim",
     rosterLabel: "My Team",
+    shopLabel: "Barbershop",
     industryIcon: "💈"
   },
   SALON: {
@@ -27,6 +29,7 @@ const terms: Record<ShopCategory, Terminology> = {
     serviceLabelPlural: "Treatments",
     actionVerb: "Style",
     rosterLabel: "My Team",
+    shopLabel: "Salon",
     industryIcon: "✂️"
   },
   SPA: {
@@ -36,6 +39,7 @@ const terms: Record<ShopCategory, Terminology> = {
     serviceLabelPlural: "Rituals",
     actionVerb: "Heal",
     rosterLabel: "My Team",
+    shopLabel: "Spa",
     industryIcon: "💆"
   },
   TATTOO: {
@@ -45,6 +49,7 @@ const terms: Record<ShopCategory, Terminology> = {
     serviceLabelPlural: "Sessions",
     actionVerb: "Inkers",
     rosterLabel: "My Team",
+    shopLabel: "Studio",
     industryIcon: "🖋️"
   }
 };
