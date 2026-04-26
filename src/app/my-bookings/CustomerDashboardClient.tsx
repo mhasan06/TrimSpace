@@ -378,7 +378,7 @@ export default function CustomerDashboardClient({
                                                             </div>
                                                         </div>
                                                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                                            {activeTab === 'completed' && (
+                                                            {activeTab === 'completed' && service.status !== 'CANCELLED' && (
                                                                 service.isDisputed ? (
                                                                     <button 
                                                                         onClick={() => setExpandedDisputeId(expandedDisputeId === service.id ? null : service.id)}
