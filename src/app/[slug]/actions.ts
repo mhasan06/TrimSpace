@@ -122,7 +122,10 @@ export async function createBookingTransaction(
       });
     });
 
-    await Promise.all(appointmentPromises);
+    // Use a sequential loop instead of Promise.all to respect low connection limits in serverless
+    for (const apptPromise of appointmentPromises) {
+      await apptPromise;
+    }
     // ... revalidation and returns follow
 
     // DEDUCT GIFT CARD BALANCE
