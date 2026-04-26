@@ -110,25 +110,30 @@ export const authOptions: NextAuthOptions = {
       }
     },
     async jwt({ token, user, trigger, session }) {
+      // 1. Initial Login: Capture data directly from the user object
       if (user) {
-        token.role = (user as any).role;
+        token.id = user.id;
+        token.role = (user as any).role || "CUSTOMER"; // Default to CUSTOMER for new social logins
         token.tenantId = (user as any).tenantId;
         token.tenantName = (user as any).tenantName;
-        token.id = user.id;
         token.picture = (user as any).image || (user as any).picture || (user as any).avatarUrl;
       }
 
-      // SOCIAL LOGIN ENRICHMENT: Fetch missing data if social login
-      if (!token.role) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email! },
-          select: { id: true, role: true, tenantId: true, avatarUrl: true }
-        });
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-          token.tenantId = dbUser.tenantId;
-          if (!token.picture) token.picture = dbUser.avatarUrl;
+      // 2. Subsequent requests or missing role: Fetch from DB using email as the source of truth
+      if (!token.role || !token.id || typeof token.id === 'string' && token.id.startsWith('google-')) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: token.email! },
+            select: { id: true, role: true, tenantId: true, avatarUrl: true }
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.tenantId = dbUser.tenantId;
+            if (!token.picture) token.picture = dbUser.avatarUrl;
+          }
+        } catch (e) {
+          console.error("JWT DB Lookup failed:", e);
         }
       }
       return token;
