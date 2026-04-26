@@ -158,6 +158,7 @@ export async function sendVerificationEmail(email: string, name: string, token: 
 
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
   const verifyUrl = `${baseUrl}/verify?token=${token}`;
+  console.log(`\x1b[36m[Mailer] Verification link for ${email}: ${verifyUrl}\x1b[0m`);
 
   try {
     await resend.emails.send({
