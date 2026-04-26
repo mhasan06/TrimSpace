@@ -5,6 +5,7 @@ import styles from "../app/[slug]/page.module.css";
 import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTransaction, fetchBarbers } from "../app/[slug]/actions";
 import { useSession, signIn } from "next-auth/react";
 import { getTerminology } from "@/lib/terminology";
+import SocialLoginButtons from "./SocialLoginButtons";
 
 export type Service = {
   id: string;
@@ -58,6 +59,31 @@ export default function BookingFlow({
 
   const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
+
+  // STATE PERSISTENCE: Save/Restore for Social Login redirects
+  useEffect(() => {
+    // 1. Restore state on mount
+    const saved = localStorage.getItem(`trim_booking_${tenantSlug}`);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.multiCart) setMultiCart(data.multiCart);
+        if (data.targetDate) setTargetDate(data.targetDate);
+        if (data.selectedTime) setSelectedTime(data.selectedTime);
+        if (data.partySize) setPartySize(data.partySize);
+        if (data.stage) setStage(data.stage);
+        // Clear after restore to prevent "ghost" bookings later
+        localStorage.removeItem(`trim_booking_${tenantSlug}`);
+      } catch (e) {
+        console.error("Failed to restore booking state", e);
+      }
+    }
+  }, [tenantSlug]);
+
+  const saveBookingState = () => {
+    const data = { multiCart, targetDate, selectedTime, partySize, stage };
+    localStorage.setItem(`trim_booking_${tenantSlug}`, JSON.stringify(data));
+  };
 
   const getTomorrow = () => {
     const sydneyStr = new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' });
@@ -575,21 +601,42 @@ export default function BookingFlow({
                   </button>
                   <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
                   {isLoginMode ? (
-                        <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                            <input required name="email" type="email" placeholder="Email Address" value={loginForm.email} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
-                            <input required name="password" type="password" placeholder="Password" value={loginForm.password} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
-                            {loginError && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{loginError}</p>}
-                            <button type="submit" style={{ width: '100%', padding: '1.2rem', background: '#000', color: '#fff', fontWeight: 900, border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Sign In & Book</button>
-                            <button type="button" onClick={() => setIsLoginMode(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer' }}>Create an account instead</button>
-                        </form>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <input name="name" placeholder="Full Name" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px' }} />
-                            <input name="email" type="email" placeholder="Email" value={regForm.email} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                            <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                                <input required name="email" type="email" placeholder="Email Address" value={loginForm.email} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
+                                <input required name="password" type="password" placeholder="Password" value={loginForm.password} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
+                                {loginError && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{loginError}</p>}
+                                <button type="submit" style={{ width: '100%', padding: '1.2rem', background: '#000', color: '#fff', fontWeight: 900, border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Sign In & Book</button>
+                            </form>
+                            
+                            <div onClick={saveBookingState} style={{ width: '100%' }}>
+                                <SocialLoginButtons mode="in" callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                            </div>
+
+                            <button type="button" onClick={() => setIsLoginMode(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Create an account instead</button>
                         </div>
-                        <input name="password" type="password" placeholder="Create Password" value={regForm.password} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px' }} />
-                        <button type="button" onClick={() => setIsLoginMode(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer' }}>Already have an account? Log in</button>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
+                                <input name="name" placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>EMAIL</label>
+                                <input name="email" type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>PASSWORD</label>
+                            <input name="password" type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                        </div>
+                        
+                        <div onClick={saveBookingState} style={{ width: '100%', marginTop: '0.5rem' }}>
+                           <SocialLoginButtons mode="up" callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                        </div>
+
+                        <button type="button" onClick={() => setIsLoginMode(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Already have an account? Log in</button>
                     </div>
                   )}
                </div>

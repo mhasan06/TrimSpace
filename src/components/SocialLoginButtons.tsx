@@ -3,13 +3,21 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
-export default function SocialLoginButtons({ mode = "in", compact = false }: { mode?: "in" | "up", compact?: boolean }) {
+export default function SocialLoginButtons({ 
+  mode = "in", 
+  compact = false,
+  callbackUrl = "/my-bookings"
+}: { 
+  mode?: "in" | "up", 
+  compact?: boolean,
+  callbackUrl?: string 
+}) {
   const [loading, setLoading] = useState<string | null>(null);
   const label = mode === "in" ? "Sign in" : "Sign up";
 
   const handleSocialLogin = async (provider: string) => {
     setLoading(provider);
-    await signIn(provider, { callbackUrl: "/my-bookings" });
+    await signIn(provider, { callbackUrl });
   };
 
   const containerStyle: React.CSSProperties = compact 
