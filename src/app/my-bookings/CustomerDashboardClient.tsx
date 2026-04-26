@@ -320,8 +320,8 @@ export default function CustomerDashboardClient({
                                     <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', gap: '1rem' }}>
                                         <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
                                             <div style={{ textAlign: 'center', minWidth: '45px' }}>
-                                                <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Date(group.startTime).getUTCDate()}</p>
-                                                <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Date(group.startTime).toLocaleDateString('en-AU', { month: 'short' })}</p>
+                                                <p style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>{new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', day: 'numeric' }).format(new Date(group.startTime))}</p>
+                                                <p style={{ fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>{new Intl.DateTimeFormat('en-AU', { timeZone: 'Australia/Sydney', month: 'short' }).format(new Date(group.startTime))}</p>
                                             </div>
                                             <div>
                                                 <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{group.tenant.name}</h4>
