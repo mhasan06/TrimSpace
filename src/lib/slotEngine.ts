@@ -50,15 +50,6 @@ export async function getAvailableSlots(
     return { availableSlots: [], reason: "No staff assigned to work on this day." };
   }
 
-  // 4b. Group Size Validation
-  const groupSize = serviceDurations.length;
-  if (isGroup && groupSize > staffCount) {
-    return { 
-      availableSlots: [], 
-      reason: `This group (size: ${groupSize}) exceeds our active staff capacity (${staffCount}) for this day. Please reduce group size or try a different day.` 
-    };
-  }
-
   // 5. Fetch all existing appointments for this exact date (UTC Bounds)
   const startOfDay = new Date(targetDate.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
   startOfDay.setHours(0,0,0,0);
@@ -94,12 +85,27 @@ export async function getAvailableSlots(
 
   const availableSlots: string[] = [];
 
-  // Determine calculation parameters based on mode
-  const totalSequentialDuration = serviceDurations.reduce((a, b) => a + b, 0);
-  const maxGroupDuration = Math.max(...serviceDurations);
-  
-  // The window we need to find depends on the mode
-  const requiredWindow = isGroup ? maxGroupDuration : totalSequentialDuration;
+  /**
+   * SMART LANE PACKING ENGINE
+   * We distribute services across staffCount lanes to find the minimum required duration.
+   */
+  const calculateRequiredWindow = (durations: number[], lanes: number, groupMode: boolean) => {
+    if (!groupMode) return durations.reduce((a, b) => a + b, 0);
+    
+    // For groups: Distribute services into 'lanes' as evenly as possible (Greedy Packing)
+    const laneLoads = new Array(lanes).fill(0);
+    const sortedDurations = [...durations].sort((a, b) => b - a); // Big jobs first
+    
+    for (const d of sortedDurations) {
+      // Find lane with current minimum load
+      const minLaneIdx = laneLoads.indexOf(Math.min(...laneLoads));
+      laneLoads[minLaneIdx] += d;
+    }
+    
+    return Math.max(...laneLoads);
+  };
+
+  const requiredWindow = calculateRequiredWindow(serviceDurations, staffCount, isGroup);
 
   // Iterate over 30 minute chunks
   for (let currentSlot = openMins; currentSlot + requiredWindow <= closeMins; currentSlot += 30) {
@@ -117,11 +123,13 @@ export async function getAvailableSlots(
     if (overlapsLunch) continue;
 
     // Concurrency Calculation
-    // For Solo mode: We need at least ONE lane free for the ENTIRE total duration.
-    // For Group mode: We need N lanes free (where N is group size) for the MAX duration of the group.
-    
     // We check availability in 5-minute segments across the required window
     let isWindowFeasible = true;
+    
+    // For Smart Packing, we need 'staffCount' lanes available for the 'requiredWindow'.
+    // Actually, we need to ensure that the SUM of availability across all lanes can take the workload.
+    // Simpler: We need 'staffCount' lanes available simultaneously for the required duration.
+    
     for (let segment = currentSlot; segment < projectedEndTime; segment += 5) {
       let activeBookingsAtSegment = 0;
       
@@ -136,8 +144,21 @@ export async function getAvailableSlots(
         }
       }
 
-      // Check capacity for this segment
-      const neededLanes = isGroup ? groupSize : 1;
+      // If active bookings + our needed lanes > capacity, it's a fail.
+      // In Group Mode, we are using 'staffCount' lanes for the 'requiredWindow'.
+      // Wait, no! If we have 4 services (30m) and 2 barbers, we use 2 lanes for 60 mins.
+      // So 'neededLanes' is always 'staffCount' in Group Mode? No.
+      // It's the number of lanes that actually have a load.
+      
+      const laneLoads = new Array(staffCount).fill(0);
+      const sortedDurations = [...serviceDurations].sort((a, b) => b - a);
+      for (const d of sortedDurations) {
+        const minLaneIdx = laneLoads.indexOf(Math.min(...laneLoads));
+        laneLoads[minLaneIdx] += d;
+      }
+      const lanesNeeded = laneLoads.filter(l => l > 0).length;
+
+      const neededLanes = isGroup ? lanesNeeded : 1;
       if (activeBookingsAtSegment + neededLanes > staffCount) {
         isWindowFeasible = false;
         break;
