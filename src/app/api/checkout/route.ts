@@ -15,17 +15,14 @@ export async function POST(req: Request) {
     
     const session = await getServerSession(authOptions);
     const body = await req.json();
-    const { cart, tenantSlug, targetDate, selectedTime, userId, giftCode, isGroup } = body;
+    const { cart, tenantSlug, targetDate, selectedTime, giftCode, isGroup } = body;
+    
+    // Server-side identity resolution
+    const sessionUserId = (session?.user as any)?.id;
+    const userId = sessionUserId || body.userId; // Use session ID as primary, fallback to body only if session missing
 
     if (!cart || !tenantSlug || !targetDate || !selectedTime || !userId) {
       return NextResponse.json({ error: "Missing required booking data." }, { status: 400 });
-    }
-
-    // Robust identity check: Only block if both exist and truly differ
-    const sessionUserId = (session?.user as any)?.id;
-    if (sessionUserId && userId && String(sessionUserId) !== String(userId)) {
-      console.warn(`[Identity] Mismatch: Session(${sessionUserId}) vs Body(${userId})`);
-      return NextResponse.json({ error: "Identity mismatch." }, { status: 403 });
     }
 
     let giftDiscount = 0;
