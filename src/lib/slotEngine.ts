@@ -56,23 +56,21 @@ export async function getAvailableSlots(
   }
 
   // 5. Fetch all existing appointments for this exact date (UTC Bounds)
-  // targetDate is "YYYY-MM-DD". We need to fetch a window that covers the full Sydney day in UTC.
-  // Sydney 00:00 is 14 hours behind UTC (AEST). We fetch a wide window to be safe.
-  const startOfDay = new Date(`${targetDate}T00:00:00Z`);
-  startOfDay.setHours(startOfDay.getHours() - 14); // Shift to cover Sydney start-of-day
-  
-  const endOfDay = new Date(`${targetDate}T23:59:59Z`);
-  endOfDay.setHours(endOfDay.getHours() + 11); // Shift to cover Sydney end-of-day
+  // Sydney 00:00 is 14 hours behind UTC (AEST). We fetch a wide window to cover the local day.
+  const windowStart = new Date(`${requestedDateStr}T00:00:00Z`);
+  windowStart.setHours(windowStart.getHours() - 14);
+  const windowEnd = new Date(`${requestedDateStr}T23:59:59Z`);
+  windowEnd.setHours(windowEnd.getHours() + 11);
 
-  const existingAppointments: any[] = await prisma.$queryRaw`
-    SELECT "startTime", "endTime" 
-    FROM "Appointment" 
-    WHERE "tenantId" = ${tenantId} 
-    AND "status" != 'CANCELLED'
-    AND "startTime" >= ${startOfDay} 
-    AND "startTime" <= ${endOfDay}
-    ${preferredBarberId ? Prisma.raw(`AND "barberId" = '${preferredBarberId}'`) : Prisma.raw('')}
-  `;
+  const existingAppointments = await prisma.appointment.findMany({
+    where: {
+      tenantId,
+      status: { not: 'CANCELLED' },
+      startTime: { gte: windowStart, lte: windowEnd },
+      ...(preferredBarberId ? { barberId: preferredBarberId } : {})
+    },
+    select: { startTime: true, endTime: true }
+  });
 
   // 6. Slot Calculation Setup
   const timeToMins = (timeStr: string) => {

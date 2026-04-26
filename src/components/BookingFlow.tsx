@@ -237,29 +237,41 @@ export default function BookingFlow({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
-      {/* Visual Progress Steps */}
-      <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {["Party", "Professional", "Select", "Schedule", "Payment"].map((s: string, i: number) => (
+       {/* Visual Progress Steps */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.8rem', 
+        padding: '0.8rem', 
+        background: '#f8fafc', 
+        borderRadius: '16px', 
+        border: '1px solid #e2e8f0',
+        overflowX: 'auto',
+        whiteSpace: 'nowrap',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none'
+      }}>
+          {["Party", "Pro", "Service", "Time", "Pay"].map((s: string, i: number) => (
              <div key={s} style={{ 
                 fontWeight: 800, 
-                fontSize: '0.85rem', 
+                fontSize: '0.75rem', 
                 color: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '6px',
+                flexShrink: 0
              }}>
-                <span style={{ height: '20px', width: '20px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{i+1}</span>
+                <span style={{ height: '18px', width: '18px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>{i+1}</span>
                 {s}
              </div>
           ))}
       </div>
 
       {stage === "PARTY_SIZE" && (
-          <div style={{ background: '#fff', padding: '4rem 3rem', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-             <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '1rem' }}>Welcome to {terminology.shopLabel || 'TrimSpace'}</h2>
-             <p style={{ color: '#64748b', marginBottom: '3rem', fontSize: '1.1rem', fontWeight: 500 }}>How many people are joining us today?</p>
+          <div style={{ background: '#fff', padding: '2.5rem 1rem', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>Welcome</h2>
+             <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 500 }}>How many people are joining us?</p>
              
-             <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
                 {[1, 2, 3, 4, 5].map(n => (
                   <button 
                     key={n}
@@ -269,12 +281,12 @@ export default function BookingFlow({
                       setStage("BARBERS");
                     }}
                     style={{ 
-                      width: '80px', 
-                      height: '80px', 
-                      borderRadius: '24px', 
+                      width: '60px', 
+                      height: '60px', 
+                      borderRadius: '16px', 
                       border: '2px solid #e2e8f0', 
                       background: '#fff', 
-                      fontSize: '1.5rem', 
+                      fontSize: '1.2rem', 
                       fontWeight: 900, 
                       cursor: 'pointer',
                       transition: 'all 0.2s',
@@ -343,9 +355,9 @@ export default function BookingFlow({
 
       {stage === "SERVICES" && (
         <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
               <div>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>
+                <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>
                   {partySize > 1 ? `Person ${currentPersonIndex + 1} Selection` : terminology.serviceLabelPlural}
                 </h2>
                 {partySize > 1 && (
@@ -355,7 +367,7 @@ export default function BookingFlow({
                     padding: '0.5rem 1rem', 
                     borderRadius: '12px', 
                     borderLeft: '4px solid var(--primary)',
-                    display: 'inline-block'
+                    display: 'block'
                   }}>
                     <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 800 }}>
                       Choose the service for connoisseur {currentPersonIndex + 1} of {partySize}
@@ -364,20 +376,20 @@ export default function BookingFlow({
                 )}
               </div>
               
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', alignItems: 'center' }}>
                 <button 
                   onClick={() => setStage("PARTY_SIZE")}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
                 >
                   Change Party
                 </button>
                 <button 
                   onClick={() => setStage("BARBERS")}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
                 >
                   Change Professional
                 </button>
-                <div style={{ padding: '0.6rem 1.2rem', background: 'rgba(0,0,0,0.05)', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)' }}>
+                <div style={{ padding: '0.4rem 1rem', background: 'rgba(0,0,0,0.05)', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
                   {partySize} {partySize === 1 ? 'Customer' : 'Customers'}
                 </div>
               </div>
