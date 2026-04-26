@@ -108,19 +108,21 @@ export default function BookingFlow({
     return Object.values(multiCart).map(items => items.map(i => i.service.durationMinutes));
   }, [multiCart]);
 
-  const estimatedFinish = useMemo(() => {
-    if (!selectedTime) return null;
-    const [h, m] = selectedTime.split(':').map(Number);
-    const startMins = h * 60 + m;
+  const maxDuration = useMemo(() => {
     const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
-    const maxDuration = Math.max(0, ...personDurations);
+    return Math.max(0, ...personDurations);
+  }, [serviceGroups]);
+
+  const getFinishTime = useCallback((timeStr: string) => {
+    const [h, m] = timeStr.split(':').map(Number);
+    const startMins = h * 60 + m;
     const endMins = startMins + maxDuration;
     const endH = Math.floor(endMins / 60);
     const endM = (endMins % 60).toString().padStart(2, '0');
     const period = endH >= 12 ? 'PM' : 'AM';
     const displayH = endH > 12 ? endH - 12 : (endH === 0 ? 12 : endH);
     return `${displayH}:${endM} ${period}`;
-  }, [selectedTime, serviceGroups]);
+  }, [maxDuration]);
 
   const nextPerson = useCallback(() => {
     if (currentPersonIndex < partySize - 1) {
@@ -151,7 +153,10 @@ export default function BookingFlow({
         return cartItems.map(item => item.service.durationMinutes);
       }).filter(group => group.length > 0);
 
-      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceGroupsArr, selectedBarberId || undefined);
+      // If somehow empty, fallback to [[]] to at least show something or handle error
+      const safeGroups = serviceGroupsArr.length > 0 ? serviceGroupsArr : [[]];
+
+      const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups, selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
   };
@@ -548,9 +553,7 @@ export default function BookingFlow({
                              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                              >
                              <span style={{ fontSize: '0.9rem' }}>{t}</span>
-                             {estimatedFinish && (
-                               <span style={{ fontSize: '0.6rem', opacity: 0.6, fontWeight: 700 }}>Ends {estimatedFinish}</span>
-                             )}
+                             <span style={{ fontSize: '0.6rem', opacity: 0.6, fontWeight: 700 }}>Ends {getFinishTime(t)}</span>
                           </button>
                       ))}
                    </div>
