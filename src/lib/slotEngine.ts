@@ -20,6 +20,9 @@ export async function getAvailableSlots(
   const isGroup = serviceGroups.length > 1;
   // 1. Check for Same-Day Prevention (SYDNEY CONTEXT)
   const today = getSydneyTodayStr();
+  console.log(`[SlotEngine] Checking ${requestedDateStr} (Today is ${today})`);
+  console.log(`[SlotEngine] ServiceGroups:`, JSON.stringify(serviceGroups));
+
   if (requestedDateStr <= today) {
     return { availableSlots: [], reason: "Same-day bookings are disabled. Appointments must be secured by 11:59 PM the night before." };
   }
@@ -51,6 +54,8 @@ export async function getAvailableSlots(
     staffCount = 1; // Only one person at a time if a specific barber is chosen
   }
 
+  console.log(`[SlotEngine] Day: ${dayOfWeek}, Staff: ${staffCount}`);
+
   if (staffCount === 0) {
     return { availableSlots: [], reason: "No staff assigned to work on this day." };
   }
@@ -71,6 +76,8 @@ export async function getAvailableSlots(
     },
     select: { startTime: true, endTime: true }
   });
+
+  console.log(`[SlotEngine] Found ${existingAppointments.length} existing appointments in window.`);
 
   // 6. Slot Calculation Setup
   const timeToMins = (timeStr: string) => {

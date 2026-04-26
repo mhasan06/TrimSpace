@@ -6,6 +6,9 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
 export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], preferredBarberId?: string) {
+   console.log(`[Action] fetchPublicSlots called for ${tenantSlug} on ${dateStr}`);
+   console.log(`[Action] Groups:`, JSON.stringify(serviceGroups));
+   
    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
