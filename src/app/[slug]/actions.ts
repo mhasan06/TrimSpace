@@ -56,13 +56,13 @@ export async function registerCustomer(formData: any) {
 }
 
 export async function createBookingTransaction(
-  cart: { serviceId: string; quantity: number }[], 
+  cart: any[], 
   tenantSlug: string, 
   targetDateStr: string, 
   targetTimeStr: string,
   paymentMethod: string,
   userId: string,
-  isGroup: boolean = false, // New parameter
+  isGroup: boolean = false,
   stripePaymentIntentId?: string,
   giftCardId?: string,
   amountPaidGift: number = 0
