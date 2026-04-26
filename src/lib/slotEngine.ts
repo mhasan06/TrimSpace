@@ -140,6 +140,13 @@ export async function getAvailableSlots(
     for (let segment = currentSlot; segment < currentSlot + maxIndivDuration; segment += 5) {
       let busyCount = 0;
       for (const a of existingAppointments) {
+        // Only count if it's the SAME local day as requested
+        const aDateStr = a.startTime.toLocaleString('en-US', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' });
+        // Format: MM/DD/YYYY to YYYY-MM-DD
+        const [am, ad, ay] = aDateStr.split('/');
+        const isoADate = `${ay}-${am}-${ad}`;
+        if (isoADate !== requestedDateStr) continue;
+
         const s = toSydneyTime(a.startTime);
         const e = toSydneyTime(a.endTime);
         const start = s.hours * 60 + s.minutes;
