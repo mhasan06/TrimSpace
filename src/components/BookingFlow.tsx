@@ -29,7 +29,9 @@ export default function BookingFlow({
 }) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
-  const [stage, setStage] = useState<"SERVICES" | "CALENDAR" | "PAYMENT">("SERVICES");
+  const [stage, setStage] = useState<"BARBERS" | "SERVICES" | "CALENDAR" | "PAYMENT">("BARBERS");
+  const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
+  const [barbers, setBarbers] = useState<{ id: string; name: string }[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
@@ -48,6 +50,11 @@ export default function BookingFlow({
   const [isValidatingGift, setIsValidatingGift] = useState(false);
   
   const [isPending, startTransition] = useTransition();
+
+  // Load barbers on mount
+  useState(() => {
+    fetchBarbers(tenantSlug).then(setBarbers);
+  });
 
   const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -68,12 +75,8 @@ export default function BookingFlow({
 
   const addToCart = (service: Service) => {
     setMultiCart((prev) => {
-      const currentCart = prev[currentPersonIndex] || [];
-      const existing = currentCart.find(item => item.service.id === service.id);
-      const updatedCart = existing 
-        ? currentCart.map(item => item.service.id === service.id ? { ...item, quantity: item.quantity + 1 } : item)
-        : [...currentCart, { service, quantity: 1 }];
-      return { ...prev, [currentPersonIndex]: updatedCart };
+      // "One Person = One Service" Rule: Replace whatever they have
+      return { ...prev, [currentPersonIndex]: [{ service, quantity: 1 }] };
     });
   };
 
@@ -112,13 +115,13 @@ export default function BookingFlow({
   const fetchSlots = async (dateStr: string) => {
       setTargetDate(dateStr);
       setSelectedTime(null);
-      // Construct durations per person for simultaneous grouping
+      // Construct total durations per person
       const serviceDurations = Object.keys(multiCart).map(key => {
         const cartItems = multiCart[Number(key)];
         return cartItems.reduce((acc, item) => acc + (item.service.durationMinutes * item.quantity), 0);
       }).filter(d => d > 0);
 
-      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, partySize > 1);
+      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, partySize > 1, selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
   };
@@ -222,21 +225,70 @@ export default function BookingFlow({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       
+      {/* Visual Progress Steps */}
       <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          {["Select", "Schedule", "Payment"].map((s: string, i: number) => (
+          {["Professional", "Select", "Schedule", "Payment"].map((s: string, i: number) => (
              <div key={s} style={{ 
                 fontWeight: 800, 
                 fontSize: '0.85rem', 
-                color: (i === 0 && stage === 'SERVICES') || (i === 1 && stage === 'CALENDAR') || (i === 2 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
+                color: (i === 0 && stage === 'BARBERS') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
              }}>
-                <span style={{ height: '20px', width: '20px', borderRadius: '50%', background: (i === 0 && stage === 'SERVICES') || (i === 1 && stage === 'CALENDAR') || (i === 2 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{i+1}</span>
+                <span style={{ height: '20px', width: '20px', borderRadius: '50%', background: (i === 0 && stage === 'BARBERS') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>{i+1}</span>
                 {s}
              </div>
           ))}
       </div>
+
+      {stage === "BARBERS" && (
+          <div style={{ background: '#fff', padding: '3rem', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+             <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
+             <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
+             
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                <button 
+                  onClick={() => { setSelectedBarberId(null); setStage("SERVICES"); }}
+                  style={{ 
+                    padding: '2rem', 
+                    background: '#fff', 
+                    border: '2px solid #e2e8f0', 
+                    borderRadius: '24px', 
+                    textAlign: 'center', 
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                >
+                   <div style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Any Professional</div>
+                   <div style={{ fontSize: '0.85rem', color: '#64748b' }}>First available opening</div>
+                </button>
+
+                {barbers.map(b => (
+                  <button 
+                    key={b.id}
+                    onClick={() => { setSelectedBarberId(b.id); setStage("SERVICES"); }}
+                    style={{ 
+                      padding: '2rem', 
+                      background: '#fff', 
+                      border: '2px solid #e2e8f0', 
+                      borderRadius: '24px', 
+                      textAlign: 'center', 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                  >
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🧔</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>{b.name}</div>
+                  </button>
+                ))}
+             </div>
+          </div>
+      )}
 
       {stage === "SERVICES" && (
         <>
@@ -309,24 +361,15 @@ export default function BookingFlow({
                             <div style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
-                                background: '#f8fafc', 
+                                background: 'var(--primary)', 
                                 borderRadius: '50px', 
-                                border: '1px solid var(--primary)',
-                                padding: '0.4rem'
+                                padding: '0.6rem 1.5rem',
+                                color: '#fff',
+                                fontWeight: 800,
+                                gap: '0.5rem'
                             }}>
-                                <button 
-                                    onClick={() => updateQuantity(srv.id, -1)}
-                                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
-                                    -
-                                </button>
-                                <span style={{ fontWeight: 800, minWidth: '20px', textAlign: 'center' }}>
-                                    {currentCart.find(i => i.service.id === srv.id)?.quantity}
-                                </span>
-                                <button 
-                                    onClick={() => addToCart(srv)}
-                                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 900, cursor: 'pointer', padding: '0 1rem', fontSize: '1.2rem' }}>
-                                    +
-                                </button>
+                                <span>Selected</span>
+                                <span style={{ fontSize: '1.2rem' }}>✓</span>
                             </div>
                         ) : (
                             <button 
@@ -344,7 +387,7 @@ export default function BookingFlow({
                                  e.currentTarget.style.borderColor = '#e2e8f0';
                              }}
                              >
-                             Book
+                             Select
                             </button>
                         )}
                    </div>

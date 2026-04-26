@@ -5,12 +5,30 @@ import { getAvailableSlots } from "@/lib/slotEngine";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
-export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceDurations: number[], isGroup: boolean = false) {
+export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceDurations: number[], isGroup: boolean = false, preferredBarberId?: string) {
    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
-   const slots = await getAvailableSlots(tenant.id, dateStr, serviceDurations, isGroup);
+   // We pass the preferredBarberId to the engine to filter lanes
+   const slots = await getAvailableSlots(tenant.id, dateStr, serviceDurations, isGroup, preferredBarberId);
    return slots;
+}
+
+export async function fetchBarbers(tenantSlug: string) {
+  const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
+  if (!tenant) return [];
+
+  // Fetch only active barbers for this tenant
+  const barbers = await prisma.user.findMany({
+    where: { 
+      role: 'BARBER',
+      activeInShops: {
+        some: { slug: tenantSlug }
+      }
+    },
+    select: { id: true, name: true }
+  });
+  return barbers;
 }
 
 export async function registerCustomer(formData: any) {

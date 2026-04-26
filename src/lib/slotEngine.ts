@@ -14,7 +14,8 @@ export async function getAvailableSlots(
   tenantId: string, 
   requestedDateStr: string, 
   serviceDurations: number[], 
-  isGroup: boolean = false
+  isGroup: boolean = false,
+  preferredBarberId?: string
 ) {
   // 1. Check for Same-Day Prevention (SYDNEY CONTEXT)
   const today = getSydneyTodayStr();
@@ -44,7 +45,10 @@ export async function getAvailableSlots(
   }
 
   // 4. Resolve maximum simultaneous capacity
-  const staffCount = businessDay.activeStaff || 1;
+  let staffCount = businessDay.activeStaff || 1;
+  if (preferredBarberId) {
+    staffCount = 1; // Only one person at a time if a specific barber is chosen
+  }
 
   if (staffCount === 0) {
     return { availableSlots: [], reason: "No staff assigned to work on this day." };
@@ -64,6 +68,7 @@ export async function getAvailableSlots(
     AND "status" != 'CANCELLED'
     AND "startTime" >= ${startOfDay} 
     AND "startTime" <= ${endOfDay}
+    ${preferredBarberId ? prisma.raw(`AND "barberId" = '${preferredBarberId}'`) : prisma.raw('')}
   `;
 
   // 6. Slot Calculation Setup
