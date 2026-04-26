@@ -133,8 +133,8 @@ export default function CalendarUI({ barbers, appointments, currentDateStr, high
             {monthData.map((cell: any, idx: number) => {
                 const dayStr = cell.date.toLocaleDateString('en-CA'); // YYYY-MM-DD
                 const dayApps = appointments.filter(a => {
-                    const aStart = new Date(a.startTime).toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' });
-                    const cellStart = cell.date.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' });
+                    const aStart = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(a.startTime));
+                    const cellStart = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(cell.date);
                     return aStart === cellStart && (selectedBarberId === 'all' || a.barberId === selectedBarberId);
                 });
 

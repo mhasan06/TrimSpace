@@ -47,22 +47,29 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const startOfMonth = getSydneyStartOfMonth(target);
   const endOfMonth = getSydneyEndOfMonth(target);
 
-  // Use Raw SQL to bypass stale Prisma Client and fetch all appointments for the month
-  const rawAppointments = await prisma.$queryRawUnsafe<any[]>(`
-    SELECT a.*, u.name as "customerName", s.name as "serviceName", s.price as "servicePrice", s."durationMinutes" as "serviceDuration"
-    FROM "Appointment" a
-    JOIN "User" u ON a."customerId" = u.id
-    JOIN "Service" s ON a."serviceId" = s.id
-    WHERE a."tenantId" = $1 
-    AND a."startTime" >= $2 
-    AND a."startTime" <= $3
-    ORDER BY a."startTime" ASC
-  `, tenantId, startOfMonth, endOfMonth);
+  // Use native Prisma to avoid any Raw SQL timezone parameter issues
+  const startIso = new Date(target.getFullYear(), target.getMonth(), 1).toISOString();
+  const endIso = new Date(target.getFullYear(), target.getMonth() + 1, 0, 23, 59, 59).toISOString();
 
-  const dayAppointments = rawAppointments.map(app => ({
+  const dbAppointments = await prisma.appointment.findMany({
+    where: {
+      tenantId: tenantId,
+      startTime: {
+        gte: new Date(startIso),
+        lte: new Date(endIso)
+      }
+    },
+    include: {
+      customer: { select: { name: true } },
+      service: { select: { name: true, price: true, durationMinutes: true } }
+    },
+    orderBy: { startTime: 'asc' }
+  });
+
+  const dayAppointments = dbAppointments.map(app => ({
     ...app,
-    customer: { name: app.customerName },
-    service: { name: app.serviceName, price: app.servicePrice, durationMinutes: app.serviceDuration },
+    customer: { name: app.customer?.name || 'Anonymous' },
+    service: { name: app.service?.name || 'Unknown', price: app.service?.price || 0, durationMinutes: app.service?.durationMinutes || 0 },
     startTime: app.startTime.toISOString(),
     endTime: app.endTime.toISOString()
   }));
