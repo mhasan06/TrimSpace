@@ -104,6 +104,24 @@ export default function BookingFlow({
   const currentCartIds = useMemo(() => new Set(currentCart.map(i => i.service.id)), [currentCart]);
   const totalPrice = useMemo(() => allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0), [allCartItems]);
 
+  const serviceGroups = useMemo(() => {
+    return Object.values(multiCart).map(items => items.map(i => i.service.durationMinutes));
+  }, [multiCart]);
+
+  const estimatedFinish = useMemo(() => {
+    if (!selectedTime) return null;
+    const [h, m] = selectedTime.split(':').map(Number);
+    const startMins = h * 60 + m;
+    const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
+    const maxDuration = Math.max(0, ...personDurations);
+    const endMins = startMins + maxDuration;
+    const endH = Math.floor(endMins / 60);
+    const endM = (endMins % 60).toString().padStart(2, '0');
+    const period = endH >= 12 ? 'PM' : 'AM';
+    const displayH = endH > 12 ? endH - 12 : (endH === 0 ? 12 : endH);
+    return `${displayH}:${endM} ${period}`;
+  }, [selectedTime, serviceGroups]);
+
   const nextPerson = useCallback(() => {
     if (currentPersonIndex < partySize - 1) {
       setCurrentPersonIndex(currentPersonIndex + 1);
@@ -127,13 +145,13 @@ export default function BookingFlow({
   const fetchSlots = async (dateStr: string) => {
       setTargetDate(dateStr);
       setSelectedTime(null);
-      // Construct total durations per person
-      const serviceDurations = Object.keys(multiCart).map(key => {
+      // Construct serviceGroups: [[durations for p1], [durations for p2], ...]
+      const serviceGroupsArr = Object.keys(multiCart).map(key => {
         const cartItems = multiCart[Number(key)];
-        return cartItems.reduce((acc, item) => acc + (item.service.durationMinutes * item.quantity), 0);
-      }).filter(d => d > 0);
+        return cartItems.map(item => item.service.durationMinutes);
+      }).filter(group => group.length > 0);
 
-      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceDurations, partySize > 1, selectedBarberId || undefined);
+      const result = await fetchPublicSlots(tenantSlug, dateStr, serviceGroupsArr, selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
   };
@@ -310,11 +328,11 @@ export default function BookingFlow({
              <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
              <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
              
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
                 <button 
                   onClick={() => { setSelectedBarberId(null); setStage("SERVICES"); }}
                   style={{ 
-                    padding: '2rem', 
+                    padding: '1.5rem', 
                     background: '#fff', 
                     border: '2px solid #e2e8f0', 
                     borderRadius: '24px', 
@@ -325,8 +343,8 @@ export default function BookingFlow({
                   onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                   onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                 >
-                   <div style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Any Professional</div>
-                   <div style={{ fontSize: '0.85rem', color: '#64748b' }}>First available opening</div>
+                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', margin: '0 auto 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>✨</div>
+                   <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>Any Specialist</div>
                 </button>
 
                 {barbers.map(b => (
@@ -334,7 +352,7 @@ export default function BookingFlow({
                     key={b.id}
                     onClick={() => { setSelectedBarberId(b.id); setStage("SERVICES"); }}
                     style={{ 
-                      padding: '2rem', 
+                      padding: '1.5rem', 
                       background: '#fff', 
                       border: '2px solid #e2e8f0', 
                       borderRadius: '24px', 
@@ -345,8 +363,8 @@ export default function BookingFlow({
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                   >
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🧔</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 900 }}>{b.name || 'Professional'}</div>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🧔</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{b.name || 'Professional'}</div>
                   </button>
                 ))}
              </div>
@@ -397,14 +415,18 @@ export default function BookingFlow({
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {initialServices.map((srv) => (
-                <div key={srv.id} style={cardStyle}>
-                   <div style={{ flex: 1 }}>
-                        <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b', marginBottom: '0.4rem' }}>{srv.name}</h4>
-                        <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.6rem' }}>{srv.durationMinutes} mins</p>
-                        <p style={{ color: '#1e293b', fontWeight: 800, fontSize: '1rem' }}>from ${srv.price.toFixed(0)}</p>
-                        {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.8rem', lineHeight: 1.5, maxWidth: '80%' }}>{srv.description}</p>}
+                <div key={srv.id} style={{ ...cardStyle, flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
+                   <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                           <div>
+                              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{srv.name}</h4>
+                              <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 500, margin: '0.2rem 0' }}>{srv.durationMinutes} mins</p>
+                           </div>
+                           <p style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>${srv.price.toFixed(0)}</p>
+                        </div>
+                        {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
                    </div>
-                   <div style={{ minWidth: '150px', display: 'flex', justifyContent: 'flex-end' }}>
+                   <div style={{ width: '100%', display: 'flex', justifyContent: 'stretch' }}>
                         {currentCartIds.has(srv.id) ? (
                             <button 
                                 onClick={() => addToCart(srv)}
@@ -508,11 +530,27 @@ export default function BookingFlow({
                           <button 
                              key={t} 
                              onClick={() => handleTimeSelect(t)}
-                             style={{ padding: '1rem 0', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#1e293b', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
+                             style={{ 
+                                padding: '0.8rem 0.5rem', 
+                                background: '#fff', 
+                                border: '1px solid #e2e8f0', 
+                                borderRadius: '16px', 
+                                color: '#1e293b', 
+                                fontWeight: 800, 
+                                cursor: 'pointer', 
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '2px'
+                             }}
                              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                              >
-                             {t}
+                             <span style={{ fontSize: '0.9rem' }}>{t}</span>
+                             {estimatedFinish && (
+                               <span style={{ fontSize: '0.6rem', opacity: 0.6, fontWeight: 700 }}>Ends {estimatedFinish}</span>
+                             )}
                           </button>
                       ))}
                    </div>

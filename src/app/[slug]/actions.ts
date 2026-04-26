@@ -5,12 +5,12 @@ import { getAvailableSlots } from "@/lib/slotEngine";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
-export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceDurations: number[], isGroup: boolean = false, preferredBarberId?: string) {
+export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], preferredBarberId?: string) {
    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
    // We pass the preferredBarberId to the engine to filter lanes
-   const slots = await getAvailableSlots(tenant.id, dateStr, serviceDurations, isGroup, preferredBarberId);
+   const slots = await getAvailableSlots(tenant.id, dateStr, serviceGroups, preferredBarberId);
    return slots;
 }
 

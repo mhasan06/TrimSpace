@@ -14,10 +14,10 @@ import { getSydneyTodayStr, toSydneyTime, getSydneyDayOfWeek } from "./date-util
 export async function getAvailableSlots(
   tenantId: string, 
   requestedDateStr: string, 
-  serviceDurations: number[], 
-  isGroup: boolean = false,
+  serviceGroups: number[][], // Grouped by person: [[30, 45], [30]]
   preferredBarberId?: string
 ) {
+  const isGroup = serviceGroups.length > 1;
   // 1. Check for Same-Day Prevention (SYDNEY CONTEXT)
   const today = getSydneyTodayStr();
   if (requestedDateStr <= today) {
@@ -92,26 +92,17 @@ export async function getAvailableSlots(
   const availableSlots: string[] = [];
 
   /**
-   * SMART LANE PACKING ENGINE
-   * We distribute services across staffCount lanes to find the minimum required duration.
+   * CONNOISSEUR-AWARE PACKING
+   * We calculate the window needed by finding the person with the longest sequential job list.
    */
-  const calculateRequiredWindow = (durations: number[], lanes: number, groupMode: boolean) => {
-    if (!groupMode) return durations.reduce((a, b) => a + b, 0);
-    
-    // For groups: Distribute services into 'lanes' as evenly as possible (Greedy Packing)
-    const laneLoads = new Array(lanes).fill(0);
-    const sortedDurations = [...durations].sort((a, b) => b - a); // Big jobs first
-    
-    for (const d of sortedDurations) {
-      // Find lane with current minimum load
-      const minLaneIdx = laneLoads.indexOf(Math.min(...laneLoads));
-      laneLoads[minLaneIdx] += d;
-    }
-    
-    return Math.max(...laneLoads);
+  const calculateRequiredWindow = (groups: number[][]) => {
+    // Each person's services run sequentially
+    const personDurations = groups.map(g => g.reduce((a, b) => a + b, 0));
+    return Math.max(...personDurations);
   };
 
-  const requiredWindow = calculateRequiredWindow(serviceDurations, staffCount, isGroup);
+  const requiredWindow = calculateRequiredWindow(serviceGroups);
+  const lanesNeeded = serviceGroups.length;
 
   // Iterate over 30 minute chunks
   for (let currentSlot = openMins; currentSlot + requiredWindow <= closeMins; currentSlot += 30) {
@@ -150,22 +141,7 @@ export async function getAvailableSlots(
         }
       }
 
-      // If active bookings + our needed lanes > capacity, it's a fail.
-      // In Group Mode, we are using 'staffCount' lanes for the 'requiredWindow'.
-      // Wait, no! If we have 4 services (30m) and 2 barbers, we use 2 lanes for 60 mins.
-      // So 'neededLanes' is always 'staffCount' in Group Mode? No.
-      // It's the number of lanes that actually have a load.
-      
-      const laneLoads = new Array(staffCount).fill(0);
-      const sortedDurations = [...serviceDurations].sort((a, b) => b - a);
-      for (const d of sortedDurations) {
-        const minLaneIdx = laneLoads.indexOf(Math.min(...laneLoads));
-        laneLoads[minLaneIdx] += d;
-      }
-      const lanesNeeded = laneLoads.filter(l => l > 0).length;
-
-      const neededLanes = isGroup ? lanesNeeded : 1;
-      if (activeBookingsAtSegment + neededLanes > staffCount) {
+      if (activeBookingsAtSegment + lanesNeeded > staffCount) {
         isWindowFeasible = false;
         break;
       }
