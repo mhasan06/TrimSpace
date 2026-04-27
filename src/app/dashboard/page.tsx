@@ -260,7 +260,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
             {terminology.staffLabel} Leaderboard (30 Days)
          </h3>
          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-            {barbers.map(barber => {
+            {(barbers as any[]).map((barber: any) => {
               const stats = (staffStats as any[]).find((s: any) => s.barberId === barber.id);
               const myReviews = (barberReviews as any[]).filter((r: any) => r.barberId === barber.id);
               const avgRating = myReviews.length > 0 
