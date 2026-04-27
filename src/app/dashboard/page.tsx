@@ -74,105 +74,104 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     endTime: app.endTime.toISOString()
   }));
 
-  // 2. Today's Stats (Sydney context)
-  const startOfToday = new Date(nowSydney);
-  startOfToday.setHours(0,0,0,0);
-  const endOfToday = new Date(nowSydney);
-  endOfToday.setHours(23,59,59,999);
-
-  const [todayStats, todayCancelledStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" <= ${endOfToday} AND status = 'CANCELLED'`
-  ]);
-  const todayRev = Number(todayStats[0]?.revenue || 0);
-  const todayCancelledRev = Number(todayCancelledStats[0]?.revenue || 0);
-
-  // 3. Trend Analysis (Weekly Progress)
+  // 2. High-Performance Stats Aggregation (Single Batch)
   const startOfThisWeek = new Date(nowSydney);
   startOfThisWeek.setDate(nowSydney.getDate() - nowSydney.getDay());
   startOfThisWeek.setHours(0,0,0,0);
-
   const startOfLastWeek = new Date(startOfThisWeek);
   startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
 
-  const [thisWeekStats, lastWeekStats, thisWeekCancelledStats]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue, COUNT(id) as total FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisWeek} AND status = 'CANCELLED'`
-  ]);
-
-  const thisWeekRev = Number(thisWeekStats[0]?.revenue || 0);
-  const lastWeekRev = Number(lastWeekStats[0]?.revenue || 0);
-  const thisWeekCancelledRev = Number(thisWeekCancelledStats[0]?.revenue || 0);
-  const weekProgress = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
-
-  // 4. Monthly & YTD Progress
   const startOfThisMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth(), 1);
   const startOfLastMonth = new Date(nowSydney.getFullYear(), nowSydney.getMonth() - 1, 1);
+
   const startOfThisYear = new Date(nowSydney.getFullYear(), 0, 1);
-  
-  const [thisMonthStats, lastMonthStats, ytdStats, thisMonthCancelledStats, ytdCancelledStats, uniqueCustomers]: any[] = await Promise.all([
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status != 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED'`,
-    prisma.$queryRaw`SELECT SUM("amountPaidStripe" + "amountPaidGift") as revenue FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear} AND status = 'CANCELLED'`,
-    prisma.$queryRaw`SELECT COUNT(DISTINCT "customerId") as count FROM "Appointment" WHERE "tenantId" = ${tenantId}`
-  ]);
-
-  const thisMonthRev = Number(thisMonthStats[0]?.revenue || 0);
-  const lastMonthRev = Number(lastMonthStats[0]?.revenue || 0);
-  const ytdRev = Number(ytdStats[0]?.revenue || 0);
-  const thisMonthCancelledRev = Number(thisMonthCancelledStats[0]?.revenue || 0);
-  const ytdCancelledRev = Number(ytdCancelledStats[0]?.revenue || 0);
-  const uniqueCustomerCount = Number(uniqueCustomers[0]?.count || 0);
-  const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
-
-  // 4. Staff Leadership Data (Past 30 Days)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const [globalStats, outlookRaw, staffStats, monthlyRaw, weeklyRaw, uniqueCustomers]: any[] = await Promise.all([
+    // Grouped Financial Stats
+    prisma.$queryRaw`
+      SELECT 
+        SUM(CASE WHEN "startTime" >= ${startOfToday} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as today_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfToday} AND status = 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as today_can,
+        SUM(CASE WHEN "startTime" >= ${startOfThisWeek} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as week_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfThisWeek} AND status = 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as week_can,
+        SUM(CASE WHEN "startTime" >= ${startOfLastWeek} AND "startTime" < ${startOfThisWeek} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as last_week_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfThisMonth} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as month_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfThisMonth} AND status = 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as month_can,
+        SUM(CASE WHEN "startTime" >= ${startOfLastMonth} AND "startTime" < ${startOfThisMonth} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as last_month_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfThisYear} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as ytd_rev,
+        SUM(CASE WHEN "startTime" >= ${startOfThisYear} AND status = 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as ytd_can
+      FROM "Appointment" WHERE "tenantId" = ${tenantId}`,
+    
+    // Optimized 7-Day Outlook (Single Query)
+    prisma.$queryRaw`
+      SELECT DATE_TRUNC('day', "startTime") as day, COUNT(id) as count, SUM("amountPaidStripe" + "amountPaidGift") as rev
+      FROM "Appointment" 
+      WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" < ${new Date(Date.now() + 8 * 86400000)}
+      GROUP BY 1 ORDER BY 1`,
+
+    // Staff Performance
+    prisma.$queryRaw`
+      SELECT "barberId", COUNT(id) as jobs, SUM("amountPaidStripe" + "amountPaidGift") as revenue
+      FROM "Appointment"
+      WHERE "tenantId" = ${tenantId} AND "startTime" >= ${thirtyDaysAgo}
+      GROUP BY 1`,
+
+    // Yearly Trends (Monthly)
+    prisma.$queryRaw`
+      SELECT DATE_TRUNC('month', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
+      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}
+      GROUP BY 1 ORDER BY 1`,
+      
+    // Yearly Trends (Weekly)
+    prisma.$queryRaw`
+      SELECT DATE_TRUNC('week', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
+      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}
+      GROUP BY 1 ORDER BY 1`,
+
+    // Lifetime Customers
+    prisma.user.count({ where: { OR: [{ tenantId }, { appointments: { some: { tenantId } } }], role: "CUSTOMER" } })
+  ]);
+
+  const stats = globalStats[0];
+  const todayRev = Number(stats.today_rev || 0);
+  const todayCancelledRev = Number(stats.today_can || 0);
+  const thisWeekRev = Number(stats.week_rev || 0);
+  const lastWeekRev = Number(stats.last_week_rev || 0);
+  const thisWeekCancelledRev = Number(stats.week_can || 0);
+  const thisMonthRev = Number(stats.month_rev || 0);
+  const lastMonthRev = Number(stats.last_month_rev || 0);
+  const thisMonthCancelledRev = Number(stats.month_can || 0);
+  const ytdRev = Number(stats.ytd_rev || 0);
+  const ytdCancelledRev = Number(stats.ytd_can || 0);
   
+  const weekProgress = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
+  const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
+  const uniqueCustomerCount = uniqueCustomers;
+
+  // Process Outlook
+  const outlook = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const dateStr = d.toISOString().split('T')[0];
+    const found = outlookRaw.find((r: any) => r.day.toISOString().startsWith(dateStr));
+    return {
+      date: dateStr,
+      jobCount: Number(found?.count || 0),
+      revenue: Number(found?.rev || 0)
+    };
+  });
+
   const barbers = await prisma.user.findMany({ 
     where: { tenantId, role: { in: ['BARBER', 'ADMIN'] } }
   });
 
   let barberReviews: any[] = [];
   try {
-    barberReviews = await prisma.$queryRaw`SELECT "barberId", "rating" FROM "Review" WHERE "tenantId" = ${tenantId}`;
-  } catch(e) {
-    console.log("Review table sync in progress...");
-  }
-  const staffStats: any[] = await prisma.$queryRaw`
-    SELECT 
-      "barberId", 
-      COUNT(id) as jobs, 
-      SUM("amountPaidStripe" + "amountPaidGift") as revenue
-    FROM "Appointment"
-    WHERE "tenantId" = ${tenantId} AND "startTime" >= ${thirtyDaysAgo}
-    GROUP BY "barberId"
-  `;
+    barberReviews = await prisma.review.findMany({ where: { tenantId } });
+  } catch(e) {}
 
-  // 5. Weekly Outlook Data (Next 7 Days - UTC Aligned)
-  const outlook: any[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date();
-    d.setUTCDate(d.getUTCDate() + i);
-    const dateStr = d.toISOString().split('T')[0];
-    
-    const s = new Date(`${dateStr}T00:00:00.000Z`);
-    const e = new Date(`${dateStr}T23:59:59.999Z`);
-    
-    const dayStats: any[] = await prisma.$queryRaw`
-      SELECT COUNT(id) as count, SUM("amountPaidStripe" + "amountPaidGift") as revenue
-      FROM "Appointment"
-      WHERE "tenantId" = ${tenantId} AND "startTime" >= ${s} AND "startTime" <= ${e}
-    `;
-    outlook.push({
-      date: dateStr,
-      jobCount: Number(dayStats[0]?.count || 0),
-      revenue: Number(dayStats[0]?.revenue || 0)
-    });
-  }
 
   const alerts = await prisma.merchantAlert.findMany({
     where: { tenantId },
