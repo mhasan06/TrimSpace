@@ -597,7 +597,14 @@ export default function BookingFlow({
       )}
 
       {stage === "PAYMENT" && (
-          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
+          <div style={{ 
+            background: '#fff', 
+            padding: 'clamp(1rem, 4vw, 3rem)', 
+            borderRadius: 'clamp(16px, 5vw, 32px)', 
+            border: '1px solid #e2e8f0',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}>
              {!session?.user ? (
                <div>
                   <button 
@@ -624,28 +631,28 @@ export default function BookingFlow({
                         </div>
                   ) : (
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
-                                <input name="name" required placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                                <input name="name" required placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>MOBILE NUMBER</label>
-                                <input name="phone" required type="tel" placeholder="0400 000 000" value={regForm.phone} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                                <input name="phone" required type="tel" placeholder="0400 000 000" value={regForm.phone} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>EMAIL ADDRESS</label>
-                            <input name="email" required type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            <input name="email" required type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STREET ADDRESS</label>
-                            <input name="street" required placeholder="e.g. 123 Luxury Way" value={regForm.street} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            <input name="street" required placeholder="e.g. 123 Luxury Way" value={regForm.street} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SUBURB</label>
                                 <input 
@@ -656,7 +663,7 @@ export default function BookingFlow({
                                     onChange={handleRegChange}
                                     onFocus={() => setShowSubDropdown(true)}
                                     onBlur={() => setTimeout(() => setShowSubDropdown(false), 200)}
-                                    style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} 
+                                    style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} 
                                 />
                                 {showSubDropdown && matchingSubs.length > 0 && (
                                     <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -674,13 +681,13 @@ export default function BookingFlow({
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STATE</label>
-                                <input name="state" required placeholder="State" value={regForm.state} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                                <input name="state" required placeholder="State" value={regForm.state} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                             <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SECURE PASSWORD</label>
-                            <input name="password" required type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
+                            <input name="password" required type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                         </div>
                         
                         <div onClick={saveBookingState} style={{ width: '100%', marginTop: '0.5rem' }}>

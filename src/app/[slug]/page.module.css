@@ -216,8 +216,12 @@
 }
 
 @media (max-width: 1024px) {
+    .container {
+        padding: 1rem;
+    }
     .mainLayout {
         grid-template-columns: 1fr;
+        gap: 2rem;
     }
     .sidebar {
         display: none;
