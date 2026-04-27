@@ -127,12 +127,12 @@ function RegisterContent() {
               </svg>
             </div>
             <h2 style={{ color: '#000', marginBottom: '1rem', fontSize: '1.5rem', fontWeight: 950 }}>
-              {isBusiness ? "Application Received" : "Welcome to the Community!"}
+              {isBusiness ? "Application Received" : "Verify Your Email"}
             </h2>
             <p style={{ color: '#475569', fontSize: '1rem', fontWeight: 600, lineHeight: 1.6, marginBottom: '2rem' }}>
               {formState.message || (isBusiness 
-                ? "A concierge will contact you shortly to verify your mastery and complete your activation."
-                : "Your account has been created. Please check your email to verify your account before logging in.")
+                ? "Your partnership request has been received. Our concierge team will review your application and contact you shortly to complete your onboarding."
+                : "We've sent a verification link to your email address. Please click the link to activate your account and start booking appointments.")
               }
             </p>
             <Link href="/login" style={{ display: 'inline-block', padding: '1rem 2.5rem', background: '#000', color: '#fff', textDecoration: 'none', borderRadius: '40px', fontWeight: 800, fontSize: '1rem' }}>Return to Login</Link>

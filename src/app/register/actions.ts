@@ -75,7 +75,7 @@ export async function registerAction(prevState: any, formData: FormData) {
         });
       });
       await sendVerificationEmail(email, name, token);
-      return { success: true, message: "Application Received! Please check your email to verify your account." };
+      return { success: true, message: "Your partnership request has been received. Our concierge team will review your application and contact you shortly to complete your onboarding." };
 
     } else {
       const street = formData.get("street") as string;
@@ -102,7 +102,7 @@ export async function registerAction(prevState: any, formData: FormData) {
         } 
       });
       await sendVerificationEmail(email, name, token);
-      return { success: true, message: "Registration successful! Please check your email to verify your account." };
+      return { success: true, message: "We've sent a verification link to your email address. Please click the link to activate your account and start booking appointments." };
     }
   } catch (error) {
     return { error: "An internal server error occurred." };
