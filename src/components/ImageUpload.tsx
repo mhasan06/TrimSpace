@@ -36,9 +36,18 @@ export default function ImageUpload({
       formData.append("tenantId", tenantId);
 
       const result = await uploadImageAction(formData);
-      onUploadSuccess(result.url);
+      
+      if (result.error) {
+        alert("Upload Error: " + result.error);
+        return;
+      }
+
+      if (result.url) {
+        onUploadSuccess(result.url);
+      }
     } catch (error: any) {
-      alert("Upload failed: " + error.message);
+      alert("System Error: The server encountered a problem processing your image. Please try a smaller file or a different format.");
+      console.error("Client upload crash:", error);
     } finally {
       setUploading(false);
     }
