@@ -179,19 +179,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     take: 10
   });
 
-  // 6. Yearly Trends (Monthly & Weekly buckets)
-  const startOfYear = new Date(nowSydney.getFullYear(), 0, 1);
-  const [monthlyRaw, weeklyRaw]: any[] = await Promise.all([
-    prisma.$queryRaw`
-      SELECT DATE_TRUNC('month', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
-      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfYear}
-      GROUP BY 1 ORDER BY 1`,
-    prisma.$queryRaw`
-      SELECT DATE_TRUNC('week', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
-      FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfYear}
-      GROUP BY 1 ORDER BY 1`
-  ]);
-
   const monthlyTrends = Array.from({ length: 12 }, (_, i) => {
     const d = new Date(nowSydney.getFullYear(), i, 1);
     const monthKey = d.toISOString().slice(0, 7);
