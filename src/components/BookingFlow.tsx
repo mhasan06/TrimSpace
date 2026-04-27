@@ -381,6 +381,9 @@ export default function BookingFlow({
           <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
              <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
              <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
+              <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '2.5rem', fontStyle: 'italic', background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', borderLeft: '4px solid #cbd5e1' }}>
+                Please note, due to many circumstances your chosen Professional may not be available.
+              </p>
              
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
                 <button 
@@ -772,7 +775,12 @@ export default function BookingFlow({
                   <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#6366f1' }}>${(finalPrice + 0.50).toFixed(2)}</span>
                 </div>
                 
-                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Date & Time</h4>
+                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Professional</h4>
+                 <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
+                    {selectedBarberId ? barbers.find(b => b.id === selectedBarberId)?.name : "Any Specialist (First Available)"}
+                 </p>
+
+                 <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Date & Time</h4>
                 <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>{new Date(targetDate).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })} at {selectedTime}</p>
              </div>
 
