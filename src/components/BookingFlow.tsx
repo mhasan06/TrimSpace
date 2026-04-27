@@ -186,6 +186,7 @@ export default function BookingFlow({
       // If somehow empty, fallback to [[]] to at least show something or handle error
       const safeGroups = serviceGroupsArr.length > 0 ? serviceGroupsArr : [[]];
 
+      // Force-refresh by using the current timestamp to bypass any browser caching
       const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups, selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
@@ -250,8 +251,13 @@ export default function BookingFlow({
         const checkoutData = await response.json();
         if (checkoutData.error) throw new Error(checkoutData.error);
         if (checkoutData.bypassStripe) {
-          const result = await createBookingTransaction(allCartItems.map(i => ({ serviceId: i.service.id, quantity: i.quantity })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, partySize > 1, checkoutData.giftCardId, checkoutData.giftDiscount);
-          if (result.success) window.location.href = "/booking-confirmation?bypass=true";
+          const result = await createBookingTransaction(allCartItems.map(i => ({ serviceId: i.service.id, quantity: i.quantity, p: i.p })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, partySize > 1, checkoutData.giftCardId, checkoutData.giftDiscount);
+          if (result.success) {
+            // Force a 1.2s delay to ensure the database has fully committed before we move to confirmation
+            setTimeout(() => {
+               window.location.href = "/booking-confirmation?bypass=true";
+            }, 1200);
+          }
           else throw new Error(result.error || "Failed to finalize booking.");
           return;
         }

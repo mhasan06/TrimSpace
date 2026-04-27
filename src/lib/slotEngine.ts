@@ -59,7 +59,11 @@ export async function getAvailableSlots(
   const startMoment = getSydneyUTC(requestedDateStr, businessDay.openTime);
   const endMoment = getSydneyUTC(requestedDateStr, businessDay.closeTime);
 
-  // 2. Fetch Appointments (+/- 12h window is plenty for UTC drift)
+  console.log(`[SlotEngine V8.1] --- DIAGNOSTIC START ---`);
+  console.log(`[SlotEngine V8.1] Shop: ${requestedDateStr} | Goal: ${businessDay.openTime}`);
+  console.log(`[SlotEngine V8.1] UTC Anchor: ${startMoment.toISOString()}`);
+
+  // 2. Fetch Appointments
   const appointments = await prisma.appointment.findMany({
     where: {
       tenantId,
@@ -73,10 +77,6 @@ export async function getAvailableSlots(
   const maxIndivDuration = Math.max(0, ...personDurations);
   const lanesNeeded = personDurations.length;
 
-  if (lanesNeeded > barbers.length) {
-    return { availableSlots: [], reason: `Party size exceeds specialists.` };
-  }
-
   // 4. Generate Slots
   const availableSlots: { time: string, finishTime: string }[] = [];
   const stepMs = 30 * 60 * 1000;
@@ -84,6 +84,21 @@ export async function getAvailableSlots(
 
   const lunchS = businessDay.lunchStart ? getSydneyUTC(requestedDateStr, businessDay.lunchStart).getTime() : null;
   const lunchE = businessDay.lunchEnd ? getSydneyUTC(requestedDateStr, businessDay.lunchEnd).getTime() : null;
+
+  // V8.1 HARD-CODED FORMATTER: Zero browser locale dependence
+  const formatHHmm = (ms: number) => {
+    const d = new Date(ms);
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: AU_TIMEZONE,
+      hour12: false,
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+    const pts = formatter.formatToParts(d);
+    const h = pts.find(p => p.type === 'hour')?.value.padStart(2, '0');
+    const m = pts.find(p => p.type === 'minute')?.value.padStart(2, '0');
+    return `${h}:${m}`;
+  };
 
   for (let currentMs = startMoment.getTime(); currentMs + durationMs <= endMoment.getTime(); currentMs += stepMs) {
     if (lunchS && lunchE) {
@@ -93,21 +108,21 @@ export async function getAvailableSlots(
     const freeBarbers = barbers.filter(b => {
       if (preferredBarberId && b.id !== preferredBarberId) return false;
       
-      return !appointments.some(a => {
+      const conflict = appointments.find(a => {
         if (a.barberId !== b.id) return false;
-        const aStart = a.startTime.getTime();
-        const aEnd = a.endTime.getTime();
-        return (currentMs < aEnd && currentMs + durationMs > aStart);
+        return (currentMs < a.endTime.getTime() && currentMs + durationMs > a.startTime.getTime());
       });
+      return !conflict;
     });
 
     if (freeBarbers.length >= lanesNeeded) {
-      const timeStr = new Date(currentMs).toLocaleTimeString('en-GB', { timeZone: AU_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false });
-      const finishStr = new Date(currentMs + durationMs).toLocaleTimeString('en-GB', { timeZone: AU_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false });
-      
-      availableSlots.push({ time: timeStr, finishTime: finishStr });
+      availableSlots.push({ 
+        time: formatHHmm(currentMs), 
+        finishTime: formatHHmm(currentMs + durationMs) 
+      });
     }
   }
 
+  console.log(`[SlotEngine V8.1] Result: ${availableSlots.length} slots found. First: ${availableSlots[0]?.time || 'NONE'}`);
   return { availableSlots, reason: null };
 }
