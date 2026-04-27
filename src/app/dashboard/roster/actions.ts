@@ -191,3 +191,38 @@ export async function createStaffMember(tenantId: string, data: { name: string, 
     return { error: err.message || "Failed to create new staff member" };
   }
 }
+
+export async function getStaffSchedules(tenantId: string) {
+  try {
+    return await prisma.staffSchedule.findMany({
+      where: { tenantId }
+    });
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function updateStaffSchedule(staffId: string, dayOfWeek: number, tenantId: string, data: { isActive?: boolean, startTime?: string, endTime?: string }) {
+  const session = await getServerSession(authOptions);
+  if ((session?.user as any)?.tenantId !== tenantId) throw new Error("Unauthorized");
+
+  try {
+    await prisma.staffSchedule.upsert({
+      where: { userId_dayOfWeek: { userId: staffId, dayOfWeek } },
+      update: data,
+      create: {
+        userId: staffId,
+        dayOfWeek,
+        tenantId,
+        isActive: data.isActive ?? true,
+        startTime: data.startTime ?? '09:00',
+        endTime: data.endTime ?? '17:00'
+      }
+    });
+
+    revalidatePath("/dashboard/roster");
+    return { success: true };
+  } catch (err) {
+    return { error: "Failed to update schedule" };
+  }
+}

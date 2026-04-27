@@ -85,9 +85,34 @@ export async function createBookingTransaction(
     const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
     if (!tenant) throw new Error("Tenant not found");
 
-    // Fetch ALL active barbers for this shop to support load balancing
+    const getSydneyUTC = (dateStr: string, timeStr: string) => {
+      const [y, mm, d] = dateStr.split('-').map(Number);
+      const [hh, min] = timeStr.split(':').map(Number);
+      const date = new Date(Date.UTC(y, mm - 1, d, hh, min));
+      const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Sydney', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+      const parts = formatter.formatToParts(date);
+      const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+      const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
+      let diffHours = sHour - hh;
+      if (sDay !== d) diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
+      return new Date(date.getTime() - (diffHours * 3600000));
+    };
+
+    const dayOfWeek = getSydneyUTC(targetDateStr, "12:00").getUTCDay();
+
+    // Fetch ONLY active barbers who are ON ROSTER for this day
     const activeBarbers = await prisma.user.findMany({ 
-      where: { tenantId: tenant.id, role: "BARBER" } 
+      where: { 
+        tenantId: tenant.id, 
+        role: "BARBER",
+        isActive: true,
+        staffSchedules: {
+          some: {
+            dayOfWeek,
+            isActive: true
+          }
+        }
+      } 
     });
     
     if (activeBarbers.length === 0) throw new Error("The shop does not have any active staff to accept appointments.");

@@ -50,7 +50,19 @@ export async function getAvailableSlots(
       } 
     }),
     prisma.scheduleOverride.findFirst({ where: { tenantId, date: requestedDateStr, isClosed: true } }),
-    prisma.user.findMany({ where: { tenantId, role: "BARBER", isActive: true } })
+    prisma.user.findMany({ 
+      where: { 
+        tenantId, 
+        role: "BARBER", 
+        isActive: true,
+        staffSchedules: {
+          some: {
+            dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay(),
+            isActive: true
+          }
+        }
+      } 
+    })
   ]);
 
   if (override) return { availableSlots: [], reason: override.reason || "Shop is closed." };

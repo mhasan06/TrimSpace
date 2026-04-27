@@ -183,6 +183,42 @@ export default function RosterManager({ staff, tenantId, currentUserId, staffLab
   const [createData, setCreateData] = useState({ name: '', email: '', password: '', role: 'BARBER', bio: '', avatarUrl: '' });
   const [creating, setCreating] = useState(false);
 
+  // ROSTER STATE
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [loadingRoster, setLoadingRoster] = useState(true);
+
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const loadSchedules = async () => {
+    const { getStaffSchedules } = await import("../app/dashboard/roster/actions");
+    const data = await getStaffSchedules(tenantId);
+    setSchedules(data);
+    setLoadingRoster(false);
+  };
+
+  useState(() => { loadSchedules(); });
+
+  const toggleDay = async (staffId: string, dayIdx: number, currentActive: boolean) => {
+    const { updateStaffSchedule } = await import("../app/dashboard/roster/actions");
+    // Optimistic update
+    const newSched = { userId: staffId, dayOfWeek: dayIdx, isActive: !currentActive };
+    setSchedules(prev => {
+        const existing = prev.find(s => s.userId === staffId && s.dayOfWeek === dayIdx);
+        if (existing) return prev.map(s => (s.userId === staffId && s.dayOfWeek === dayIdx) ? { ...s, isActive: !currentActive } : s);
+        return [...prev, newSched];
+    });
+
+    const res = await updateStaffSchedule(staffId, dayIdx, tenantId, { isActive: !currentActive });
+    if (res.error) {
+        alert(res.error);
+        loadSchedules(); // Rollback
+    }
+  };
+
+  const isWorking = (staffId: string, dayIdx: number) => {
+    return !!schedules.find(s => s.userId === staffId && s.dayOfWeek === dayIdx && s.isActive);
+  };
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inviteEmail) return;
@@ -222,6 +258,51 @@ export default function RosterManager({ staff, tenantId, currentUserId, staffLab
 
   return (
     <div>
+      {/* Weekly Roster Grid */}
+      <div className="glass" style={{ padding: '2rem', borderRadius: '20px', marginBottom: '3rem', border: '1px solid var(--border)' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+             Weekly Staff Roster
+             <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Live Sync</span>
+          </h2>
+          <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+                  <thead>
+                      <tr>
+                          <th style={{ textAlign: 'left', padding: '1rem', borderBottom: '2px solid var(--border)', fontSize: '0.8rem', opacity: 0.5 }}>SPECIALIST</th>
+                          {days.map((d, i) => (
+                              <th key={d} style={{ padding: '1rem', borderBottom: '2px solid var(--border)', fontSize: '0.8rem', opacity: 0.5 }}>{d.slice(0,3).toUpperCase()}</th>
+                          ))}
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {staff.map(s => (
+                          <tr key={s.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                              <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden' }}>
+                                      <img src={s.avatarUrl || `https://ui-avatars.com/api/?name=${s.name || s.email}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                  <span style={{ fontWeight: 800, fontSize: '0.9rem' }}>{s.name || 'Unnamed'}</span>
+                              </td>
+                              {days.map((_, dayIdx) => {
+                                  const active = isWorking(s.id, dayIdx);
+                                  return (
+                                      <td key={dayIdx} style={{ textAlign: 'center', padding: '1rem' }}>
+                                          <input 
+                                              type="checkbox" 
+                                              checked={active} 
+                                              onChange={() => toggleDay(s.id, dayIdx, active)}
+                                              style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                                          />
+                                      </td>
+                                  );
+                              })}
+                          </tr>
+                      ))}
+                  </tbody>
+              </table>
+          </div>
+      </div>
+
       {/* Add To Team Panel */}
       <div className="glass" style={{ padding: '2rem', borderRadius: '20px', marginBottom: '3rem', border: '1px solid rgba(212,175,55,0.2)' }}>
         
