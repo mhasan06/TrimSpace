@@ -74,8 +74,9 @@ export async function getAvailableSlots(
 
   // 3. Resolve Durations
   const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
-  const maxIndivDuration = Math.max(0, ...personDurations);
-  const lanesNeeded = personDurations.length;
+  // FAIL-SAFE: Enforce a minimum 15-minute duration to prevent "Ghost Freedom"
+  const maxIndivDuration = Math.max(15, ...personDurations);
+  const lanesNeeded = personDurations.length || 1;
 
   // 4. Generate Slots
   const availableSlots: { time: string, finishTime: string }[] = [];

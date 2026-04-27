@@ -181,17 +181,14 @@ export default function BookingFlow({
   const fetchSlots = async (dateStr: string) => {
       setTargetDate(dateStr);
       setSelectedTime(null);
-      // Construct serviceGroups: [[durations for p1], [durations for p2], ...]
-      const serviceGroupsArr = Object.keys(multiCart).map(key => {
-        const cartItems = multiCart[Number(key)];
-        return cartItems.map(item => item.service.durationMinutes);
-      }).filter(group => group.length > 0);
-
-      // If somehow empty, fallback to [[]] to at least show something or handle error
-      const safeGroups = serviceGroupsArr.length > 0 ? serviceGroupsArr : [[]];
+      // Explicitly extract durations and ensure they aren't lost
+      const safeGroups = Object.keys(multiCart).map(key => {
+        const items = multiCart[Number(key)] || [];
+        return items.map(i => i.service.durationMinutes || 45);
+      }).filter(g => g.length > 0);
 
       // Force-refresh by using the current timestamp to bypass any browser caching
-      const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups, selectedBarberId || undefined);
+      const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups.length > 0 ? safeGroups : [[45]], selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
   };
