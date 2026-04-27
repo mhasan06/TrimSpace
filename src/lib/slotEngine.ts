@@ -53,11 +53,12 @@ export async function getAvailableSlots(
     return { availableSlots: [], reason: `Party size exceeds total specialists (${barbers.length}).` };
   }
 
-  // 3. Fetch Appointments (Wide Window)
+  // 3. Fetch Appointments (Expanded Window for Timezone Safety)
+  // We fetch anything +/- 24h to be absolutely safe
   const windowStart = new Date(`${requestedDateStr}T00:00:00Z`);
-  windowStart.setHours(windowStart.getHours() - 14);
+  windowStart.setDate(windowStart.getDate() - 1);
   const windowEnd = new Date(`${requestedDateStr}T23:59:59Z`);
-  windowEnd.setHours(windowEnd.getHours() + 11);
+  windowEnd.setDate(windowEnd.getDate() + 1);
 
   const appointments = await prisma.appointment.findMany({
     where: {
@@ -65,6 +66,30 @@ export async function getAvailableSlots(
       status: { not: 'CANCELLED' },
       startTime: { gte: windowStart, lte: windowEnd }
     }
+  });
+
+  // Pre-calculate Sydney components for appointments to avoid repeated Intl calls
+  const processedApps = appointments.map(a => {
+    const s = toSydneyTime(a.startTime);
+    const e = toSydneyTime(a.endTime);
+    
+    // Get Sydney YYYY-MM-DD components
+    const dParts = new Intl.DateTimeFormat('en-AU', {
+      timeZone: 'Australia/Sydney',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(a.startTime);
+    
+    const y = dParts.find(p => p.type === 'year')?.value;
+    const m = dParts.find(p => p.type === 'month')?.value;
+    const d = dParts.find(p => p.type === 'day')?.value;
+    const isoDate = `${y}-${m}-${d}`;
+
+    return {
+      barberId: a.barberId,
+      isoDate,
+      startMins: s.hours * 60 + s.minutes,
+      endMins: e.hours * 60 + e.minutes
+    };
   });
 
   // 4. Main Slot Loop
@@ -76,28 +101,15 @@ export async function getAvailableSlots(
       if (currentSlot < lunchE && currentSlot + maxIndivDuration > lunchS) continue;
     }
 
-    // SIMULTANEOUS START CHECK
-    // We need 'lanesNeeded' barbers to EACH be free for their person's duration.
-    // For simplicity, we check if EACH person can be assigned to a unique free barber at 'currentSlot'.
-    
     const freeBarbers = barbers.filter(b => {
        if (preferredBarberId && b.id !== preferredBarberId) return false;
        
-       // Check if this specific barber has any conflict on the requested day/time
-       return !appointments.some(a => {
+       return !processedApps.some(a => {
           if (a.barberId !== b.id) return false;
-          
-          // ISO Date Check (Sydney)
-          const isoADate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(a.startTime);
-          if (isoADate !== requestedDateStr) return false;
+          if (a.isoDate !== requestedDateStr) return false;
 
-          const s = toSydneyTime(a.startTime);
-          const e = toSydneyTime(a.endTime);
-          const aStart = s.hours * 60 + s.minutes;
-          const aEnd = e.hours * 60 + e.minutes;
-
-          // Standard Overlap: [start, end) intersects [aStart, aEnd)
-          return (currentSlot < aEnd && currentSlot + maxIndivDuration > aStart);
+          // Standard Overlap
+          return (currentSlot < a.endMins && currentSlot + maxIndivDuration > a.startMins);
        });
     });
 
