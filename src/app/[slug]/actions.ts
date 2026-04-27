@@ -7,6 +7,23 @@ import crypto from "crypto";
 import { revalidatePath } from "next/cache";
 import { sendVerificationEmail } from "@/lib/mailer";
 
+const getSydneyUTC = (dateStr: string, timeStr: string) => {
+  const [y, mm, d] = dateStr.split('-').map(Number);
+  const [hh, min] = timeStr.split(':').map(Number);
+  const date = new Date(Date.UTC(y, mm - 1, d, hh, min));
+  const formatter = new Intl.DateTimeFormat('en-US', { 
+    timeZone: 'Australia/Sydney', 
+    hour12: false, 
+    year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' 
+  });
+  const parts = formatter.formatToParts(date);
+  const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+  const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
+  let diffHours = sHour - hh;
+  if (sDay !== d) diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
+  return new Date(date.getTime() - (diffHours * 3600000));
+};
+
 export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], preferredBarberId?: string) {
    console.log(`[Action] fetchPublicSlots called for ${tenantSlug} on ${dateStr}`);
    console.log(`[Action] Groups:`, JSON.stringify(serviceGroups));
@@ -85,18 +102,6 @@ export async function createBookingTransaction(
     const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
     if (!tenant) throw new Error("Tenant not found");
 
-    const getSydneyUTC = (dateStr: string, timeStr: string) => {
-      const [y, mm, d] = dateStr.split('-').map(Number);
-      const [hh, min] = timeStr.split(':').map(Number);
-      const date = new Date(Date.UTC(y, mm - 1, d, hh, min));
-      const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Sydney', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
-      const parts = formatter.formatToParts(date);
-      const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
-      const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
-      let diffHours = sHour - hh;
-      if (sDay !== d) diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
-      return new Date(date.getTime() - (diffHours * 3600000));
-    };
 
     const dayOfWeek = getSydneyUTC(targetDateStr, "12:00").getUTCDay();
 
