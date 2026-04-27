@@ -31,9 +31,10 @@ export default function BookingFlow({
 }) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
-  const [stage, setStage] = useState<"PARTY_SIZE" | "BARBERS" | "SERVICES" | "CALENDAR" | "PAYMENT">("PARTY_SIZE");
+  const [stage, setStage] = useState<"PARTY_SIZE" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("PARTY_SIZE");
   const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
-  const [barbers, setBarbers] = useState<{ id: string; name: string | null }[]>([]);
+  const [barbers, setBarbers] = useState<{ id: string; name: string | null; avatarUrl?: string | null }[]>([]);
+  const [availableBarbersAtTime, setAvailableBarbersAtTime] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [agreedToPolicies, setAgreedToPolicies] = useState(false);
@@ -181,13 +182,20 @@ export default function BookingFlow({
   const fetchSlots = async (dateStr: string) => {
       setTargetDate(dateStr);
       setSelectedTime(null);
-      // Explicitly extract durations and ensure they aren't lost
+      
+      // Calculate qualified barbers for ALL selected services across ALL persons
+      const allSelectedServiceIds = new Set(allCartItems.map(i => i.service.id));
+      const qualifiedBarbers = barbers.filter(b => {
+          const barberServiceIds = new Set(b.services?.map((s: any) => s.id) || []);
+          return Array.from(allSelectedServiceIds).every(id => barberServiceIds.has(id));
+      });
+
+      // Explicitly extract durations
       const safeGroups = Object.keys(multiCart).map(key => {
         const items = multiCart[Number(key)] || [];
         return items.map(i => i.service.durationMinutes || 45);
       }).filter(g => g.length > 0);
 
-      // Force-refresh by using the current timestamp to bypass any browser caching
       const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups.length > 0 ? safeGroups : [[45]], selectedBarberId || undefined);
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
@@ -195,7 +203,11 @@ export default function BookingFlow({
 
   const handleTimeSelect = (timeStr: string) => {
       setSelectedTime(timeStr);
-      setStage("PAYMENT");
+      const slot = slots.find(s => s.time === timeStr);
+      if (slot && (slot as any).availableBarberIds) {
+          setAvailableBarbersAtTime((slot as any).availableBarberIds);
+      }
+      setStage("BARBERS");
   };
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -310,17 +322,17 @@ export default function BookingFlow({
         msOverflowStyle: 'none',
         scrollbarWidth: 'none'
       }}>
-          {["Party", "Pro", "Service", "Time", "Pay"].map((s: string, i: number) => (
+          {["Party", "Service", "Time", "Pro", "Pay"].map((s: string, i: number) => (
              <div key={s} style={{ 
                 fontWeight: 800, 
                 fontSize: '0.75rem', 
-                color: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
+                color: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'BARBERS') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 flexShrink: 0
              }}>
-                <span style={{ height: '18px', width: '18px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'BARBERS') || (i === 2 && stage === 'SERVICES') || (i === 3 && stage === 'CALENDAR') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>{i+1}</span>
+                <span style={{ height: '18px', width: '18px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'BARBERS') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>{i+1}</span>
                 {s}
              </div>
           ))}
@@ -338,7 +350,7 @@ export default function BookingFlow({
                     onClick={() => {
                       setPartySize(n);
                       setIsGroupBooking(n > 1);
-                      setStage("BARBERS");
+                      setStage("SERVICES");
                     }}
                     style={{ 
                       width: '60px', 
@@ -372,7 +384,7 @@ export default function BookingFlow({
              
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
                 <button 
-                  onClick={() => { setSelectedBarberId(null); setStage("SERVICES"); }}
+                  onClick={() => { setSelectedBarberId(null); setStage("PAYMENT"); }}
                   style={{ 
                     padding: '1.5rem', 
                     background: '#fff', 
@@ -389,10 +401,10 @@ export default function BookingFlow({
                    <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>Any Specialist</div>
                 </button>
 
-                {barbers.map(b => (
+                {barbers.filter(b => availableBarbersAtTime.includes(b.id)).map(b => (
                   <button 
                     key={b.id}
-                    onClick={() => { setSelectedBarberId(b.id); setStage("SERVICES"); }}
+                    onClick={() => { setSelectedBarberId(b.id); setStage("PAYMENT"); }}
                     style={{ 
                       padding: '1.5rem', 
                       background: '#fff', 
@@ -405,7 +417,9 @@ export default function BookingFlow({
                     onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                     onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                   >
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#f1f5f9', margin: '0 auto 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🧔</div>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 0.5rem', border: '2px solid #f1f5f9' }}>
+                        <img src={b.avatarUrl || `https://ui-avatars.com/api/?name=${b.name || 'P'}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{b.name || 'Professional'}</div>
                   </button>
                 ))}
@@ -442,12 +456,6 @@ export default function BookingFlow({
                   style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
                 >
                   Change Party
-                </button>
-                <button 
-                  onClick={() => setStage("BARBERS")}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Change Professional
                 </button>
                 <div style={{ padding: '0.4rem 1rem', background: 'rgba(0,0,0,0.05)', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
                   {partySize} {partySize === 1 ? 'Customer' : 'Customers'}

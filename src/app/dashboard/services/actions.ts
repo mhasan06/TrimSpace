@@ -43,12 +43,22 @@ export async function createServiceAction(formData: FormData) {
     console.log(`Creating Service: ${name} for Tenant: ${tenantId}`);
 
     const id = crypto.randomUUID();
-    // Raw SQL to bypass Prisma Client validation issues during dev
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO "Service" (id, name, description, "durationMinutes", price, "tenantId", "updatedAt", "isActive") 
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), true)`,
-      id, name, description, durationMinutes, price, tenantId
-    );
+    const selectedBarberIds = formData.getAll("barberIds") as string[];
+
+    await prisma.service.create({
+      data: {
+        id,
+        name,
+        description,
+        durationMinutes,
+        price,
+        tenantId,
+        isActive: true,
+        barbers: {
+          connect: selectedBarberIds.map((bid: string) => ({ id: bid }))
+        }
+      }
+    });
 
     revalidatePath("/dashboard/services");
     await revalidatePortal(tenantId);
@@ -85,14 +95,23 @@ export async function updateServiceAction(id: string, formData: FormData) {
     const description = formData.get("description") as string;
     const durationMinutes = parseInt(formData.get("durationMinutes") as string, 10);
     const price = parseFloat(formData.get("price") as string);
+    
+    // Parse selected barber IDs
+    const selectedBarberIdsRaw = formData.get("selectedBarberIds") as string;
+    const selectedBarberIds = selectedBarberIdsRaw ? JSON.parse(selectedBarberIdsRaw) : [];
 
-    // Raw SQL Update to bypass local type-checking locks
-    await prisma.$executeRawUnsafe(
-      `UPDATE "Service" 
-       SET name = $1, description = $2, "durationMinutes" = $3, price = $4, "updatedAt" = NOW()
-       WHERE id = $5 AND "tenantId" = $6`,
-      name, description, durationMinutes, price, id, tenantId
-    );
+    await prisma.service.update({
+      where: { id, tenantId },
+      data: {
+        name,
+        description,
+        durationMinutes,
+        price,
+        barbers: {
+          set: selectedBarberIds.map((bid: string) => ({ id: bid }))
+        }
+      }
+    });
     
     revalidatePath("/dashboard/services");
     await revalidatePortal(tenantId);

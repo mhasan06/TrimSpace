@@ -94,6 +94,7 @@ model User {
   favorites       Favorite[]
   staffSchedules  StaffSchedule[]
   staffShifts     StaffShift[]
+  services        Service[]
 }
 
 model BankHistory {
@@ -121,6 +122,7 @@ model Service {
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  barbers      User[]
 }
 
 

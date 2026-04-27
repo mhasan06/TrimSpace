@@ -46,7 +46,12 @@ export async function fetchBarbers(tenantSlug: string) {
       role: 'BARBER',
       tenant: { slug: tenantSlug }
     },
-    select: { id: true, name: true }
+    select: { 
+      id: true, 
+      name: true, 
+      avatarUrl: true,
+      services: { select: { id: true } } 
+    }
   });
   return barbers;
 }

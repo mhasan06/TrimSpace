@@ -154,7 +154,8 @@ export async function getAvailableSlots(
     if (freeBarbers.length >= lanesNeeded) {
       availableSlots.push({ 
         time: formatHHmm(currentMs), 
-        finishTime: formatHHmm(currentMs + durationMs) 
+        finishTime: formatHHmm(currentMs + durationMs),
+        availableBarberIds: freeBarbers.map(b => b.id)
       });
     }
   }

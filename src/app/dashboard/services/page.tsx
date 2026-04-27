@@ -12,10 +12,17 @@ export default async function ServicesDashboard() {
     return <div style={{ color: 'white' }}>Please log in to manage your shop.</div>;
   }
 
-  const services = await prisma.service.findMany({
-    where: { tenantId },
-    orderBy: { createdAt: 'desc' }
-  });
+  const [services, barbers] = await Promise.all([
+    prisma.service.findMany({
+      where: { tenantId },
+      include: { barbers: true }, // Include current assignments
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.user.findMany({
+      where: { tenantId, role: "BARBER", isActive: true },
+      select: { id: true, name: true, avatarUrl: true }
+    })
+  ]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -51,6 +58,18 @@ export default async function ServicesDashboard() {
             <textarea name="description" placeholder="Explain the details of this service to your clients..." rows={3} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--foreground)', fontFamily: 'inherit', resize: 'vertical' }} />
           </div>
 
+          <div style={{ gridColumn: 'span 2', marginTop: '1rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
+            <label style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '1rem', display: 'block', textTransform: 'uppercase' }}>Assign Barbers to this Service</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+                {barbers.map(b => (
+                    <label key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(255,255,255,0.02)', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: '1px solid var(--border)' }}>
+                        <input type="checkbox" name="barberIds" value={b.id} style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{b.name || 'Unnamed'}</span>
+                    </label>
+                ))}
+            </div>
+          </div>
+
           <div style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'flex-end' }}>
             <button type="submit" style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '1rem 2rem', borderRadius: '6px', fontWeight: 800, cursor: 'pointer', transition: 'opacity 0.2s', width: 'fit-content' }}>
               Publish Service
@@ -65,7 +84,7 @@ export default async function ServicesDashboard() {
         {services.length === 0 ? (
           <p style={{ color: 'var(--foreground)', opacity: 0.6 }}>No services created yet.</p>
         ) : (
-          <ServiceManager initialServices={services} />
+          <ServiceManager initialServices={services} barbers={barbers} tenantId={tenantId} />
         )}
       </section>
 

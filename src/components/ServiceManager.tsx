@@ -13,9 +13,19 @@ interface Service {
   price: number;
 }
 
-export default function ServiceManager({ initialServices }: { initialServices: Service[] }) {
+interface Barber {
+  id: string;
+  name: string | null;
+  avatarUrl: string | null;
+}
+
+interface ServiceWithBarbers extends Service {
+  barbers: Barber[];
+}
+
+export default function ServiceManager({ initialServices, barbers, tenantId }: { initialServices: any[], barbers: Barber[], tenantId: string }) {
   const router = useRouter();
-  const [services, setServices] = useState<Service[]>(initialServices);
+  const [services, setServices] = useState<ServiceWithBarbers[]>(initialServices);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
@@ -25,22 +35,14 @@ export default function ServiceManager({ initialServices }: { initialServices: S
   }, [initialServices]);
 
   const handleToggleVisibility = async (id: string, currentStatus: boolean) => {
-    // Optimistic Update
     setServices(prev => prev.map(s => 
       s.id === id ? { ...s, isActive: !currentStatus } : s
     ));
-
     const result = await toggleServiceVisibilityAction(id, currentStatus);
-    
     if (result?.error) {
       alert("Error: " + result.error);
-      // Rollback on error
-      setServices(prev => prev.map(s => 
-        s.id === id ? { ...s, isActive: currentStatus } : s
-      ));
-    } else {
-      router.refresh();
-    }
+      setServices(prev => prev.map(s => s.id === id ? { ...s, isActive: currentStatus } : s));
+    } else router.refresh();
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -62,8 +64,12 @@ export default function ServiceManager({ initialServices }: { initialServices: S
 
         if (isEditing) {
           return (
-            <div key={srv.id} className="glass" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--primary)', background: 'rgba(212,175,55,0.05)' }}>
+            <div key={srv.id} className="glass" style={{ padding: '2rem', borderRadius: '12px', border: '2px solid var(--primary)', background: 'rgba(212,175,55,0.05)' }}>
                <form action={async (formData) => {
+                 // Get all selected barber IDs from checkboxes
+                 const selectedBarbers = barbers.filter(b => formData.get(`barber-${b.id}`) === 'on').map(b => b.id);
+                 formData.append('selectedBarberIds', JSON.stringify(selectedBarbers));
+
                  const res = await updateServiceAction(srv.id, formData);
                  if (res?.error) alert(res.error);
                  else {
@@ -88,6 +94,22 @@ export default function ServiceManager({ initialServices }: { initialServices: S
                        <label style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.8, color: 'var(--primary)' }}>Description</label>
                        <textarea name="description" defaultValue={srv.description || ''} rows={3} style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: '#000', color: 'white', resize: 'vertical', fontFamily: 'inherit' }} />
                     </div>
+
+                    {/* Barber Selection List */}
+                    <div style={{ gridColumn: 'span 2', marginTop: '1rem', borderTop: '1px solid rgba(212,175,55,0.2)', paddingTop: '1.5rem' }}>
+                        <label style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--primary)', marginBottom: '1rem', display: 'block', textTransform: 'uppercase' }}>Who provides this service?</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
+                            {barbers.map(b => {
+                                const isAssigned = srv.barbers?.some(assigned => assigned.id === b.id);
+                                return (
+                                    <label key={b.id} style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(0,0,0,0.3)', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <input type="checkbox" name={`barber-${b.id}`} defaultChecked={isAssigned} style={{ width: '18px', height: '18px', accentColor: 'var(--primary)' }} />
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{b.name || 'Unnamed'}</span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                      <button type="button" onClick={() => setEditingId(null)} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid var(--border)', color: 'var(--foreground)', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
@@ -99,33 +121,38 @@ export default function ServiceManager({ initialServices }: { initialServices: S
         }
 
         return (
-          <div key={srv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px', transition: 'all 0.2s ease', opacity: srv.isActive ? 1 : 0.65 }}>
+          <div key={srv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '12px', transition: 'all 0.2s ease', opacity: srv.isActive ? 1 : 0.65 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--foreground)' }}>{srv.name}</h3>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--foreground)' }}>{srv.name}</h3>
                 {!srv.isActive && (
                   <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid #ef4444', fontSize: '0.65rem', fontWeight: 900, padding: '0.1rem 0.5rem', borderRadius: '4px' }}>
                     HIDDEN
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: '0.9rem', color: 'var(--foreground)', fontWeight: 600, marginTop: '0.4rem' }}>
-                {srv.durationMinutes} mins
-              </p>
+              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 800 }}>
+                    {srv.durationMinutes} mins
+                  </p>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--foreground)', opacity: 0.5 }}>
+                    {srv.barbers?.length || 0} Professionals Linked
+                  </p>
+              </div>
               {srv.description && (
-                <p style={{ fontSize: '0.75rem', color: 'var(--foreground)', opacity: 0.6, marginTop: '0.5rem', lineHeight: '1.6', maxWidth: '80%' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--foreground)', opacity: 0.6, marginTop: '0.8rem', lineHeight: '1.6', maxWidth: '80%' }}>
                   {srv.description}
                 </p>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', paddingLeft: '2rem' }}>
-              <span style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
                 ${srv.price.toFixed(2)}
               </span>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                  <button 
                    onClick={() => handleToggleVisibility(srv.id, srv.isActive)}
-                   style={{ padding: '0.5rem 1rem', background: 'transparent', border: `1px solid ${srv.isActive ? '#9ca3af' : 'var(--primary)'}`, color: srv.isActive ? '#9ca3af' : 'var(--primary)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                   style={{ padding: '0.5rem 1rem', background: 'transparent', border: `1px solid ${srv.isActive ? 'var(--border)' : 'var(--primary)'}`, color: srv.isActive ? 'var(--foreground)' : 'var(--primary)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', opacity: srv.isActive ? 0.5 : 1 }}>
                    {srv.isActive ? 'HIDE' : 'UNHIDE'}
                  </button>
                  <button 
