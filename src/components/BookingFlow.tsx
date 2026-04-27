@@ -132,7 +132,11 @@ export default function BookingFlow({
     });
   }, [currentPersonIndex]);
 
-  const allCartItems = useMemo(() => Object.values(multiCart).flat(), [multiCart]);
+  const allCartItems = useMemo(() => {
+    return Object.entries(multiCart).flatMap(([pIdx, items]) => 
+      items.map(item => ({ ...item, p: Number(pIdx) }))
+    );
+  }, [multiCart]);
   const currentCart = useMemo(() => multiCart[currentPersonIndex] || [], [multiCart, currentPersonIndex]);
   const currentCartIds = useMemo(() => new Set(currentCart.map(i => i.service.id)), [currentCart]);
   const totalPrice = useMemo(() => allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0), [allCartItems]);
