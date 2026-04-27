@@ -55,12 +55,35 @@ export async function getAvailableSlots(
         tenantId, 
         role: "BARBER", 
         isActive: true,
-        staffSchedules: {
-          some: {
-            dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay(),
-            isActive: true
+        OR: [
+          // 1. Explicit Shift for this date exists and is NOT a day off
+          {
+            staffShifts: {
+              some: {
+                date: requestedDateStr,
+                isDayOff: false
+              }
+            }
+          },
+          // 2. NO explicit shift exists, so use the Weekly Template
+          {
+            AND: [
+              {
+                staffShifts: {
+                  none: { date: requestedDateStr }
+                }
+              },
+              {
+                staffSchedules: {
+                  some: {
+                    dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay(),
+                    isActive: true
+                  }
+                }
+              }
+            ]
           }
-        }
+        ]
       } 
     })
   ]);

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { inviteStaffMember, removeStaffMember, updateStaffDetails, createStaffMember } from "../app/dashboard/roster/actions";
 import ImageUpload from "./ImageUpload";
+import ShiftManager from "./ShiftManager";
 
 interface StaffMember {
   id: string;
@@ -258,7 +259,10 @@ export default function RosterManager({ staff, tenantId, currentUserId, staffLab
 
   return (
     <div>
-      {/* Weekly Roster Grid */}
+      {/* Premium Shift Manager (Tier 2) */}
+      <ShiftManager staff={staff} tenantId={tenantId} />
+
+      {/* Weekly Roster Grid (Tier 1) */}
       <div className="glass" style={{ padding: '2rem', borderRadius: '20px', marginBottom: '3rem', border: '1px solid var(--border)' }}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 900, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
              Weekly Staff Roster

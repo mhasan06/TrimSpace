@@ -60,6 +60,7 @@ model Tenant {
   bankHistory       BankHistory[]
   supportTickets    SupportTicket[]
   staffSchedules    StaffSchedule[]
+  staffShifts       StaffShift[]
 }
 
 model User {
@@ -91,6 +92,7 @@ model User {
   reviewsReceived Review[] @relation("BarberReviews")
   favorites       Favorite[]
   staffSchedules  StaffSchedule[]
+  staffShifts     StaffShift[]
 }
 
 model BankHistory {
@@ -349,4 +351,22 @@ model StaffSchedule {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([userId, dayOfWeek])
+}
+
+model StaffShift {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  date      String   // YYYY-MM-DD
+  startTime String?  // Optional: override start
+  endTime   String?  // Optional: override end
+  isDayOff  Boolean  @default(false)
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

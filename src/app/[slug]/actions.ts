@@ -105,18 +105,39 @@ export async function createBookingTransaction(
 
     const dayOfWeek = getSydneyUTC(targetDateStr, "12:00").getUTCDay();
 
-    // Fetch ONLY active barbers who are ON ROSTER for this day
+    // Fetch ONLY active barbers who are ON ROSTER for this day (Shift > Template)
     const activeBarbers = await prisma.user.findMany({ 
       where: { 
         tenantId: tenant.id, 
         role: "BARBER",
         isActive: true,
-        staffSchedules: {
-          some: {
-            dayOfWeek,
-            isActive: true
+        OR: [
+          {
+            staffShifts: {
+              some: {
+                date: targetDateStr,
+                isDayOff: false
+              }
+            }
+          },
+          {
+            AND: [
+              {
+                staffShifts: {
+                  none: { date: targetDateStr }
+                }
+              },
+              {
+                staffSchedules: {
+                  some: {
+                    dayOfWeek,
+                    isActive: true
+                  }
+                }
+              }
+            ]
           }
-        }
+        ]
       } 
     });
     

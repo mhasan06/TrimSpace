@@ -226,3 +226,34 @@ export async function updateStaffSchedule(staffId: string, dayOfWeek: number, te
     return { error: "Failed to update schedule" };
   }
 }
+
+export async function getStaffShifts(tenantId: string, startDate: string, endDate: string) {
+  try {
+    return await prisma.staffShift.findMany({
+      where: { 
+        tenantId,
+        date: { gte: startDate, lte: endDate }
+      }
+    });
+  } catch (err) {
+    return [];
+  }
+}
+
+export async function upsertStaffShift(tenantId: string, data: { userId: string, date: string, isDayOff: boolean, startTime?: string, endTime?: string }) {
+  const session = await getServerSession(authOptions);
+  if ((session?.user as any)?.tenantId !== tenantId) throw new Error("Unauthorized");
+
+  try {
+    await prisma.staffShift.upsert({
+      where: { userId_date: { userId: data.userId, date: data.date } },
+      update: { isDayOff: data.isDayOff, startTime: data.startTime, endTime: data.endTime },
+      create: { ...data, tenantId }
+    });
+
+    revalidatePath("/dashboard/roster");
+    return { success: true };
+  } catch (err) {
+    return { error: "Failed to update shift" };
+  }
+}
