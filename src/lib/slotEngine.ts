@@ -114,7 +114,7 @@ export async function getAvailableSlots(
   const lanesNeeded = personDurations.length || 1;
 
   // 4. Generate Slots
-  const availableSlots: { time: string, finishTime: string }[] = [];
+  const availableSlots: { time: string, finishTime: string, availableBarberIds: string[] }[] = [];
   const stepMs = 30 * 60 * 1000;
   const durationMs = maxIndivDuration * 60 * 1000;
 
