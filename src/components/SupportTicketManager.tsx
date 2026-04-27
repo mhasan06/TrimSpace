@@ -77,6 +77,9 @@ export default function SupportTicketManager({ initialTickets, tenantId, role }:
                   <span style={{ fontSize: '0.65rem', fontWeight: 900, background: t.status === 'OPEN' ? '#10b981' : '#64748b', color: '#fff', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{t.status}</span>
                   <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 700 }}>{new Date(t.updatedAt).toLocaleDateString()}</span>
                 </div>
+                {role === 'ADMIN' && (
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6366f1', marginBottom: '0.2rem' }}>🏪 {t.tenant?.name || 'Unknown Shop'}</div>
+                )}
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.subject}</h4>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{t.category}</p>
               </div>
