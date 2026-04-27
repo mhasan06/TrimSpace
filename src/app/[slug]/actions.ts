@@ -113,11 +113,11 @@ export async function createBookingTransaction(
       return new Date(date.getTime() - (diffHours * 3600000));
     };
 
-    const baseStartTime = getSydneyUTC(targetDateStr, targetTimeStr);
+    const baseStartTimeUTC = getSydneyUTC(targetDateStr, targetTimeStr);
 
-    // 2. Fetch ALL existing appointments for this window to perform SMART ASSIGNMENT
-    const windowStart = new Date(baseStartTime.getTime() - 4*60*60*1000);
-    const windowEnd = new Date(baseStartTime.getTime() + 8*60*60*1000);
+    // 2. Fetch appointments for conflict checking
+    const windowStart = new Date(baseStartTimeUTC.getTime() - 6*60*60*1000);
+    const windowEnd = new Date(baseStartTimeUTC.getTime() + 12*60*60*1000);
     const existingApps = await prisma.appointment.findMany({
       where: {
         tenantId: tenant.id,
@@ -127,50 +127,60 @@ export async function createBookingTransaction(
     });
 
     const paymentStatus = (paymentMethod === "CARD_ONLINE" || paymentMethod === "GIFT_CARD") ? "PAID" : "UNPAID";
-    const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
-    const giftPerApp = amountPaidGift / totalItems;
+    const totalItems = cart.length; 
+    const giftPerApp = amountPaidGift / (totalItems || 1);
     const bookingGroupId = `grp_${Math.random().toString(36).substr(2, 9)}`;
 
-    let processedCount = 0;
+    // 3. GROUP SERVICES BY PERSON
+    // We expect 'cart' items to have a 'p' property (person index) from multiCart
+    const personGroups: Record<number, any[]> = {};
+    cart.forEach(item => {
+      const pIdx = item.p || 0;
+      if (!personGroups[pIdx]) personGroups[pIdx] = [];
+      personGroups[pIdx].push(item);
+    });
+
     const usedBarberIds = new Set<string>();
+    let totalProcessed = 0;
 
-    // TRUE SEQUENTIAL ENGINE: Assigns barbers dynamically based on ACTUAL availability
-    for (const item of cart) {
-      const serviceId = (item as any).serviceId || (item as any).s || (item as any).service?.id;
-      const quantity = (item as any).quantity || (item as any).q;
-      const service = services.find(s => s.id === serviceId);
-      const duration = service?.durationMinutes || 45;
+    // 4. SEQUENTIAL ASSIGNMENT ENGINE
+    for (const [pIdx, items] of Object.entries(personGroups)) {
+      const totalPersonDuration = items.reduce((acc, i) => {
+        const s = services.find(srv => srv.id === (i.serviceId || i.s || i.service?.id));
+        return acc + (s?.durationMinutes || 45);
+      }, 0);
 
-      for (let i = 0; i < quantity; i++) {
-        const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
-        const currentStartTime = new Date(baseStartTime.getTime()); // All in group start at same time currently
-        const currentEndTime = new Date(currentStartTime.getTime() + 1000 * 60 * duration);
+      const personStartTime = new Date(baseStartTimeUTC.getTime());
+      const personEndTime = new Date(personStartTime.getTime() + totalPersonDuration * 60 * 1000);
 
-        // SMART ASSIGNMENT: Find a barber who is FREE for THIS specific window
-        const freeBarber = activeBarbers.find(b => {
-          // If we've already assigned this barber to another person in THIS group, they are not free
-          if (usedBarberIds.has(b.id)) return false;
-
-          // Check against existing appointments in the DB
-          const hasConflict = existingApps.some(a => {
-            if (a.barberId !== b.id) return false;
-            return (currentStartTime.getTime() < a.endTime.getTime() && currentEndTime.getTime() > a.startTime.getTime());
-          });
-
-          return !hasConflict;
+      // Find a barber free for this person's ENTIRE block
+      const assignedBarber = activeBarbers.find(b => {
+        if (usedBarberIds.has(b.id)) return false;
+        
+        const hasConflict = existingApps.some(a => {
+          if (a.barberId !== b.id) return false;
+          return (personStartTime.getTime() < a.endTime.getTime() && personEndTime.getTime() > a.startTime.getTime());
         });
+        return !hasConflict;
+      });
 
-        if (!freeBarber) {
-          throw new Error("Conflict detected: No specialist is available for one or more services at this time. Please try another slot.");
-        }
+      if (!assignedBarber) {
+        throw new Error(`Conflict: No specialist is available for Person ${Number(pIdx) + 1}'s combined services.`);
+      }
 
-        // Lock this barber for the rest of this group booking
-        usedBarberIds.add(freeBarber.id);
+      usedBarberIds.add(assignedBarber.id);
 
-        const priorityFee = processedCount === 0 ? 0.50 : 0;
-        const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
-        const finalStripeAmt = Math.max(0, stripePerApp || 0);
-        const finalGiftAmt = Math.max(0, giftPerApp || 0);
+      // Now create the appointments for this person SEQUENTIALLY
+      let rollingStart = new Date(personStartTime);
+      for (const item of items) {
+        const serviceId = item.serviceId || item.s || item.service?.id;
+        const service = services.find(s => s.id === serviceId);
+        const duration = service?.durationMinutes || 45;
+        const currentEnd = new Date(rollingStart.getTime() + duration * 60 * 1000);
+        const aptId = `apt_${Math.random().toString(36).substr(2, 9)}`;
+
+        const priorityFee = totalProcessed === 0 ? 0.50 : 0;
+        const stripeAmt = Math.max(0, (service?.price || 0) - giftPerApp + priorityFee);
 
         await prisma.$executeRaw`
           INSERT INTO "Appointment" (
@@ -179,13 +189,15 @@ export async function createBookingTransaction(
             "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", 
             "giftCardId", "emailSent", "cancellationFee", "updatedAt", "createdAt"
           ) VALUES (
-            ${id}, ${currentStartTime}, ${currentEndTime}, 'CONFIRMED', ${userId}, 
-            ${freeBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
-            ${stripePaymentIntentId || null}, ${bookingGroupId}, ${finalStripeAmt}, ${finalGiftAmt}, 
+            ${aptId}, ${rollingStart}, ${currentEnd}, 'CONFIRMED', ${userId}, 
+            ${assignedBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
+            ${stripePaymentIntentId || null}, ${bookingGroupId}, ${stripeAmt}, ${giftPerApp}, 
             ${giftCardId || null}, false, 0, NOW(), NOW()
           )
         `;
-        processedCount++;
+
+        rollingStart = new Date(currentEnd);
+        totalProcessed++;
       }
     }
     // ... revalidation and returns follow
