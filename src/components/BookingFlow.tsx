@@ -33,7 +33,7 @@ export default function BookingFlow({
   const terminology = getTerminology(category);
   const [stage, setStage] = useState<"PARTY_SIZE" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("PARTY_SIZE");
   const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
-  const [barbers, setBarbers] = useState<{ id: string; name: string | null; avatarUrl?: string | null }[]>([]);
+  const [barbers, setBarbers] = useState<{ id: string; name: string | null; avatarUrl?: string | null; services?: { id: string }[] }[]>([]);
   const [availableBarbersAtTime, setAvailableBarbersAtTime] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isLoginMode, setIsLoginMode] = useState(false);
