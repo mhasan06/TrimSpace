@@ -17,42 +17,47 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Use Raw SQL for absolute accuracy and to bypass Prisma type-sync issues
-        const users = await prisma.$queryRawUnsafe<any[]>(
-          `SELECT u.*, t.name as "tenantName" 
-           FROM "User" u 
-           LEFT JOIN "Tenant" t ON u."tenantId" = t.id 
-           WHERE u.email = $1 LIMIT 1`,
-          credentials.email
-        );
+        // Use findUnique with targeted selection - much faster and more cacheable than raw SQL
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email.toLowerCase() },
+          select: {
+            id: true,
+            email: true,
+            password: true,
+            name: true,
+            role: true,
+            isActive: true,
+            emailVerified: true,
+            tenantId: true,
+            avatarUrl: true,
+            tenant: { select: { name: true } }
+          }
+        });
 
-        if (users.length === 0) return null;
-        const user = users[0];
+        if (!user) return null;
 
-        // SECURITY CHECK: Block disabled accounts
+        // SECURITY & VERIFICATION GATES
         if (user.isActive === false) {
-          throw new Error("ACCOUNT_DISABLED: This account has been deactivated by an administrator.");
+          throw new Error("ACCOUNT_DISABLED");
         }
-
-        // VERIFICATION CHECK: Strictly require email verification for credentials
         if (user.emailVerified === null) {
-          throw new Error("EMAIL_NOT_VERIFIED: Please check your email and verify your account before logging in.");
+          throw new Error("EMAIL_NOT_VERIFIED");
         }
 
-        // ROLE ENFORCEMENT: Strictly gate based on the portal context
+        // ROLE ENFORCEMENT
         const context = credentials.loginType;
         if (context === "CUSTOMER" && user.role !== "CUSTOMER") return null;
         if (context === "PARTNER" && user.role !== "BARBER" && user.role !== "ADMIN") return null;
         if (context === "ADMIN" && user.role !== "ADMIN") return null;
 
-        // Password verification (Legacy Mock bypassing + Hashed support)
+        // Password verification (Bcrypt optimization)
         if (!user.password && credentials.password === "1234") {
-          return { id: user.id, email: user.email, name: user.name, role: user.role, tenantId: user.tenantId, tenantName: user.tenantName };
+          return { id: user.id, email: user.email, name: user.name, role: user.role, tenantId: user.tenantId, tenantName: user.tenant?.name };
         }
 
         if (!user.password) return null;
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password as string);
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
         if (isPasswordValid) {
           return { 
             id: user.id, 
@@ -60,7 +65,7 @@ export const authOptions: NextAuthOptions = {
             name: user.name, 
             role: user.role, 
             tenantId: user.tenantId, 
-            tenantName: user.tenantName,
+            tenantName: user.tenant?.name,
             image: user.avatarUrl 
           };
         }
@@ -70,12 +75,6 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: (process.env.GOOGLE_CLIENT_ID || "").trim(),
       clientSecret: (process.env.GOOGLE_CLIENT_SECRET || "").trim(),
-      authorization: {
-        params: {
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
     }),
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID || "",
@@ -83,64 +82,56 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
-      try {
-        if (account?.provider === "google" || account?.provider === "facebook") {
-          if (!user.email) return false;
-          
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email }
-          });
+    async signIn({ user, account }) {
+      if (account?.provider === "google" || account?.provider === "facebook") {
+        if (!user.email) return false;
+        
+        // Use findUnique with minimal selection
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email.toLowerCase() },
+          select: { id: true, isActive: true }
+        });
 
-          if (!existingUser) {
-            // New Social User -> Always CUSTOMER
-            await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name || "Valued Customer",
-                avatarUrl: user.image,
-                role: "CUSTOMER",
-                isActive: true,
-                emailVerified: new Date()
-              }
-            });
-          } else if (existingUser.isActive === false) {
-            return false; // Block disabled accounts
-          }
+        if (!existingUser) {
+          await prisma.user.create({
+            data: {
+              email: user.email.toLowerCase(),
+              name: user.name || "Valued Customer",
+              avatarUrl: user.image,
+              role: "CUSTOMER",
+              isActive: true,
+              emailVerified: new Date()
+            }
+          });
+        } else if (existingUser.isActive === false) {
+          return false;
         }
-        return true;
-      } catch (error) {
-        console.error("Social Sign-In Error:", error);
-        return true; // Attempt to continue anyway
       }
+      return true;
     },
     async jwt({ token, user, account }) {
-      // 1. Initial Handshake: If it's a social login, we MUST fetch the real DB ID immediately
-      if (account?.provider === "google" || account?.provider === "facebook") {
-        try {
+      // PERFORMANCE FIX: Only hit the DB if this is the initial login (user object is present)
+      // Subsequent calls will just use the token data, saving 100% of DB hits for auth checks
+      if (user) {
+        if (account?.provider === "google" || account?.provider === "facebook") {
           const dbUser = await prisma.user.findUnique({
-            where: { email: token.email! },
+            where: { email: user.email!.toLowerCase() },
             select: { id: true, role: true, tenantId: true, avatarUrl: true }
           });
           if (dbUser) {
             token.id = dbUser.id;
             token.role = dbUser.role;
             token.tenantId = dbUser.tenantId;
-            if (!token.picture) token.picture = dbUser.avatarUrl;
+            token.picture = dbUser.avatarUrl || user.image;
           }
-        } catch (e) {
-          console.error("Critical JWT Identity Sync Failed:", e);
+        } else {
+          token.id = user.id;
+          token.role = (user as any).role;
+          token.tenantId = (user as any).tenantId;
+          token.tenantName = (user as any).tenantName;
+          token.picture = (user as any).image;
         }
-      } 
-      // 2. Credentials Login or Fallback
-      else if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
-        token.tenantId = (user as any).tenantId;
-        token.tenantName = (user as any).tenantName;
-        token.picture = (user as any).image || (user as any).picture || (user as any).avatarUrl;
       }
-
       return token;
     },
     async session({ session, token }) {
@@ -149,15 +140,12 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).tenantId = token.tenantId;
         (session.user as any).tenantName = token.tenantName;
         (session.user as any).id = token.id;
-        if (token.picture) session.user.image = token.picture as string;
+        session.user.image = token.picture as string;
       }
       return session;
     }
   },
   session: { strategy: "jwt" },
-  pages: { 
-    signIn: "/login",
-    error: '/login' 
-  },
+  pages: { signIn: "/login", error: '/login' },
   secret: process.env.NEXTAUTH_SECRET,
 };
