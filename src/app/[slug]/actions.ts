@@ -24,7 +24,7 @@ const getSydneyUTC = (dateStr: string, timeStr: string) => {
   return new Date(date.getTime() - (diffHours * 3600000));
 };
 
-export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], preferredBarberId?: string) {
+export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], serviceIds: string[], preferredBarberId?: string) {
    console.log(`[Action] fetchPublicSlots called for ${tenantSlug} on ${dateStr}`);
    console.log(`[Action] Groups:`, JSON.stringify(serviceGroups));
    
@@ -32,7 +32,7 @@ export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serv
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
    // We pass the preferredBarberId to the engine to filter lanes
-   const slots = await getAvailableSlots(tenant.id, dateStr, serviceGroups, preferredBarberId);
+   const slots = await getAvailableSlots(tenant.id, dateStr, serviceGroups, serviceIds, preferredBarberId);
    return slots;
 }
 

@@ -9,6 +9,7 @@ export async function getAvailableSlots(
   tenantId: string, 
   requestedDateStr: string, 
   serviceGroups: number[][],
+  serviceIds: string[],
   preferredBarberId?: string
 ) {
   // HELPER: Convert Sydney "YYYY-MM-DD" + "HH:mm" to the TRUE UTC moment
@@ -55,6 +56,10 @@ export async function getAvailableSlots(
         tenantId, 
         role: "BARBER", 
         isActive: true,
+        // MUST provide all requested services
+        AND: serviceIds.map(sid => ({
+          services: { some: { id: sid } }
+        })),
         OR: [
           // 1. Explicit Shift for this date exists and is NOT a day off
           {

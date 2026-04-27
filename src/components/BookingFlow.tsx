@@ -196,7 +196,13 @@ export default function BookingFlow({
         return items.map(i => i.service.durationMinutes || 45);
       }).filter(g => g.length > 0);
 
-      const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups.length > 0 ? safeGroups : [[45]], selectedBarberId || undefined);
+      const result = await fetchPublicSlots(
+        tenantSlug, 
+        dateStr, 
+        safeGroups.length > 0 ? safeGroups : [[45]], 
+        Array.from(allSelectedServiceIds),
+        selectedBarberId || undefined
+      );
       setSlots(result.availableSlots || []);
       setSlotReason(result.reason || null);
   };
@@ -582,7 +588,12 @@ export default function BookingFlow({
                    </div>
                ) : (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))', gap: '0.8rem' }}>
-                      {slots.length === 0 && <p style={{ opacity: 0.5, textAlign: 'center', gridColumn: '1 / -1', padding: '3rem' }}>No slots available this date.</p>}
+                      {slots.length === 0 && (
+                           <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '3rem', background: '#f8fafc', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
+                               <p style={{ color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>No specialists assigned to these services are available today.</p>
+                               <p style={{ color: 'var(--primary)', fontWeight: 900 }}>Please request a different day.</p>
+                           </div>
+                       )}
                       {slots.map((s: any) => (
                           <button 
                              key={s.time} 
