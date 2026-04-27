@@ -124,20 +124,6 @@ export async function createBookingTransaction(
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
-    // 1. Resolve Sydney -> UTC Precision (Using the robust offset calculation)
-    const getSydneyUTC = (dateStr: string, timeStr: string) => {
-      const [y, mm, d] = dateStr.split('-').map(Number);
-      const [hh, min] = timeStr.split(':').map(Number);
-      const date = new Date(Date.UTC(y, mm - 1, d, hh, min));
-      const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Sydney', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
-      const parts = formatter.formatToParts(date);
-      const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
-      const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
-      let diffHours = sHour - hh;
-      if (sDay !== d) diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
-      return new Date(date.getTime() - (diffHours * 3600000));
-    };
-
     const baseStartTimeUTC = getSydneyUTC(targetDateStr, targetTimeStr);
 
     // 2. Fetch appointments for conflict checking
