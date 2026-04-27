@@ -129,6 +129,11 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
      doc.text("* This booking was cancelled. A 50% cancellation fee was applied.", 20, finalY + 20);
   }
   
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.setTextColor(239, 68, 68); // Red (#ef4444)
+  doc.text("The requested professional is subject to availability and may be unavailable due to circumstances beyond our control.", 20, finalY + 15);
+  
   // Reset color for footer
   doc.setTextColor(100);
 

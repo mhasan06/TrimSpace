@@ -158,6 +158,12 @@ function CustomerDashboardContent({
                             </div>
                         </div>
 
+                        <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                            <p style={{ color: '#ef4444', fontSize: '0.75rem', margin: 0, fontStyle: 'italic', fontWeight: 600 }}>
+                                The requested professional is subject to availability and may be unavailable due to circumstances beyond our control.
+                            </p>
+                        </div>
+
                         <div className="no-print" style={{ marginTop: '2.5rem', display: 'flex', gap: '0.8rem' }}>
                             <button onClick={() => window.print()} style={{ flex: 1, background: '#6366f1', color: 'white', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>Print</button>
                             <button onClick={() => setViewingInvoice(null)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '1rem', borderRadius: '14px', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.9rem' }}>Close</button>

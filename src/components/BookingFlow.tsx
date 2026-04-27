@@ -427,9 +427,7 @@ export default function BookingFlow({
                   </button>
                 ))}
              </div>
-             <button onClick={() => setStage("CALENDAR")} style={{ marginTop: '3rem', width: '100%', padding: '1.2rem', background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 800, cursor: 'pointer' }}>
-                &laquo; Back to Schedule
-             </button>
+
           </div>
       )}
 
