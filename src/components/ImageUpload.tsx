@@ -44,27 +44,7 @@ export default function ImageUpload({
     }
 
     setUploading(true);
-    setStatus("Analyzing...");
-
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    
-    await new Promise((resolve) => {
-        img.onload = () => {
-            // Soft check: Warn if resolution is extremely low, but don't block
-            if (img.width < 100) {
-                alert("This image might look blurry. Consider a higher resolution photo.");
-            }
-            resolve(true);
-        };
-        img.onerror = () => {
-            alert("Failed to read image file.");
-            setUploading(false);
-            resolve(null);
-        };
-    });
-
-    if (!uploading) return;
+    setStatus("Processing...");
 
     setStatus("Optimizing...");
 

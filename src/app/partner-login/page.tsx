@@ -67,7 +67,7 @@ export default function PartnerLogin() {
       <div style={{ 
         flex: isMobile ? 'none' : 1.2, 
         height: isMobile ? '25vh' : 'auto',
-        background: `linear-gradient(to ${isMobile ? 'bottom' : 'right'}, transparent 70%, rgba(255,255,255,0.8)), url('/luxury_barbershop.png') center/cover no-repeat`,
+        background: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%), url('/luxury_barbershop.png') center/cover no-repeat`,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-end',
@@ -77,11 +77,11 @@ export default function PartnerLogin() {
         borderBottom: isMobile ? '1px solid rgba(0,0,0,0.05)' : 'none'
       }}>
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2 style={{ fontSize: isMobile ? '2rem' : '3.2rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.8rem', color: '#000' }}>
+          <h2 style={{ fontSize: isMobile ? '2rem' : '3.2rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1, marginBottom: '0.8rem', color: '#f8fafc', textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             Empower Your Mastery.
           </h2>
           {!isMobile && (
-            <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#334155', maxWidth: '450px', opacity: 0.9 }}>
+            <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#f1f5f9', maxWidth: '450px', opacity: 0.9, textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
               Manage your operations with precision. Access your shop dashboard and team controls.
             </p>
           )}

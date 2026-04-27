@@ -616,7 +616,9 @@ export default function BookingFlow({
                   <h2 style={{ fontSize: 'min(2rem, 8vw)', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
                   {isLoginMode ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                            <SocialLoginButtons mode="in" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                            <div onClick={saveBookingState} style={{ width: '100%' }}>
+                                <SocialLoginButtons mode="in" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                            </div>
                             
                             <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                                 <input required name="email" type="email" placeholder="Email Address" value={loginForm.email} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
@@ -629,7 +631,9 @@ export default function BookingFlow({
                         </div>
                   ) : (
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        <SocialLoginButtons mode="up" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                        <div onClick={saveBookingState} style={{ width: '100%' }}>
+                            <SocialLoginButtons mode="up" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                        </div>
                         
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

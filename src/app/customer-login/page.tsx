@@ -70,19 +70,19 @@ export default function CustomerLogin() {
       {!isMobile && (
         <div style={{ 
           flex: 1.2, 
-          background: `linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.4)), url('/luxury_barbershop.png') center/cover no-repeat`,
+          background: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%), url('/luxury_barbershop.png') center/cover no-repeat`,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: 'flex-end',
           padding: '5rem',
           position: 'relative',
           borderRight: '1px solid rgba(0,0,0,0.05)'
         }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 style={{ fontSize: '3.8rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '1rem', color: '#000', textShadow: '0 0 40px rgba(255,255,255,0.8)' }}>
+            <h2 style={{ fontSize: '3.8rem', fontWeight: 950, letterSpacing: '-0.04em', lineHeight: 1.1, marginBottom: '1rem', color: '#f8fafc', textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
               The Space for Excellence.
             </h2>
-            <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', maxWidth: '500px', opacity: 1, lineHeight: 1.5, textShadow: '0 0 20px rgba(255,255,255,0.8)', background: 'rgba(255,255,255,0.4)', padding: '0.5rem 1rem', borderRadius: '12px', marginLeft: '-1rem', backdropFilter: 'blur(10px)' }}>
+            <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f1f5f9', maxWidth: '500px', opacity: 1, lineHeight: 1.5, textShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
               Enter a world-class marketplace where premium grooming meets effortless booking.
             </p>
           </div>
