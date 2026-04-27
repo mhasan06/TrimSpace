@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Secure server-side key
+  process.env.SUPABASE_ADMIN_KEY! // Secure server-side key (Service Role)
 );
 
 export async function uploadImageAction(formData: FormData) {

@@ -59,6 +59,7 @@ model Tenant {
   reviews           Review[]
   favorites         Favorite[]
   bankHistory       BankHistory[]
+  supportTickets    SupportTicket[]
 }
 
 model User {
@@ -306,4 +307,29 @@ model GlobalSetting {
   label     String?
   category  String?  @default("GENERAL")
   updatedAt DateTime @updatedAt
+}
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  subject     String
+  category    String   @default("GENERAL") // GENERAL, BILLING, TECHNICAL, FEATURE
+  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
+  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages    SupportMessage[]
+}
+
+model SupportMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  senderId    String
+  senderRole  String   // ADMIN, MERCHANT
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }
