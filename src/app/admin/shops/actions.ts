@@ -29,3 +29,16 @@ export async function updateShopFeaturesAction(tenantId: string, features: strin
     return { error: err.message };
   }
 }
+
+export async function updateBarberLimitAction(tenantId: string, maxBarbers: number) {
+  try {
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { maxBarbers }
+    });
+    revalidatePath("/admin/shops");
+    return { success: true };
+  } catch (err: any) {
+    return { error: err.message };
+  }
+}

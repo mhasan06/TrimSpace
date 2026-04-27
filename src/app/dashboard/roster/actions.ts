@@ -59,6 +59,16 @@ export async function inviteStaffMember(email: string, tenantId: string) {
   const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
   if (!tenant) return { error: "Shop not found" };
 
+  // ENFORCE STAFF LIMIT
+  const currentStaffCount = await prisma.user.count({
+    where: { tenantId, role: { in: ['BARBER', 'ADMIN'] } }
+  });
+
+  const limit = (tenant as any).maxBarbers || 3;
+  if (currentStaffCount >= limit) {
+    return { error: `Staff limit reached. Your shop is currently limited to ${limit} team members. Please contact platform support to increase your capacity.` };
+  }
+
   const existing = await prisma.user.findFirst({ where: { email, tenantId } });
   if (existing) return { error: "A team member with this email is already in your shop." };
 
@@ -129,6 +139,19 @@ export async function createStaffMember(tenantId: string, data: { name: string, 
   if (!isPlatformAdmin && !isShopOwner) return { error: "Unauthorized" };
 
   try {
+    const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+    if (!tenant) return { error: "Shop not found" };
+
+    // ENFORCE STAFF LIMIT
+    const currentStaffCount = await prisma.user.count({
+      where: { tenantId, role: { in: ['BARBER', 'ADMIN'] } }
+    });
+
+    const limit = (tenant as any).maxBarbers || 3;
+    if (currentStaffCount >= limit) {
+      return { error: `Staff limit reached. Your shop is currently limited to ${limit} team members. Please contact platform support to increase your capacity.` };
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
     if (existingUser) {
         return { error: "User with this email already exists." };

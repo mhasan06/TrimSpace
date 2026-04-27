@@ -46,6 +46,7 @@ model Tenant {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  maxBarbers Int @default(3)
 
   users             User[]
   services          Service[]
