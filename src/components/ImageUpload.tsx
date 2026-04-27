@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR_ANON_KEY"
-);
+import { uploadImageAction } from "@/app/actions/upload";
 
 export default function ImageUpload({ 
     tenantId, 
@@ -36,21 +31,12 @@ export default function ImageUpload({
     setUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${tenantId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `shop-profiles/${fileName}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("tenantId", tenantId);
 
-      const { error: uploadError } = await supabase.storage
-        .from('public-assets')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage
-        .from('public-assets')
-        .getPublicUrl(filePath);
-
-      onUploadSuccess(data.publicUrl);
+      const result = await uploadImageAction(formData);
+      onUploadSuccess(result.url);
     } catch (error: any) {
       alert("Upload failed: " + error.message);
     } finally {
