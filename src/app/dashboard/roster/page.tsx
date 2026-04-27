@@ -46,6 +46,7 @@ export default async function TeamRoster() {
           tenantId={tenantId}
           currentUserId={currentUserId}
           staffLabel={terminology.staffLabel}
+          enabledFeatures={tenant?.enabledFeatures as string[]}
         />
       </div>
 

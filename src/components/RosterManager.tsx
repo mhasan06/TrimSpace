@@ -170,12 +170,14 @@ function StaffCard({ member, tenantId, staffLabel }: { member: StaffMember; tena
   );
 }
 
-export default function RosterManager({ staff, tenantId, currentUserId, staffLabel }: {
+export default function RosterManager({ staff, tenantId, currentUserId, staffLabel, enabledFeatures }: {
   staff: StaffMember[];
   tenantId: string;
   currentUserId: string;
   staffLabel: string;
+  enabledFeatures?: string[];
 }) {
+  const isPremium = enabledFeatures?.includes("ROSTER_PREMIUM");
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
   const [inviteMsg, setInviteMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -260,7 +262,7 @@ export default function RosterManager({ staff, tenantId, currentUserId, staffLab
   return (
     <div>
       {/* Premium Shift Manager (Tier 2) */}
-      <ShiftManager staff={staff} tenantId={tenantId} />
+      {isPremium && <ShiftManager staff={staff} tenantId={tenantId} />}
 
       {/* Weekly Roster Grid (Tier 1) */}
       <div className="glass" style={{ padding: '2rem', borderRadius: '20px', marginBottom: '3rem', border: '1px solid var(--border)' }}>
