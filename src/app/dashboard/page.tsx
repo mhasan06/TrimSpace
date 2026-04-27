@@ -91,8 +91,8 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const [globalStats, outlookRaw, staffStats, monthlyRaw, weeklyRaw, uniqueCustomers]: any[] = await Promise.all([
-    // Grouped Financial Stats
+  const [globalStats, outlookRaw, staffStats, monthlyRaw, weeklyRaw, uniqueCustomerCount, barbers, barberReviews, alerts]: any[] = await Promise.all([
+    // 1. Grouped Financial Stats
     prisma.$queryRaw`
       SELECT 
         SUM(CASE WHEN "startTime" >= ${startOfToday} AND status != 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as today_rev,
@@ -107,51 +107,69 @@ export default async function DashboardOverview({ searchParams }: { searchParams
         SUM(CASE WHEN "startTime" >= ${startOfThisYear} AND status = 'CANCELLED' THEN "amountPaidStripe" + "amountPaidGift" ELSE 0 END) as ytd_can
       FROM "Appointment" WHERE "tenantId" = ${tenantId}`,
     
-    // Optimized 7-Day Outlook (Single Query)
+    // 2. Optimized 7-Day Outlook
     prisma.$queryRaw`
       SELECT DATE_TRUNC('day', "startTime") as day, COUNT(id) as count, SUM("amountPaidStripe" + "amountPaidGift") as rev
       FROM "Appointment" 
       WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfToday} AND "startTime" < ${new Date(Date.now() + 8 * 86400000)}
       GROUP BY 1 ORDER BY 1`,
 
-    // Staff Performance
+    // 3. Staff Performance (30 Days)
     prisma.$queryRaw`
       SELECT "barberId", COUNT(id) as jobs, SUM("amountPaidStripe" + "amountPaidGift") as revenue
       FROM "Appointment"
       WHERE "tenantId" = ${tenantId} AND "startTime" >= ${thirtyDaysAgo}
       GROUP BY 1`,
 
-    // Yearly Trends (Monthly)
+    // 4. Yearly Trends (Monthly)
     prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
       FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}
       GROUP BY 1 ORDER BY 1`,
       
-    // Yearly Trends (Weekly)
+    // 5. Yearly Trends (Weekly)
     prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "startTime") as bucket, SUM("amountPaidStripe") as stripe, SUM("amountPaidGift") as gift
       FROM "Appointment" WHERE "tenantId" = ${tenantId} AND "startTime" >= ${startOfThisYear}
       GROUP BY 1 ORDER BY 1`,
 
-    // Lifetime Customers
-    prisma.user.count({ where: { OR: [{ tenantId }, { appointments: { some: { tenantId } } }], role: "CUSTOMER" } })
+    // 6. Optimized Client Count (Fast relational check)
+    prisma.user.count({ where: { role: "CUSTOMER", OR: [{ tenantId }, { appointments: { some: { tenantId } } }] } }),
+
+    // 7. Team Details
+    prisma.user.findMany({ 
+      where: { tenantId, role: { in: ['BARBER', 'ADMIN'] } },
+      select: { id: true, name: true, role: true }
+    }),
+
+    // 8. Staff Reviews
+    prisma.review.findMany({ 
+      where: { tenantId },
+      select: { id: true, barberId: true, rating: true }
+    }),
+
+    // 9. Merchant Alerts
+    prisma.merchantAlert.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+      take: 5
+    })
   ]);
 
   const stats = globalStats[0];
-  const todayRev = Number(stats.today_rev || 0);
-  const todayCancelledRev = Number(stats.today_can || 0);
-  const thisWeekRev = Number(stats.week_rev || 0);
-  const lastWeekRev = Number(stats.last_week_rev || 0);
-  const thisWeekCancelledRev = Number(stats.week_can || 0);
-  const thisMonthRev = Number(stats.month_rev || 0);
-  const lastMonthRev = Number(stats.last_month_rev || 0);
-  const thisMonthCancelledRev = Number(stats.month_can || 0);
-  const ytdRev = Number(stats.ytd_rev || 0);
-  const ytdCancelledRev = Number(stats.ytd_can || 0);
+  const todayRev = Number(stats?.today_rev || 0);
+  const todayCancelledRev = Number(stats?.today_can || 0);
+  const thisWeekRev = Number(stats?.week_rev || 0);
+  const lastWeekRev = Number(stats?.last_week_rev || 0);
+  const thisWeekCancelledRev = Number(stats?.week_can || 0);
+  const thisMonthRev = Number(stats?.month_rev || 0);
+  const lastMonthRev = Number(stats?.last_month_rev || 0);
+  const thisMonthCancelledRev = Number(stats?.month_can || 0);
+  const ytdRev = Number(stats?.ytd_rev || 0);
+  const ytdCancelledRev = Number(stats?.ytd_can || 0);
   
   const weekProgress = lastWeekRev > 0 ? ((thisWeekRev - lastWeekRev) / lastWeekRev) * 100 : 0;
   const monthProgress = lastMonthRev > 0 ? ((thisMonthRev - lastMonthRev) / lastMonthRev) * 100 : 0;
-  const uniqueCustomerCount = uniqueCustomers;
 
   // Process Outlook
   const outlook = Array.from({ length: 7 }, (_, i) => {
@@ -164,22 +182,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       jobCount: Number(found?.count || 0),
       revenue: Number(found?.rev || 0)
     };
-  });
-
-  const barbers = await prisma.user.findMany({ 
-    where: { tenantId, role: { in: ['BARBER', 'ADMIN'] } }
-  });
-
-  let barberReviews: any[] = [];
-  try {
-    barberReviews = await prisma.review.findMany({ where: { tenantId } });
-  } catch(e) {}
-
-
-  const alerts = await prisma.merchantAlert.findMany({
-    where: { tenantId },
-    orderBy: { createdAt: 'desc' },
-    take: 10
   });
 
   const monthlyTrends = Array.from({ length: 12 }, (_, i) => {
