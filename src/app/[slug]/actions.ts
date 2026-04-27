@@ -99,29 +99,32 @@ export async function createBookingTransaction(
     });
 
     const [h, m] = targetTimeStr.split(':').map(Number);
-    // 1. Resolve Sydney -> UTC Precision
-    // We create a Date object in Sydney context to find the true UTC moment
-    const sydneyFormatter = new Intl.DateTimeFormat('en-AU', {
-      timeZone: 'Australia/Sydney',
-      year: 'numeric', month: 'numeric', day: 'numeric',
-      hour: 'numeric', minute: 'numeric', second: 'numeric',
-      hour12: false
+    // 1. Resolve Sydney -> UTC Precision (Using the robust offset calculation)
+    const getSydneyUTC = (dateStr: string, timeStr: string) => {
+      const [y, mm, d] = dateStr.split('-').map(Number);
+      const [hh, min] = timeStr.split(':').map(Number);
+      const date = new Date(Date.UTC(y, mm - 1, d, hh, min));
+      const formatter = new Intl.DateTimeFormat('en-US', { timeZone: 'Australia/Sydney', hour12: false, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' });
+      const parts = formatter.formatToParts(date);
+      const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+      const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
+      let diffHours = sHour - hh;
+      if (sDay !== d) diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
+      return new Date(date.getTime() - (diffHours * 3600000));
+    };
+
+    const baseStartTime = getSydneyUTC(targetDateStr, targetTimeStr);
+
+    // 2. Fetch ALL existing appointments for this window to perform SMART ASSIGNMENT
+    const windowStart = new Date(baseStartTime.getTime() - 4*60*60*1000);
+    const windowEnd = new Date(baseStartTime.getTime() + 8*60*60*1000);
+    const existingApps = await prisma.appointment.findMany({
+      where: {
+        tenantId: tenant.id,
+        status: { not: 'CANCELLED' },
+        startTime: { gte: windowStart, lte: windowEnd }
+      }
     });
-
-    // To find the UTC offset for Sydney on THIS specific date:
-    const testDate = new Date(`${targetDateStr}T${targetTimeStr}:00Z`); // ISO Z
-    const sydneyParts = sydneyFormatter.formatToParts(testDate);
-    const sYear = parseInt(sydneyParts.find(p => p.type === 'year')?.value || "0");
-    const sMonth = parseInt(sydneyParts.find(p => p.type === 'month')?.value || "0");
-    const sDay = parseInt(sydneyParts.find(p => p.type === 'day')?.value || "0");
-    const sHour = parseInt(sydneyParts.find(p => p.type === 'hour')?.value || "0");
-    const sMin = parseInt(sydneyParts.find(p => p.type === 'minute')?.value || "0");
-
-    const sydneyLocalMoment = new Date(sYear, sMonth - 1, sDay, sHour, sMin);
-    const driftMs = sydneyLocalMoment.getTime() - testDate.getTime();
-    
-    // Now we have the exact UTC date for "Sydney 9am"
-    const baseStartTime = new Date(new Date(`${targetDateStr}T${targetTimeStr}:00Z`).getTime() - driftMs);
 
     const paymentStatus = (paymentMethod === "CARD_ONLINE" || paymentMethod === "GIFT_CARD") ? "PAID" : "UNPAID";
     const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
@@ -129,50 +132,46 @@ export async function createBookingTransaction(
     const bookingGroupId = `grp_${Math.random().toString(36).substr(2, 9)}`;
 
     let processedCount = 0;
-    let rollingStartTime = new Date(baseStartTime);
+    const usedBarberIds = new Set<string>();
 
-    // TRUE SEQUENTIAL ENGINE: We process each item one-by-one to avoid connection pool competition
+    // TRUE SEQUENTIAL ENGINE: Assigns barbers dynamically based on ACTUAL availability
     for (const item of cart) {
-      // Handle all possible input shapes: serviceId, s (compact), or service.id (frontend)
       const serviceId = (item as any).serviceId || (item as any).s || (item as any).service?.id;
       const quantity = (item as any).quantity || (item as any).q;
-      const personIndex = (item as any).p || 0; 
-
-      if (!serviceId) continue; // Safety skip for malformed items
-
       const service = services.find(s => s.id === serviceId);
       const duration = service?.durationMinutes || 45;
-      
-      const safeGiftCardId = (giftCardId && giftCardId.trim() !== '') ? giftCardId : null;
-      const safeStripeId = (stripePaymentIntentId && stripePaymentIntentId.trim() !== '') ? stripePaymentIntentId : null;
 
       for (let i = 0; i < quantity; i++) {
         const id = `apt_${Math.random().toString(36).substr(2, 9)}`;
-        const localIndex = processedCount++;
-        
-        // Determine Start Time: 
-        // With parallel staff, we can fit 'staffCount' people at the same time
-        // Every 'staffCount' people, we jump forward by the duration
-        const laneIndex = localIndex % activeBarbers.length;
-        const jumpIndex = Math.floor(localIndex / activeBarbers.length);
-        
-        // Calculate the actual start time based on parallel lanes
-        // P1 & P2 start at 9:00. P3 & P4 start at 9:45 (if staffCount=2)
-        const currentStartTime = new Date(baseStartTime.getTime() + (jumpIndex * 1000 * 60 * duration));
+        const currentStartTime = new Date(baseStartTime.getTime()); // All in group start at same time currently
         const currentEndTime = new Date(currentStartTime.getTime() + 1000 * 60 * duration);
 
-        // Assign Barber: Explicit lane assignment
-        const assignedBarber = activeBarbers[laneIndex];
+        // SMART ASSIGNMENT: Find a barber who is FREE for THIS specific window
+        const freeBarber = activeBarbers.find(b => {
+          // If we've already assigned this barber to another person in THIS group, they are not free
+          if (usedBarberIds.has(b.id)) return false;
 
-        const priorityFee = localIndex === 0 ? 0.50 : 0;
+          // Check against existing appointments in the DB
+          const hasConflict = existingApps.some(a => {
+            if (a.barberId !== b.id) return false;
+            return (currentStartTime.getTime() < a.endTime.getTime() && currentEndTime.getTime() > a.startTime.getTime());
+          });
+
+          return !hasConflict;
+        });
+
+        if (!freeBarber) {
+          throw new Error("Conflict detected: No specialist is available for one or more services at this time. Please try another slot.");
+        }
+
+        // Lock this barber for the rest of this group booking
+        usedBarberIds.add(freeBarber.id);
+
+        const priorityFee = processedCount === 0 ? 0.50 : 0;
         const stripePerApp = (service?.price || 0) - giftPerApp + priorityFee;
-
-        const safeStripeId = stripePaymentIntentId || null;
-        const safeGiftCardId = giftCardId || null;
         const finalStripeAmt = Math.max(0, stripePerApp || 0);
         const finalGiftAmt = Math.max(0, giftPerApp || 0);
 
-        // AWAIT EACH CALL DIRECTLY IN THE LOOP
         await prisma.$executeRaw`
           INSERT INTO "Appointment" (
             "id", "startTime", "endTime", "status", "customerId", 
@@ -181,11 +180,12 @@ export async function createBookingTransaction(
             "giftCardId", "emailSent", "cancellationFee", "updatedAt", "createdAt"
           ) VALUES (
             ${id}, ${currentStartTime}, ${currentEndTime}, 'CONFIRMED', ${userId}, 
-            ${assignedBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
-            ${safeStripeId}, ${bookingGroupId}, ${finalStripeAmt}, ${finalGiftAmt}, 
-            ${safeGiftCardId}, false, 0, NOW(), NOW()
+            ${freeBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
+            ${stripePaymentIntentId || null}, ${bookingGroupId}, ${finalStripeAmt}, ${finalGiftAmt}, 
+            ${giftCardId || null}, false, 0, NOW(), NOW()
           )
         `;
+        processedCount++;
       }
     }
     // ... revalidation and returns follow
