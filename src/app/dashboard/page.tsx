@@ -210,98 +210,65 @@ export default async function DashboardOverview({ searchParams }: { searchParams
     gift: Number(r.gift)
   }));
 
-  return (
-    <>
+    return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       {/* Main Stats Grid */}
       <div className={styles.statsGrid}>
-        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--primary)' }}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Today's Total</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(todayRev + todayCancelledRev).toFixed(2)}</p>
-           <div style={{ marginTop: '0.8rem', display: 'flex', gap: '0.8rem', fontSize: '0.7rem', fontWeight: 800 }}>
-              <span style={{ color: '#10b981' }}>Service: ${todayRev.toFixed(2)}</span>
-              <span style={{ opacity: 0.3 }}>|</span>
-              <span style={{ color: '#ef4444' }}>Cancellation: ${todayCancelledRev.toFixed(2)}</span>
+        <div className={styles.statCard} style={{ borderTop: '4px solid #6366f1' }}>
+           <h3>📅 Today's Revenue</h3>
+           <p className={styles.statNumber}>${(todayRev + todayCancelledRev).toFixed(2)}</p>
+           <div style={{ marginTop: '1rem', display: 'flex', gap: '0.8rem', fontSize: '0.75rem', fontWeight: 700 }}>
+              <span style={{ color: '#10b981' }}>Services: ${todayRev.toFixed(0)}</span>
+              <span style={{ color: '#ef4444' }}>Cancels: ${todayCancelledRev.toFixed(0)}</span>
            </div>
         </div>
-        <div className={`${styles.statCard} glass`}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Weekly Progress</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(thisWeekRev + thisWeekCancelledRev).toFixed(0)}</p>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
-                 <span style={{ color: '#10b981' }}>Svc: ${thisWeekRev.toFixed(0)}</span>
-                 <span style={{ color: '#ef4444' }}>Can: ${thisWeekCancelledRev.toFixed(0)}</span>
-              </div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: weekProgress >= 0 ? '#10b981' : '#ef4444', background: weekProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-                 {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}%
+        <div className={styles.statCard}>
+           <h3>📈 Weekly Growth</h3>
+           <p className={styles.statNumber}>${(thisWeekRev + thisWeekCancelledRev).toFixed(0)}</p>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: weekProgress >= 0 ? '#10b981' : '#ef4444', background: weekProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
+                 {weekProgress >= 0 ? '↑' : '↓'} {Math.abs(weekProgress).toFixed(1)}% vs last week
               </span>
            </div>
         </div>
-        <div className={`${styles.statCard} glass`}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>MTD Total</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(thisMonthRev + thisMonthCancelledRev).toFixed(0)}</p>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.6rem' }}>
-              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
-                 <span style={{ color: '#10b981' }}>Svc: ${thisMonthRev.toFixed(0)}</span>
-                 <span style={{ color: '#ef4444' }}>Can: ${thisMonthCancelledRev.toFixed(0)}</span>
-              </div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 900, color: monthProgress >= 0 ? '#10b981' : '#ef4444', background: monthProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px' }}>
-                 {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}%
+        <div className={styles.statCard}>
+           <h3>🗓️ Month to Date</h3>
+           <p className={styles.statNumber}>${(thisMonthRev + thisMonthCancelledRev).toFixed(0)}</p>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: monthProgress >= 0 ? '#10b981' : '#ef4444', background: monthProgress >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding: '0.3rem 0.6rem', borderRadius: '8px' }}>
+                 {monthProgress >= 0 ? '↑' : '↓'} {Math.abs(monthProgress).toFixed(1)}% vs last month
               </span>
            </div>
         </div>
-        <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--accent)' }}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Yearly Total (YTD)</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>${(ytdRev + ytdCancelledRev).toFixed(0)}</p>
-           <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.5rem', fontSize: '0.7rem', fontWeight: 800 }}>
-              <span style={{ color: '#10b981' }}>Svc: ${ytdRev.toFixed(0)}</span>
-              <span style={{ color: '#ef4444' }}>Can: ${ytdCancelledRev.toFixed(0)}</span>
-           </div>
-        </div>
-        <div className={`${styles.statCard} glass`}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Active {terminology.staffLabelPlural}</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>{barbers?.length || 0}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Team Capacity</p>
-        </div>
-        <div className={`${styles.statCard} glass`}>
-           <h3 style={{ color: 'var(--primary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 900 }}>Total Unique Customers</h3>
-           <p className={styles.statNumber} style={{ color: 'var(--foreground)', fontSize: '2.5rem', fontWeight: 900 }}>{uniqueCustomerCount}</p>
-           <p style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.6rem', fontWeight: 800, color: 'var(--foreground)' }}>Lifetime Client Base</p>
+        <div className={styles.statCard} style={{ borderTop: '4px solid #10b981' }}>
+           <h3>👥 Client Base</h3>
+           <p className={styles.statNumber}>{uniqueCustomerCount}</p>
+           <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '1rem', fontWeight: 700 }}>Total Unique Customers</p>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
+      <div style={{ background: '#fff', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.02)' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '2rem', color: '#0f172a' }}>Next 7 Days Outlook</h2>
         <WeeklyCalendar weekData={outlook} currentDay={targetDateStr} />
       </div>
 
-      {/* Yearly Trends Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginTop: '2.5rem' }}>
-         <div className="glass" style={{ padding: '2rem', borderRadius: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-               <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Monthly Trend</h3>
-                  <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>Revenue Progress (2026)</p>
-               </div>
-            </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+         <div className={styles.recentSection}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '1px', marginBottom: '2rem' }}>Monthly Revenue Trend</h3>
             <TrendBarChart data={monthlyTrends} />
          </div>
 
-         <div className="glass" style={{ padding: '2rem', borderRadius: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-               <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Weekly Performance</h3>
-                  <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>Market Flux Analysis</p>
-               </div>
-            </div>
+         <div className={styles.recentSection}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', letterSpacing: '1px', marginBottom: '2rem' }}>Weekly Market Flux</h3>
             <TrendBarChart data={weeklyTrends} />
          </div>
       </div>
 
-      {/* Staff Ledger Section */}
-      <section className="glass" style={{ marginTop: '2.5rem', padding: '2rem' }}>
-         <h3 style={{ fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1.5rem' }}>
-            {terminology.staffLabel} Performance (Last 30 Days)
+      <section className={styles.recentSection}>
+         <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '2rem', color: '#0f172a' }}>
+            {terminology.staffLabel} Leaderboard (30 Days)
          </h3>
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
             {barbers.map(barber => {
               const stats = staffStats.find(s => s.barberId === barber.id);
               const myReviews = barberReviews.filter(r => r.barberId === barber.id);
@@ -310,28 +277,27 @@ export default async function DashboardOverview({ searchParams }: { searchParams
                  : null;
 
               return (
-                <div key={barber.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '1.5rem' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                      <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>{barber.name}</span>
+                <div key={barber.id} style={{ border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.8rem', background: '#f8fafc' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{barber.name}</span>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         {avgRating && (
-                          <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 800 }}>
+                          <span style={{ background: '#fff', color: '#f59e0b', fontSize: '0.75rem', padding: '0.3rem 0.6rem', borderRadius: '10px', fontWeight: 800, border: '1px solid #fef3c7' }}>
                             ⭐ {avgRating}
                           </span>
                         )}
-                        <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', fontSize: '0.7rem', padding: '0.2rem 0.6rem', borderRadius: '20px', fontWeight: 800 }}>ACTIVE</span>
                       </div>
                    </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', opacity: 0.6, fontSize: '0.8rem' }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontSize: '0.85rem', marginBottom: '0.8rem' }}>
                       <span>Jobs Completed</span>
-                      <span style={{ color: 'white', fontWeight: 700 }}>{stats?.jobs || 0}</span>
+                      <span style={{ color: '#0f172a', fontWeight: 800 }}>{stats?.jobs || 0}</span>
                    </div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.8rem' }}>
-                      <span style={{ opacity: 0.6 }}>Revenue Produced</span>
-                      <span style={{ color: 'var(--primary)', fontWeight: 900 }}>${Number(stats?.revenue || 0).toFixed(2)}</span>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                      <span style={{ color: '#64748b' }}>Revenue Contribution</span>
+                      <span style={{ color: '#6366f1', fontWeight: 900 }}>${Number(stats?.revenue || 0).toFixed(2)}</span>
                    </div>
-                   <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '1rem', overflow: 'hidden' }}>
-                      <div style={{ width: `${Math.min(Number(stats?.jobs || 0) / 100 * 100, 100)}%`, height: '100%', background: 'var(--primary)' }}></div>
+                   <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', marginTop: '1.5rem', overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(Number(stats?.jobs || 0) / 100 * 100, 100)}%`, height: '100%', background: '#6366f1' }}></div>
                    </div>
                 </div>
               );
@@ -339,10 +305,10 @@ export default async function DashboardOverview({ searchParams }: { searchParams
          </div>
       </section>
 
-      <section style={{ marginTop: '2.5rem' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 900 }}>Physical Grid View</h2>
-            <div style={{ fontSize: '0.8rem', opacity: 0.5 }}>Shift Deep-Dive</div>
+      <section style={{ background: '#fff', padding: '2.5rem', borderRadius: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.02)' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>Real-time Booking Grid</h2>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Live Status</div>
          </div>
          <CalendarUI 
             barbers={barbers} 
@@ -351,6 +317,6 @@ export default async function DashboardOverview({ searchParams }: { searchParams
             highlightAppointmentId={highlightAppointmentId}
          />
       </section>
-    </>
+    </div>
   );
 }

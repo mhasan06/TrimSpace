@@ -18,17 +18,19 @@ export async function getShopCustomers(tenantId: string) {
     throw new Error("Unauthorized: You do not have permission to access this shop's directory.");
   }
 
-  // Fetch users who have booked at this shop (via appointments) or are linked to the tenant
-  // For simplicity, we'll fetch all CUSTOMER rol users linked to this tenant
+  // Fetch users who have booked at this shop (via appointments) OR are linked to the tenant
   return await prisma.user.findMany({
     where: { 
-        tenantId,
+        OR: [
+          { tenantId },
+          { appointments: { some: { tenantId } } }
+        ],
         role: "CUSTOMER"
     },
     orderBy: { createdAt: 'desc' },
     include: {
         _count: {
-            select: { appointments: true }
+            select: { appointments: { where: { tenantId } } }
         },
         appointments: {
             where: { tenantId },

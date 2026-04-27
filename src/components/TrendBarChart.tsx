@@ -41,12 +41,12 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
       {/* Legend */}
       <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', justifyContent: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ width: '12px', height: '12px', background: '#D4AF37', borderRadius: '3px' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.8 }}>Digital (Stripe)</span>
+          <span style={{ width: '12px', height: '12px', background: '#6366f1', borderRadius: '3px' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>Digital (Stripe)</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ width: '12px', height: '12px', background: '#10b981', borderRadius: '3px' }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, opacity: 0.8 }}>Gift Card</span>
+          <span style={{ width: '12px', height: '12px', background: '#818cf8', borderRadius: '3px' }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>Gift Card</span>
         </div>
       </div>
 
@@ -54,12 +54,12 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
             <defs>
                 <linearGradient id="barStripe" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D4AF37" />
-                    <stop offset="100%" stopColor="#B8860B" />
+                    <stop offset="0%" stopColor="#6366f1" />
+                    <stop offset="100%" stopColor="#4f46e5" />
                 </linearGradient>
                 <linearGradient id="barGift" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#059669" />
+                    <stop offset="0%" stopColor="#818cf8" />
+                    <stop offset="100%" stopColor="#6366f1" />
                 </linearGradient>
             </defs>
 
@@ -69,8 +69,8 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
                 const y = yFor(val);
                 return (
                     <g key={i}>
-                        <line x1={PAD_L} y1={y} x2={WIDTH - PAD_R} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="4 4" />
-                        <text x={PAD_L - 10} y={y + 4} textAnchor="end" fontSize="10" fill="rgba(255,255,255,0.3)" fontWeight="600">
+                        <line x1={PAD_L} y1={y} x2={WIDTH - PAD_R} y2={y} stroke="rgba(0,0,0,0.05)" strokeWidth="1" strokeDasharray="4 4" />
+                        <text x={PAD_L - 10} y={y + 4} textAnchor="end" fontSize="10" fill="#94a3b8" fontWeight="600">
                             ${val >= 1000 ? `${(val/1000).toFixed(1)}k` : val.toFixed(0)}
                         </text>
                     </g>
@@ -121,20 +121,7 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
                                     textAnchor="middle" 
                                     fontSize="12" 
                                     fontWeight="900"
-                                    fill="black"
-                                    stroke="black"
-                                    strokeWidth="3"
-                                    strokeLinejoin="round"
-                                >
-                                    ${totalAmount.toFixed(0)}
-                                </text>
-                                <text 
-                                    x={x + barWidth / 2} 
-                                    y={totalY - 12} 
-                                    textAnchor="middle" 
-                                    fontSize="12" 
-                                    fontWeight="900"
-                                    fill="#D4AF37"
+                                    fill="#6366f1"
                                 >
                                     ${totalAmount.toFixed(0)}
                                 </text>
@@ -148,7 +135,7 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
                                 y={HEIGHT - 20} 
                                 textAnchor={data.length > 15 ? "start" : "middle"} 
                                 fontSize="12" 
-                                fill="#D4AF37"
+                                fill="#94a3b8"
                                 fontWeight="800"
                                 transform={data.length > 15 ? `rotate(35, ${x + barWidth / 2}, ${HEIGHT - 20})` : ""}
                                 style={{ letterSpacing: '0.5px' }}
@@ -168,11 +155,11 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
             top: (tooltip.y / HEIGHT) * 100 + '%',
             left: (tooltip.x / WIDTH) * 100 + '%',
             transform: 'translate(-50%, -120%)',
-            background: '#111',
-            border: '1px solid var(--primary)',
+            background: '#fff',
+            border: '1px solid #e2e8f0',
             padding: '0.8rem',
             borderRadius: '12px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.8)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
             zIndex: 100,
             pointerEvents: 'none',
             minWidth: '140px'
@@ -180,16 +167,16 @@ export default function TrendBarChart({ data }: TrendBarChartProps) {
             <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', fontWeight: 800, marginBottom: '0.4rem' }}>{tooltip.point.date}</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#D4AF37', fontSize: '0.8rem' }}>Digital</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>${tooltip.point.stripe.toFixed(2)}</span>
+                    <span style={{ color: '#6366f1', fontSize: '0.8rem', fontWeight: 600 }}>Digital</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}>${tooltip.point.stripe.toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#10b981', fontSize: '0.8rem' }}>Gift</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.8rem' }}>${tooltip.point.gift.toFixed(2)}</span>
+                    <span style={{ color: '#818cf8', fontSize: '0.8rem', fontWeight: 600 }}>Gift</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#0f172a' }}>${tooltip.point.gift.toFixed(2)}</span>
                 </div>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '0.3rem', paddingTop: '0.3rem', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Total</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '0.85rem' }}>${(tooltip.point.stripe + tooltip.point.gift).toFixed(2)}</span>
+                <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '0.3rem', paddingTop: '0.3rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.6, color: '#475569' }}>Total</span>
+                    <span style={{ color: '#6366f1', fontWeight: 900, fontSize: '0.85rem' }}>${(tooltip.point.stripe + tooltip.point.gift).toFixed(2)}</span>
                 </div>
             </div>
           </div>

@@ -55,53 +55,69 @@ export default async function DashboardLayout({ children }: { children: React.Re
     : ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT", "MARKETING"];
 
   return (
-    <div className={styles.dashboardContainer} style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className={styles.dashboardContainer}>
       {context.isSupportMode && (
         <SupportSessionBanner 
           tenantName={context.tenantName!} 
           adminName={context.realAdminName!} 
         />
       )}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-      <aside className={`${styles.sidebar} glass`}>
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ fontSize: '0.6rem', background: 'var(--primary)', color: 'black', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '0.5rem' }}>V2.1 - ACTIVE</div>
-          <h2 style={{ fontSize: '1.2rem', color: 'var(--foreground)' }}>Business Dashboard</h2>
-          <p style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', letterSpacing: '1px' }}>{terminology.industryIcon} {tenant?.category || 'BARBER'}</p>
+      
+      <aside className={styles.sidebar}>
+        <div style={{ paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ fontSize: '0.6rem', background: '#6366f1', color: '#fff', display: 'inline-block', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: 900, marginBottom: '1rem' }}>v2.2 PRIME</div>
+          <h2>{tenant?.name || 'Dashboard'}</h2>
+          <p>{terminology.industryIcon} {tenant?.category || 'BUSINESS'}</p>
         </div>
+
         <nav className={styles.nav}>
-          {enabledFeatures.includes("OVERVIEW") && <Link href="/dashboard" className={styles.navLink}>Overview</Link>}
+          <Link href="/dashboard" className={styles.navLink}>📊 Overview</Link>
+          
+          <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px' }}>Operations</div>
+          {enabledFeatures.includes("SERVICES") && <Link href="/dashboard/services" className={styles.navLink}>✂️ {terminology.serviceLabelPlural}</Link>}
+          {enabledFeatures.includes("ROSTER") && <Link href="/dashboard/roster" className={styles.navLink}>📅 {terminology.rosterLabel}</Link>}
+          {enabledFeatures.includes("CUSTOMERS") && <Link href="/dashboard/customers" className={styles.navLink}>👥 Customers</Link>}
+          
+          <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px' }}>Financials</div>
           {(enabledFeatures.includes("LEDGER") || enabledFeatures.includes("SETTLEMENTS")) && (
             <>
-              <Link href="/dashboard/appointments" className={styles.navLink}>Master Ledger</Link>
-              <Link href="/dashboard/ledger" className={styles.navLink} style={{ color: 'var(--primary)', fontWeight: 700 }}>Financial Settlement</Link>
+              <Link href="/dashboard/appointments" className={styles.navLink}>📜 Master Ledger</Link>
+              <Link href="/dashboard/ledger" className={styles.navLink}>💰 Payouts</Link>
             </>
           )}
-          {enabledFeatures.includes("COMMS") && <Link href="/dashboard/communications" className={styles.navLink} style={{ color: 'var(--primary)' }}>Communications Hub</Link>}
-          {enabledFeatures.includes("MARKETING") && <Link href="/dashboard/marketing" className={styles.navLink} style={{ color: '#fbbf24', fontWeight: 800 }}>✨ Marketing Kit</Link>}
-          {enabledFeatures.includes("REPORTS") && <Link href="/dashboard/reports" className={styles.navLink}>Advanced Reporting</Link>}
-          {enabledFeatures.includes("SERVICES") && <Link href="/dashboard/services" className={styles.navLink}>{terminology.serviceLabelPlural}</Link>}
-          {enabledFeatures.includes("ROSTER") && <Link href="/dashboard/roster" className={styles.navLink}>{terminology.rosterLabel}</Link>}
-          {enabledFeatures.includes("CUSTOMERS") && <Link href="/dashboard/customers" className={styles.navLink}>Customer Directory</Link>}
-          {enabledFeatures.includes("SETTINGS") && <Link href="/dashboard/settings" className={styles.navLink}>Shop Settings</Link>}
-          {enabledFeatures.includes("SUPPORT") && <Link href="/dashboard/support" className={styles.navLink} style={{ marginTop: 'auto', color: 'var(--accent)' }}>Contact Support</Link>}
+
+          <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px' }}>Growth</div>
+          {enabledFeatures.includes("COMMS") && <Link href="/dashboard/communications" className={styles.navLink}>💬 Comms Hub</Link>}
+          {enabledFeatures.includes("MARKETING") && <Link href="/dashboard/marketing" className={styles.navLink}>✨ Marketing</Link>}
+          {enabledFeatures.includes("REPORTS") && <Link href="/dashboard/reports" className={styles.navLink}>📈 Analytics</Link>}
+
+          <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+            {enabledFeatures.includes("SETTINGS") && <Link href="/dashboard/settings" className={styles.navLink}>⚙️ Settings</Link>}
+            {enabledFeatures.includes("SUPPORT") && <Link href="/dashboard/support" className={styles.navLink}>🛠️ Support</Link>}
+          </div>
         </nav>
       </aside>
 
       <main className={styles.mainContent}>
-        <header className={`${styles.header} glass`} style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem 2rem', borderRadius: '16px' }}>
+        <header className={styles.header}>
           <div>
-             <h1 style={{ color: 'var(--foreground)', margin: 0, fontSize: '1.5rem' }}>Master Command</h1>
-             <p style={{ color: 'var(--accent)', marginTop: '0.2rem', fontSize: '0.8rem', fontWeight: 700 }}>{tenant?.name || 'Business Dashboard'}</p>
+             <h1>Welcome back, {session?.user?.name?.split(' ')[0] || 'Partner'}</h1>
+             <p>Managing {tenant?.name}</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginRight: '1rem' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>{session?.user?.name}</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#64748b' }}>{(session?.user as any).role}</span>
+            </div>
             <LogoutButton />
           </div>
         </header>
-        {children}
+        
+        <div style={{ minHeight: 'calc(100vh - 200px)' }}>
+            {children}
+        </div>
       </main>
 
-      </div>
       <MobileBottomNav />
     </div>
   );
