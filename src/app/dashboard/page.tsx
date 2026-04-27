@@ -75,6 +75,9 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   }));
 
   // 2. High-Performance Stats Aggregation (Single Batch)
+  const startOfToday = new Date(nowSydney);
+  startOfToday.setHours(0,0,0,0);
+
   const startOfThisWeek = new Date(nowSydney);
   startOfThisWeek.setDate(nowSydney.getDate() - nowSydney.getDay());
   startOfThisWeek.setHours(0,0,0,0);
