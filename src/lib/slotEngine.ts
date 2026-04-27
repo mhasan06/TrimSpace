@@ -1,27 +1,31 @@
 import { prisma } from "./prisma";
-import { toSydneyTime, getSydneyDayOfWeek, getSydneyTodayStr } from "./date-utils";
+import { AU_TIMEZONE } from "./date-utils";
 
 /**
- * Enterprise Simple Specialist Engine (V5)
- * Simplified Block-Based Scheduling for maximum reliability.
+ * Enterprise Absolute UTC Engine (V6)
+ * Fixes timezone drift "for life" by using pure UTC timestamps anchored to Sydney.
  */
 export async function getAvailableSlots(
   tenantId: string, 
   requestedDateStr: string, 
-  serviceGroups: number[][], // [[30, 45], [30]]
+  serviceGroups: number[][],
   preferredBarberId?: string
 ) {
-  // 1. Basic Checks
-  const today = getSydneyTodayStr();
-  if (requestedDateStr <= today) {
-    return { availableSlots: [], reason: "Same-day bookings disabled." };
-  }
+  // 1. Resolve Sydney Day to Absolute UTC Window
+  // requestedDateStr is "YYYY-MM-DD"
+  // We need to know when this day starts and ends in Sydney, as UTC.
+  const getSydneyEdge = (dateStr: string, timeStr: string) => {
+    return new Date(new Date(`${dateStr}T${timeStr}`).toLocaleString('en-US', { timeZone: AU_TIMEZONE }));
+  };
 
-  const targetDate = new Date(`${requestedDateStr}T00:00:00`); 
-  const dayOfWeek = getSydneyDayOfWeek(targetDate);
-
+  // This gives us the exact UTC moments for the Sydney business day
   const [businessDay, override, barbers] = await Promise.all([
-    prisma.businessHours.findFirst({ where: { tenantId, dayOfWeek } }),
+    prisma.businessHours.findFirst({ 
+      where: { 
+        tenantId, 
+        dayOfWeek: new Date(new Date(`${requestedDateStr}T12:00:00`).toLocaleString('en-US', { timeZone: AU_TIMEZONE })).getDay() 
+      } 
+    }),
     prisma.scheduleOverride.findFirst({ where: { tenantId, date: requestedDateStr, isClosed: true } }),
     prisma.user.findMany({ where: { tenantId, role: "BARBER", isActive: true } })
   ]);
@@ -29,95 +33,62 @@ export async function getAvailableSlots(
   if (override) return { availableSlots: [], reason: override.reason || "Shop is closed." };
   if (!businessDay) return { availableSlots: [], reason: "No business hours." };
 
-  const timeToMins = (t: string) => {
-    const [h, m] = t.split(':').map(Number);
-    return h * 60 + m;
-  };
-  const minsToTime = (m: number) => {
-    const hh = Math.floor(m / 60).toString().padStart(2, '0');
-    const mm = (m % 60).toString().padStart(2, '0');
-    return `${hh}:${mm}`;
-  };
+  // Generate the absolute UTC start and end for the shop's day
+  const shopOpenUTC = new Date(`${requestedDateStr}T${businessDay.openTime}:00`).toLocaleString('en-US', { timeZone: AU_TIMEZONE });
+  const shopCloseUTC = new Date(`${requestedDateStr}T${businessDay.closeTime}:00`).toLocaleString('en-US', { timeZone: AU_TIMEZONE });
+  
+  const startMoment = new Date(shopOpenUTC);
+  const endMoment = new Date(shopCloseUTC);
 
-  const openMins = timeToMins(businessDay.openTime);
-  const closeMins = timeToMins(businessDay.closeTime);
-  const lunchS = businessDay.lunchStart ? timeToMins(businessDay.lunchStart) : null;
-  const lunchE = businessDay.lunchEnd ? timeToMins(businessDay.lunchEnd) : null;
+  // 2. Fetch Appointments for the Expanded Window
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      tenantId,
+      status: { not: 'CANCELLED' },
+      startTime: { gte: new Date(startMoment.getTime() - 24*60*60*1000), lte: new Date(endMoment.getTime() + 24*60*60*1000) }
+    }
+  });
 
-  // 2. Resolve Person Blocks
+  // 3. Resolve Durations
   const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
   const maxIndivDuration = Math.max(0, ...personDurations);
   const lanesNeeded = personDurations.length;
 
   if (lanesNeeded > barbers.length) {
-    return { availableSlots: [], reason: `Party size exceeds total specialists (${barbers.length}).` };
+    return { availableSlots: [], reason: `Party size exceeds total specialists.` };
   }
 
-  // 3. Fetch Appointments (Expanded Window for Timezone Safety)
-  // We fetch anything +/- 24h to be absolutely safe
-  const windowStart = new Date(`${requestedDateStr}T00:00:00Z`);
-  windowStart.setDate(windowStart.getDate() - 1);
-  const windowEnd = new Date(`${requestedDateStr}T23:59:59Z`);
-  windowEnd.setDate(windowEnd.getDate() + 1);
-
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      tenantId,
-      status: { not: 'CANCELLED' },
-      startTime: { gte: windowStart, lte: windowEnd }
-    }
-  });
-
-  // Pre-calculate Sydney components for appointments to avoid repeated Intl calls
-  const processedApps = appointments.map(a => {
-    const s = toSydneyTime(a.startTime);
-    const e = toSydneyTime(a.endTime);
-    
-    // Get Sydney YYYY-MM-DD components
-    const dParts = new Intl.DateTimeFormat('en-AU', {
-      timeZone: 'Australia/Sydney',
-      year: 'numeric', month: '2-digit', day: '2-digit'
-    }).formatToParts(a.startTime);
-    
-    const y = dParts.find(p => p.type === 'year')?.value;
-    const m = dParts.find(p => p.type === 'month')?.value;
-    const d = dParts.find(p => p.type === 'day')?.value;
-    const isoDate = `${y}-${m}-${d}`;
-
-    return {
-      barberId: a.barberId,
-      isoDate,
-      startMins: s.hours * 60 + s.minutes,
-      endMins: e.hours * 60 + e.minutes
-    };
-  });
-
-  // 4. Main Slot Loop
+  // 4. Generate Slots
   const availableSlots: { time: string, finishTime: string }[] = [];
+  const stepMs = 30 * 60 * 1000;
+  const durationMs = maxIndivDuration * 60 * 1000;
 
-  for (let currentSlot = openMins; currentSlot + maxIndivDuration <= closeMins; currentSlot += 30) {
-    // Lunch Check
-    if (lunchS !== null && lunchE !== null) {
-      if (currentSlot < lunchE && currentSlot + maxIndivDuration > lunchS) continue;
+  const lunchS = businessDay.lunchStart ? new Date(new Date(`${requestedDateStr}T${businessDay.lunchStart}:00`).toLocaleString('en-US', { timeZone: AU_TIMEZONE })).getTime() : null;
+  const lunchE = businessDay.lunchEnd ? new Date(new Date(`${requestedDateStr}T${businessDay.lunchEnd}:00`).toLocaleString('en-US', { timeZone: AU_TIMEZONE })).getTime() : null;
+
+  for (let currentMs = startMoment.getTime(); currentMs + durationMs <= endMoment.getTime(); currentMs += stepMs) {
+    // Lunch Collision
+    if (lunchS && lunchE) {
+      if (currentMs < lunchE && currentMs + durationMs > lunchS) continue;
     }
 
     const freeBarbers = barbers.filter(b => {
-       if (preferredBarberId && b.id !== preferredBarberId) return false;
-       
-       return !processedApps.some(a => {
-          if (a.barberId !== b.id) return false;
-          if (a.isoDate !== requestedDateStr) return false;
-
-          // Standard Overlap
-          return (currentSlot < a.endMins && currentSlot + maxIndivDuration > a.startMins);
-       });
+      if (preferredBarberId && b.id !== preferredBarberId) return false;
+      
+      return !appointments.some(a => {
+        if (a.barberId !== b.id) return false;
+        // PURE UTC COLLISION DETECTION
+        const aStart = a.startTime.getTime();
+        const aEnd = a.endTime.getTime();
+        return (currentMs < aEnd && currentMs + durationMs > aStart);
+      });
     });
 
     if (freeBarbers.length >= lanesNeeded) {
-      availableSlots.push({
-        time: minsToTime(currentSlot),
-        finishTime: minsToTime(currentSlot + maxIndivDuration)
-      });
+      const timeStr = new Date(currentMs).toLocaleTimeString('en-AU', { timeZone: AU_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false });
+      const finishStr = new Date(currentMs + durationMs).toLocaleTimeString('en-AU', { timeZone: AU_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false });
+      
+      availableSlots.push({ time: timeStr, finishTime: finishStr });
     }
   }
 
