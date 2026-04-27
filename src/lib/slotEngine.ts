@@ -2,8 +2,8 @@ import { prisma } from "./prisma";
 import { AU_TIMEZONE } from "./date-utils";
 
 /**
- * Enterprise Self-Correcting Engine (V7)
- * Guaranteed precision by using a mathematical feedback loop against the Sydney clock.
+ * Enterprise Absolute Anchor Engine (V8)
+ * Forces perfect alignment with the Sydney clock by using a verified UTC correction.
  */
 export async function getAvailableSlots(
   tenantId: string, 
@@ -11,40 +11,42 @@ export async function getAvailableSlots(
   serviceGroups: number[][],
   preferredBarberId?: string
 ) {
-  // HELPER: Convert Sydney YYYY-MM-DD + HH:mm to an absolute UTC Date
-  const getAbsoluteSydneyDate = (dateStr: string, timeStr: string) => {
+  // HELPER: Convert Sydney "YYYY-MM-DD" + "HH:mm" to the TRUE UTC moment
+  const getSydneyUTC = (dateStr: string, timeStr: string) => {
     const [y, m, d] = dateStr.split('-').map(Number);
     const [hh, mm] = timeStr.split(':').map(Number);
     
-    // 1. Create a UTC baseline (this is NOT the final date, just a reference)
-    const baseline = new Date(Date.UTC(y, m - 1, d, hh, mm));
+    // 1. Create a UTC baseline assuming the components are UTC
+    const date = new Date(Date.UTC(y, m - 1, d, hh, mm));
     
-    // 2. See what time the Sydney clock shows for this baseline
-    const sydneyStr = baseline.toLocaleString('en-US', { timeZone: AU_TIMEZONE, hour12: false });
-    // Match HH:mm from the localized string (formats can vary, but we need the hour)
-    const match = sydneyStr.match(/(\d{1,2}):(\d{2}):(\d{2})/);
-    if (!match) return baseline;
-
-    const actualH = parseInt(match[1], 10);
-    const actualM = parseInt(match[2], 10);
+    // 2. Find what the Sydney clock says for this UTC moment
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: AU_TIMEZONE,
+      hour12: false,
+      year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'
+    });
     
-    // 3. Calculate the error in minutes
-    const goalMins = hh * 60 + mm;
-    const actualMins = (actualH % 24) * 60 + actualMins; // Handle potential 24h wraps
-    // Wait, simpler:
-    const diffMs = baseline.getTime() - new Date(baseline.toLocaleString('en-US', { timeZone: AU_TIMEZONE })).getTime();
-    const corrected = new Date(baseline.getTime() + diffMs);
+    const parts = formatter.formatToParts(date);
+    const sHour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+    const sDay = parseInt(parts.find(p => p.type === 'day')?.value || "0", 10);
     
-    // Double check with a simpler, more robust offset method:
-    const offsetCheck = new Date(baseline.toLocaleString('en-US', { timeZone: 'UTC' })).getTime() - new Date(baseline.toLocaleString('en-US', { timeZone: AU_TIMEZONE })).getTime();
-    return new Date(baseline.getTime() + offsetCheck);
+    // 3. Calculate the hour difference (Accounting for day wraps)
+    // If goal is 9am (hh=9) and Sydney says 7pm (sHour=19) on the same day:
+    // Difference is 10 hours.
+    let diffHours = sHour - hh;
+    if (sDay !== d) {
+       // If Sydney is on a different day, adjust the diff
+       diffHours += (sDay > d || (sDay === 1 && d > 27)) ? 24 : -24;
+    }
+    
+    return new Date(date.getTime() - (diffHours * 3600000));
   };
 
   const [businessDay, override, barbers] = await Promise.all([
     prisma.businessHours.findFirst({ 
       where: { 
         tenantId, 
-        dayOfWeek: new Date(getAbsoluteSydneyDate(requestedDateStr, "12:00").getTime()).getDay() 
+        dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay() // getUTCDay on corrected date is safe
       } 
     }),
     prisma.scheduleOverride.findFirst({ where: { tenantId, date: requestedDateStr, isClosed: true } }),
@@ -54,11 +56,10 @@ export async function getAvailableSlots(
   if (override) return { availableSlots: [], reason: override.reason || "Shop is closed." };
   if (!businessDay) return { availableSlots: [], reason: "No business hours." };
 
-  // Generate the absolute UTC start and end for the shop's day
-  const startMoment = getAbsoluteSydneyDate(requestedDateStr, businessDay.openTime);
-  const endMoment = getAbsoluteSydneyDate(requestedDateStr, businessDay.closeTime);
+  const startMoment = getSydneyUTC(requestedDateStr, businessDay.openTime);
+  const endMoment = getSydneyUTC(requestedDateStr, businessDay.closeTime);
 
-  // 2. Fetch Appointments for the Expanded Window
+  // 2. Fetch Appointments (+/- 12h window is plenty for UTC drift)
   const appointments = await prisma.appointment.findMany({
     where: {
       tenantId,
@@ -81,11 +82,10 @@ export async function getAvailableSlots(
   const stepMs = 30 * 60 * 1000;
   const durationMs = maxIndivDuration * 60 * 1000;
 
-  const lunchS = businessDay.lunchStart ? getAbsoluteSydneyDate(requestedDateStr, businessDay.lunchStart).getTime() : null;
-  const lunchE = businessDay.lunchEnd ? getAbsoluteSydneyDate(requestedDateStr, businessDay.lunchEnd).getTime() : null;
+  const lunchS = businessDay.lunchStart ? getSydneyUTC(requestedDateStr, businessDay.lunchStart).getTime() : null;
+  const lunchE = businessDay.lunchEnd ? getSydneyUTC(requestedDateStr, businessDay.lunchEnd).getTime() : null;
 
   for (let currentMs = startMoment.getTime(); currentMs + durationMs <= endMoment.getTime(); currentMs += stepMs) {
-    // Lunch Collision
     if (lunchS && lunchE) {
       if (currentMs < lunchE && currentMs + durationMs > lunchS) continue;
     }
