@@ -51,13 +51,16 @@ export default function ImageUpload({
     
     await new Promise((resolve) => {
         img.onload = () => {
-            if (img.width < 1000) {
-                alert("Resolution too low. Please provide an image at least 1000px wide.");
-                setUploading(false);
-                resolve(null);
-                return;
+            // Soft check: Warn if resolution is extremely low, but don't block
+            if (img.width < 100) {
+                alert("This image might look blurry. Consider a higher resolution photo.");
             }
             resolve(true);
+        };
+        img.onerror = () => {
+            alert("Failed to read image file.");
+            setUploading(false);
+            resolve(null);
         };
     });
 
@@ -126,7 +129,7 @@ export default function ImageUpload({
             <div style={{ textAlign: 'center', zIndex: 1, padding: '1rem' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '0.5rem', opacity: 0.5 }}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                 <p style={{ fontSize: '0.75rem', fontWeight: 800 }}>{label}</p>
-                <p style={{ fontSize: '0.6rem', opacity: 0.4, marginTop: '0.2rem' }}>Min 1000px</p>
+                <p style={{ fontSize: '0.6rem', opacity: 0.4, marginTop: '0.2rem' }}>JPG, PNG or WEBP</p>
             </div>
         )}
       </div>

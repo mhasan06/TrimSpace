@@ -616,6 +616,8 @@ export default function BookingFlow({
                   <h2 style={{ fontSize: 'min(2rem, 8vw)', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
                   {isLoginMode ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                            <SocialLoginButtons mode="in" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                            
                             <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                                 <input required name="email" type="email" placeholder="Email Address" value={loginForm.email} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
                                 <input required name="password" type="password" placeholder="Password" value={loginForm.password} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
@@ -623,14 +625,12 @@ export default function BookingFlow({
                                 <button type="submit" style={{ width: '100%', padding: '1.2rem', background: '#000', color: '#fff', fontWeight: 900, border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Sign In & Book</button>
                             </form>
                             
-                            <div onClick={saveBookingState} style={{ width: '100%' }}>
-                                <SocialLoginButtons mode="in" callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
-                            </div>
-
                             <button type="button" onClick={() => setIsLoginMode(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Create an account instead</button>
                         </div>
                   ) : (
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                        <SocialLoginButtons mode="up" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
+                        
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.2rem' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
@@ -690,10 +690,6 @@ export default function BookingFlow({
                             <input name="password" required type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
                         </div>
                         
-                        <div onClick={saveBookingState} style={{ width: '100%', marginTop: '0.5rem' }}>
-                           <SocialLoginButtons mode="up" callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
-                        </div>
-
                         <button type="button" onClick={() => setIsLoginMode(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Already have an account? Log in</button>
                     </div>
                   )}

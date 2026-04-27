@@ -15,10 +15,21 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        await prisma.tenant.update({
-            where: { id: tenantId },
-            data: { bankName, bsb, accountNumber }
-        });
+        await prisma.$transaction([
+            prisma.tenant.update({
+                where: { id: tenantId },
+                data: { bankName, bsb, accountNumber }
+            }),
+            prisma.bankHistory.create({
+                data: {
+                    tenantId,
+                    bankName,
+                    bsb,
+                    accountNumber,
+                    changedBy: (session.user as any).id
+                }
+            })
+        ]);
 
         return NextResponse.json({ success: true });
     } catch (err) {

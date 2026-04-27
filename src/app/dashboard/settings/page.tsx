@@ -15,7 +15,14 @@ export default async function ShopSettings() {
   // Retrieve Master Tenant Record + Operational Arrays
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
-    include: { businessHours: true, scheduleOverrides: true }
+    include: { 
+      businessHours: true, 
+      scheduleOverrides: true,
+      bankHistory: {
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      }
+    }
   });
 
   return (
@@ -99,12 +106,13 @@ export default async function ShopSettings() {
 
             <div className={`${styles.recentSection} glass`} style={{ padding: '2rem', margin: '2rem 0 0 0', border: '1px solid var(--primary)' }}>
                <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>Settlement & Payout Account</h2>
-               <BankingManager 
-                 tenantId={tenantId}
-                 initialBankName={tenant?.bankName || ""}
-                 initialBSB={tenant?.bsb || ""}
-                 initialAccountNumber={tenant?.accountNumber || ""}
-               />
+                <BankingManager 
+                  tenantId={tenantId}
+                  initialBankName={tenant?.bankName || ""}
+                  initialBSB={tenant?.bsb || ""}
+                  initialAccountNumber={tenant?.accountNumber || ""}
+                  initialHistory={tenant?.bankHistory || []}
+                />
             </div>
          </aside>
       </div>

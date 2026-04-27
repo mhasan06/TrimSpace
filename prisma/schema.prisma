@@ -58,6 +58,7 @@ model Tenant {
   settlements       Settlement[]
   reviews           Review[]
   favorites         Favorite[]
+  bankHistory       BankHistory[]
 }
 
 model User {
@@ -88,6 +89,18 @@ model User {
   reviewsGiven    Review[] @relation("CustomerReviews")
   reviewsReceived Review[] @relation("BarberReviews")
   favorites       Favorite[]
+}
+
+model BankHistory {
+  id            String   @id @default(cuid())
+  tenantId      String
+  bankName      String?
+  bsb           String?
+  accountNumber String?
+  changedBy     String? // User ID who made the change
+  createdAt     DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Service {

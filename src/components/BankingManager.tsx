@@ -8,9 +8,10 @@ interface BankingManagerProps {
     initialBankName: string;
     initialBSB: string;
     initialAccountNumber: string;
+    initialHistory: any[];
 }
 
-export default function BankingManager({ tenantId, initialBankName, initialBSB, initialAccountNumber }: BankingManagerProps) {
+export default function BankingManager({ tenantId, initialBankName, initialBSB, initialAccountNumber, initialHistory }: BankingManagerProps) {
     const router = useRouter();
     const [bankName, setBankName] = useState(initialBankName);
     const [bsb, setBsb] = useState(initialBSB);
@@ -99,6 +100,32 @@ export default function BankingManager({ tenantId, initialBankName, initialBSB, 
                 }}>
                 {isLoading ? "Saving..." : "Update Settlement Account"}
             </button>
+
+            {initialHistory.length > 0 && (
+                <div style={{ marginTop: '2.5rem', borderTop: '1px solid var(--border)', paddingTop: '2rem' }}>
+                    <h4 style={{ fontSize: '0.75rem', fontWeight: 900, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1rem' }}>Account Change History</h4>
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
+                                    <th style={{ padding: '0.5rem', opacity: 0.6 }}>Date</th>
+                                    <th style={{ padding: '0.5rem', opacity: 0.6 }}>Bank</th>
+                                    <th style={{ padding: '0.5rem', opacity: 0.6 }}>BSB/ACC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {initialHistory.map((h, i) => (
+                                    <tr key={h.id} style={{ borderBottom: i === initialHistory.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.03)' }}>
+                                        <td style={{ padding: '0.8rem 0.5rem', fontWeight: 700 }}>{new Date(h.createdAt).toLocaleDateString()}</td>
+                                        <td style={{ padding: '0.8rem 0.5rem' }}>{h.bankName}</td>
+                                        <td style={{ padding: '0.8rem 0.5rem', fontFamily: 'monospace', opacity: 0.8 }}>{h.bsb} / {h.accountNumber}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
