@@ -381,8 +381,8 @@ export default function BookingFlow({
           <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
              <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
              <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
-              <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '2.5rem', fontStyle: 'italic', background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', borderLeft: '4px solid #cbd5e1' }}>
-                Please note, due to many circumstances your chosen Professional may not be available.
+              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '2.5rem', fontStyle: 'italic', background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', borderLeft: '4px solid #cbd5e1' }}>
+                The requested professional is subject to availability and may be unavailable due to circumstances beyond our control.
               </p>
              
              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
@@ -480,7 +480,7 @@ export default function BookingFlow({
                            </div>
                            <p style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>${srv.price.toFixed(0)}</p>
                         </div>
-                        {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
+                        {srv.description && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
                    </div>
                    <div style={{ width: '100%', display: 'flex', justifyContent: 'stretch' }}>
                         {currentCartIds.has(srv.id) ? (
