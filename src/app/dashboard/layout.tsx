@@ -54,6 +54,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     ? rawFeatures 
     : ["OVERVIEW", "LEDGER", "COMMS", "REPORTS", "SERVICES", "ROSTER", "CUSTOMERS", "SETTINGS", "SUPPORT", "MARKETING"];
 
+  const openTicketsCount = await prisma.supportTicket.count({
+    where: { 
+        tenantId: context.tenantId,
+        status: { in: ["OPEN", "IN_PROGRESS"] }
+    }
+  });
+
   return (
     <div className={styles.dashboardContainer}>
       {context.isSupportMode && (
@@ -93,7 +100,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
           <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
             {enabledFeatures.includes("SETTINGS") && <Link href="/dashboard/settings" className={styles.navLink}>⚙️ Settings</Link>}
-            {enabledFeatures.includes("SUPPORT") && <Link href="/dashboard/support" className={styles.navLink}>🛠️ Support</Link>}
+            {enabledFeatures.includes("SUPPORT") && (
+                <Link href="/dashboard/support" className={styles.navLink} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>🛠️ Support Center</span>
+                    {openTicketsCount > 0 && (
+                        <span style={{ background: '#6366f1', color: 'white', fontSize: '0.6rem', fontWeight: 900, padding: '0.1rem 0.4rem', borderRadius: '10px' }}>{openTicketsCount}</span>
+                    )}
+                </Link>
+            )}
           </div>
         </nav>
       </aside>

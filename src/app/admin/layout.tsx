@@ -14,6 +14,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/");
   }
 
+  const openTicketsCount = await prisma.supportTicket.count({
+    where: { status: "OPEN" }
+  });
+
   return (
     <div className={styles.dashboardContainer}>
       <aside className={styles.sidebar}>
@@ -37,10 +41,25 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/payouts" className={styles.navLink}>💳 Stripe Payouts</Link>
           <Link href="/admin/finance" className={styles.navLink}>🏦 Financial Reporting</Link>
 
+          <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '0.65rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '1px' }}>Communication</div>
+          <Link href="/admin/support" className={styles.navLink} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>📧 Support Hub</span>
+            {openTicketsCount > 0 && (
+                <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 900, padding: '0.1rem 0.4rem', borderRadius: '10px', animation: 'pulse 2s infinite' }}>{openTicketsCount}</span>
+            )}
+          </Link>
+
           <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
             <Link href="/admin/alerts" className={styles.navLink} style={{ color: '#f87171' }}>🚨 System Alerts</Link>
           </div>
         </nav>
+        <style>{`
+            @keyframes pulse {
+                0% { transform: scale(1); opacity: 1; }
+                50% { transform: scale(1.1); opacity: 0.8; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+        `}</style>
       </aside>
 
       <main className={styles.mainContent}>
