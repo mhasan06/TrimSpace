@@ -35,7 +35,14 @@ export default function PartnerLogin() {
       });
 
       if (res?.error) {
-        setError("Invalid login credentials.");
+        // Clean up NextAuth internal error strings if they exist
+        const displayError = res.error.includes("EMAIL_NOT_VERIFIED") 
+          ? "Please check your email and verify your account before logging in."
+          : res.error.includes("ACCOUNT_DISABLED")
+            ? "This account has been deactivated by an administrator."
+            : "Invalid credentials. Try your email and password.";
+
+        setError(displayError);
         setIsLoading(false);
       } else {
         router.refresh();
