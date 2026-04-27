@@ -478,7 +478,7 @@ export default function BookingFlow({
                            </div>
                            <p style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>${srv.price.toFixed(0)}</p>
                         </div>
-                        {srv.description && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
+                        {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
                    </div>
                    <div style={{ width: '100%', display: 'flex', justifyContent: 'stretch' }}>
                         {currentCartIds.has(srv.id) ? (
@@ -578,7 +578,7 @@ export default function BookingFlow({
                       {slotReason}
                    </div>
                ) : (
-                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))', gap: '0.8rem' }}>
                       {slots.length === 0 && <p style={{ opacity: 0.5, textAlign: 'center', gridColumn: '1 / -1', padding: '3rem' }}>No slots available this date.</p>}
                       {slots.map((s: any) => (
                           <button 
