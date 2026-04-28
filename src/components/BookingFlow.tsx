@@ -93,17 +93,16 @@ export default function BookingFlow({
     localStorage.setItem(`trim_booking_${tenantSlug}`, JSON.stringify(data));
   };
 
-  const getTomorrow = () => {
+  const getToday = () => {
     const sydneyStr = new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' });
     const d = new Date(sydneyStr);
-    d.setDate(d.getDate() + 1);
     const y = d.getFullYear();
     const m = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
     return `${y}-${m}-${day}`;
   };
 
-  const [targetDate, setTargetDate] = useState<string>(getTomorrow());
+  const [targetDate, setTargetDate] = useState<string>(getToday());
   const [slots, setSlots] = useState<{ time: string, finishTime: string }[]>([]);
   const [slotReason, setSlotReason] = useState<string | null>(null);
 
@@ -575,7 +574,7 @@ export default function BookingFlow({
             
             <input 
                 type="date" 
-                min={getTomorrow()}
+                min={getToday()}
                 value={targetDate} 
                 onChange={(e) => fetchSlots(e.target.value)} 
                 style={{ width: '100%', padding: '1.2rem', marginBottom: '2.5rem', border: '2px solid #f1f5f9', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer', outline: 'none' }} 
