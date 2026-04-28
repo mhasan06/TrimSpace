@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useTransition, useEffect, useMemo, useCallback } from "react";
+import Link from "next/link";
 import styles from "../app/[slug]/page.module.css";
-import { fetchPublicSlots, registerCustomer, validateGiftCard, createBookingTransaction, fetchBarbers } from "../app/[slug]/actions";
+import { 
+  fetchPublicSlots, 
+  registerCustomer, 
+  validateGiftCard, 
+  createBookingTransaction, 
+  fetchBarbers, 
+  checkEmailExists 
+} from "../app/[slug]/actions";
 import { useSession, signIn } from "next-auth/react";
 import { getTerminology } from "@/lib/terminology";
-import SocialLoginButtons from "./SocialLoginButtons";
-import { AU_SUBURBS } from "@/lib/constants";
 
 export type Service = {
   id: string;
@@ -16,857 +22,192 @@ export type Service = {
   price: number;
 };
 
+const STORAGE_KEY = "barber_booking_state";
+
 export default function BookingFlow({ 
   initialServices, 
   tenantSlug,
   category = 'BARBER',
-  cancellationPolicy,
-  bookingPolicy
+  businessHours,
+  address,
+  tenantName,
+  shopImage,
+  rating = "5.0",
+  reviewCount = "0",
+  children
 }: { 
   initialServices: Service[], 
   tenantSlug: string,
   category?: string,
   cancellationPolicy?: string | null,
-  bookingPolicy?: string | null
+  bookingPolicy?: string | null,
+  businessHours: any[],
+  address: string,
+  tenantName: string,
+  shopImage?: string | null,
+  rating?: string,
+  reviewCount?: string,
+  children: React.ReactNode
 }) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
-  const [stage, setStage] = useState<"PARTY_SIZE" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("PARTY_SIZE");
-  const [selectedBarberId, setSelectedBarberId] = useState<string | null>(null);
-  const [barbers, setBarbers] = useState<{ id: string; name: string | null; avatarUrl?: string | null; services?: { id: string }[] }[]>([]);
-  const [availableBarbersAtTime, setAvailableBarbersAtTime] = useState<string[]>([]);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const [isLoginMode, setIsLoginMode] = useState(false);
-  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
-  const [partySize, setPartySize] = useState(1);
+  
+  const [stage, setStage] = useState<"START" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("START");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
   const [multiCart, setMultiCart] = useState<Record<number, { service: Service; quantity: number }[]>>({ 0: [] });
-  const [isGroupBooking, setIsGroupBooking] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedBarberIds, setSelectedBarberIds] = useState<Record<number, string | null>>({ 0: null });
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   
+  const getSydneyToday = () => {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  };
+  const [targetDate, setTargetDate] = useState<string>(getSydneyToday());
+  
+  const [authStep, setAuthStep] = useState<'EMAIL' | 'PASSWORD' | 'REGISTER'>('EMAIL');
+  const [authEmail, setAuthEmail] = useState("");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [loginError, setLoginError] = useState("");
   const [regForm, setRegForm] = useState({ name: "", email: "", phone: "", password: "", street: "", suburb: "", state: "" });
-  const [showSubDropdown, setShowSubDropdown] = useState(false);
-  
-  const matchingSubs = useMemo(() => {
-    if (!regForm.suburb) return [];
-    return AU_SUBURBS.filter(item => item.s.toLowerCase().includes(regForm.suburb.toLowerCase())).slice(0, 8);
-  }, [regForm.suburb]);
-  
-  const [giftCode, setGiftCode] = useState("");
-  const [appliedCard, setAppliedCard] = useState<{ id: string; balance: number } | null>(null);
-  const [giftError, setGiftError] = useState("");
-  const [isValidatingGift, setIsValidatingGift] = useState(false);
-  
+  const [loginError, setLoginError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  // Load barbers on mount
-  useEffect(() => {
-    fetchBarbers(tenantSlug).then((data) => setBarbers(data as any));
-  }, [tenantSlug]);
+  const [barbers, setBarbers] = useState<any[]>([]);
+  const [availableBarbersAtTime, setAvailableBarbersAtTime] = useState<string[]>([]);
+  const [slots, setSlots] = useState<any[]>([]);
 
-  const handleRegChange = (e: React.ChangeEvent<HTMLInputElement>) => setRegForm({ ...regForm, [e.target.name]: e.target.value });
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
-
-  // STATE PERSISTENCE: Save/Restore for Social Login redirects
+  // ─── LOCAL STORAGE PERSISTENCE ───
   useEffect(() => {
-    // 1. Restore state on mount
-    const saved = localStorage.getItem(`trim_booking_${tenantSlug}`);
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (data.multiCart) setMultiCart(data.multiCart);
-        if (data.targetDate) setTargetDate(data.targetDate);
-        if (data.selectedTime) setSelectedTime(data.selectedTime);
-        if (data.partySize) setPartySize(data.partySize);
-        if (data.stage) setStage(data.stage);
-        // Clear after restore to prevent "ghost" bookings later
-        localStorage.removeItem(`trim_booking_${tenantSlug}`);
-      } catch (e) {
-        console.error("Failed to restore booking state", e);
-      }
+        if (data.tenantSlug === tenantSlug) {
+          setNumberOfPeople(data.numberOfPeople || 1);
+          setMultiCart(data.multiCart || { 0: [] });
+          setSelectedTime(data.selectedTime || null);
+          setSelectedBarberIds(data.selectedBarberIds || { 0: null });
+          setTargetDate(data.targetDate || getSydneyToday());
+          if (data.selectedTime) setStage("BARBERS");
+          else if (Object.values(data.multiCart || {}).some((arr: any) => arr.length > 0)) setStage("SERVICES");
+        }
+      } catch (e) {}
     }
   }, [tenantSlug]);
 
-  const saveBookingState = () => {
-    const data = { multiCart, targetDate, selectedTime, partySize, stage };
-    localStorage.setItem(`trim_booking_${tenantSlug}`, JSON.stringify(data));
-  };
+  useEffect(() => {
+    const state = { tenantSlug, numberOfPeople, multiCart, selectedTime, selectedBarberIds, targetDate };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [numberOfPeople, multiCart, selectedTime, selectedBarberIds, targetDate, tenantSlug]);
 
-  const getToday = () => {
-    const sydneyStr = new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' });
-    const d = new Date(sydneyStr);
-    const y = d.getFullYear();
-    const m = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  };
+  const allCartItems = useMemo(() => Object.entries(multiCart).flatMap(([pIdx, items]) => items.map(i => ({ ...i, p: Number(pIdx) }))), [multiCart]);
+  const totalPrice = allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0);
 
-  const [targetDate, setTargetDate] = useState<string>(getToday());
-  const [slots, setSlots] = useState<{ time: string, finishTime: string }[]>([]);
-  const [slotReason, setSlotReason] = useState<string | null>(null);
+  useEffect(() => { fetchBarbers(tenantSlug).then((data) => setBarbers(data as any)); }, [tenantSlug]);
 
-  const addToCart = useCallback((service: Service) => {
-    setMultiCart((prev) => {
-      const currentCart = prev[currentPersonIndex] || [];
-      const existing = currentCart.find(item => item.service.id === service.id);
-      
-      let updatedCart;
-      if (existing) {
-        // Toggle OFF: If already selected, remove it
-        updatedCart = currentCart.filter(item => item.service.id !== service.id);
-      } else {
-        // Toggle ON: Add to the selection list
-        updatedCart = [...currentCart, { service, quantity: 1 }];
-      }
-      
-      return { ...prev, [currentPersonIndex]: updatedCart };
+  const addToCart = (service: Service) => {
+    setMultiCart(prev => {
+      const cart = prev[currentPersonIndex] || [];
+      const exists = cart.find(i => i.service.id === service.id);
+      if (exists) return { ...prev, [currentPersonIndex]: cart.filter(i => i.service.id !== service.id) };
+      return { ...prev, [currentPersonIndex]: [...cart, { service, quantity: 1 }] };
     });
-  }, [currentPersonIndex]);
+  };
 
-  const updateQuantity = useCallback((id: string, delta: number) => {
-    setMultiCart((prev) => {
-      const currentCart = prev[currentPersonIndex] || [];
-      const updatedCart = currentCart.map(item => item.service.id === id ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item).filter(item => item.quantity > 0);
-      return { ...prev, [currentPersonIndex]: updatedCart };
-    });
-  }, [currentPersonIndex]);
+  const handleFetchSlots = async (dateStr: string) => {
+    setTargetDate(dateStr);
+    const safeGroups = Object.keys(multiCart).map(key => (multiCart[Number(key)] || []).map(i => i.service.id)).filter(g => g.length > 0);
+    const result = await fetchPublicSlots(tenantSlug, dateStr, safeGroups, undefined);
+    setSlots(result.availableSlots || []);
+  };
 
-  const allCartItems = useMemo(() => {
-    return Object.entries(multiCart).flatMap(([pIdx, items]) => 
-      items.map(item => ({ ...item, p: Number(pIdx) }))
-    );
-  }, [multiCart]);
-  const currentCart = useMemo(() => multiCart[currentPersonIndex] || [], [multiCart, currentPersonIndex]);
-  const currentCartIds = useMemo(() => new Set(currentCart.map(i => i.service.id)), [currentCart]);
-  const totalPrice = useMemo(() => allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0), [allCartItems]);
-
-  const serviceGroups = useMemo(() => {
-    return Object.values(multiCart).map(items => items.map(i => i.service.durationMinutes));
-  }, [multiCart]);
-
-  const maxDuration = useMemo(() => {
-    const personDurations = serviceGroups.map(g => g.reduce((a, b) => a + b, 0));
-    return Math.max(0, ...personDurations);
-  }, [serviceGroups]);
-
-  const format12h = useCallback((timeStr: string) => {
-    if (!timeStr) return "";
-    const [h, m] = timeStr.split(':').map(Number);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const displayH = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-    return `${displayH}:${m.toString().padStart(2, '0')} ${period}`;
-  }, []);
-
-  const nextPerson = useCallback(() => {
-    if (currentPersonIndex < partySize - 1) {
-      setCurrentPersonIndex(currentPersonIndex + 1);
-      setMultiCart(prev => ({ ...prev, [currentPersonIndex + 1]: prev[currentPersonIndex + 1] || [] }));
-    } else {
-      moveToCalendar();
+  const nextStage = () => {
+    if (stage === "START") { setStage("SERVICES"); setCurrentPersonIndex(0); }
+    else if (stage === "SERVICES") {
+      if (currentPersonIndex < numberOfPeople - 1) setCurrentPersonIndex(prev => prev + 1);
+      else { setStage("CALENDAR"); handleFetchSlots(targetDate); }
     }
-  }, [currentPersonIndex, partySize]);
-
-  const prevPerson = () => {
-    if (currentPersonIndex > 0) {
-      setCurrentPersonIndex(currentPersonIndex - 1);
+    else if (stage === "BARBERS") {
+      if (currentPersonIndex < numberOfPeople - 1) setCurrentPersonIndex(prev => prev + 1);
+      else { if (session) setStage("PAYMENT"); else setShowAuthModal(true); }
     }
   };
 
-  const moveToCalendar = async () => {
-     setStage("CALENDAR");
-     fetchSlots(targetDate);
+  const handleBarberSelect = (barberId: string | null) => {
+    setSelectedBarberIds(prev => ({ ...prev, [currentPersonIndex]: barberId }));
+    if (numberOfPeople === 1) { if (session) setStage("PAYMENT"); else setShowAuthModal(true); }
   };
 
-  const fetchSlots = async (dateStr: string) => {
-      setTargetDate(dateStr);
-      setSelectedTime(null);
-      
-      // Calculate qualified barbers for ALL selected services across ALL persons
-      const allSelectedServiceIds = new Set(allCartItems.map(i => i.service.id));
-      const qualifiedBarbers = barbers.filter(b => {
-          const barberServiceIds = new Set(b.services?.map((s: any) => s.id) || []);
-          return Array.from(allSelectedServiceIds).every(id => barberServiceIds.has(id));
-      });
-
-      // Explicitly extract durations
-      const safeGroups = Object.keys(multiCart).map(key => {
-        const items = multiCart[Number(key)] || [];
-        return items.map(i => i.service.durationMinutes || 45);
-      }).filter(g => g.length > 0);
-
-      const result = await fetchPublicSlots(
-        tenantSlug, 
-        dateStr, 
-        safeGroups.length > 0 ? safeGroups : [[45]], 
-        Array.from(allSelectedServiceIds),
-        selectedBarberId || undefined
-      );
-      setSlots(result.availableSlots || []);
-      setSlotReason(result.reason || null);
-  };
-
-  const handleTimeSelect = (timeStr: string) => {
-      setSelectedTime(timeStr);
-      const slot = slots.find(s => s.time === timeStr);
-      if (slot && (slot as any).availableBarberIds) {
-          setAvailableBarbersAtTime((slot as any).availableBarberIds);
-      }
-      setStage("BARBERS");
-  };
-
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-
-  const handleApplyGiftCard = async () => {
-    if (!giftCode) return;
-    setIsValidatingGift(true);
-    const result = await validateGiftCard(giftCode, tenantSlug);
-    if (result.error) {
-       setGiftError(result.error);
-       setAppliedCard(null);
-    } else {
-       setAppliedCard({ id: result.cardId, balance: result.balance });
-    }
-    setIsValidatingGift(false);
-  };
-
-  const giftDiscount = appliedCard ? Math.min(totalPrice, appliedCard.balance) : 0;
-  const finalPrice = totalPrice - giftDiscount;
-
-  const handleInPlaceLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-      const result = await signIn("credentials", { email: loginForm.email, password: loginForm.password, loginType: "CUSTOMER", redirect: false });
-      if (result?.error) setLoginError("Invalid email or password.");
-  };
-
-  const handleFinalCheckout = () => {
-    if (!selectedTime) return;
-    setIsProcessingPayment(true);
+  const handleCheckout = async () => {
+    if (!disclaimerAccepted) return alert("Please accept the disclaimer before proceeding.");
     startTransition(async () => {
-      try {
-        let activeUserId = (session?.user as any)?.id;
-        if (!activeUserId) {
-          const regResult = await registerCustomer(regForm);
-          if (regResult.error) { alert("Registration Failed: " + regResult.error); return; }
-          activeUserId = regResult.userId;
-        }
-
-        const response = await fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            cart: allCartItems, 
-            tenantSlug, 
-            targetDate, 
-            selectedTime, 
-            userId: activeUserId, 
-            giftCode: appliedCard ? giftCode : null,
-            isGroup: partySize > 1,
-            multiCart 
-          })
-        });
-
-        const checkoutData = await response.json();
-        if (checkoutData.error) throw new Error(checkoutData.error);
-        if (checkoutData.bypassStripe) {
-          const result = await createBookingTransaction(allCartItems.map(i => ({ serviceId: i.service.id, quantity: i.quantity, p: i.p })), tenantSlug, targetDate, selectedTime, "GIFT_CARD", activeUserId, partySize > 1, checkoutData.giftCardId, checkoutData.giftDiscount);
-          if (result.success) {
-            // Force a 1.2s delay to ensure the database has fully committed before we move to confirmation
-            setTimeout(() => {
-               window.location.href = "/booking-confirmation?bypass=true";
-            }, 1200);
-          }
-          else throw new Error(result.error || "Failed to finalize booking.");
-          return;
-        }
-        if (checkoutData.url) window.location.href = checkoutData.url;
-        else throw new Error("Failed to initialize secure checkout session.");
-      } catch (err: any) { alert("Payment Gateway Error: " + err.message); }
-      finally { setIsProcessingPayment(false); }
+      const res = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cart: allCartItems, tenantSlug, targetDate, selectedTime, userId: (session?.user as any)?.id, multiCart, selectedBarberIds }) });
+      const d = await res.json();
+      if (d.url) { localStorage.removeItem(STORAGE_KEY); window.location.href = d.url; }
     });
-  };
-
-  const cardStyle: React.CSSProperties = {
-    background: '#fff',
-    border: '1px solid #e2e8f0',
-    borderRadius: '16px',
-    padding: '1.5rem',
-    marginBottom: '1rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
-    transition: 'border-color 0.2s ease'
-  };
-
-  const bookBtnStyle: React.CSSProperties = {
-    padding: '0.6rem 2rem',
-    borderRadius: '50px',
-    border: '1px solid #e2e8f0',
-    background: '#fff',
-    color: '#1e293b',
-    fontWeight: 700,
-    fontSize: '0.9rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      
-       {/* Visual Progress Steps */}
-      <div style={{ 
-        display: 'flex', 
-        gap: '0.8rem', 
-        padding: '0.8rem', 
-        background: '#f8fafc', 
-        borderRadius: '16px', 
-        border: '1px solid #e2e8f0',
-        overflowX: 'auto',
-        whiteSpace: 'nowrap',
-        msOverflowStyle: 'none',
-        scrollbarWidth: 'none'
-      }}>
-          {["Party", "Service", "Time", "Pro", "Pay"].map((s: string, i: number) => (
-             <div key={s} style={{ 
-                fontWeight: 800, 
-                fontSize: '0.75rem', 
-                color: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'BARBERS') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#94a3b8',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                flexShrink: 0
-             }}>
-                <span style={{ height: '18px', width: '18px', borderRadius: '50%', background: (i === 0 && stage === 'PARTY_SIZE') || (i === 1 && stage === 'SERVICES') || (i === 2 && stage === 'CALENDAR') || (i === 3 && stage === 'BARBERS') || (i === 4 && stage === 'PAYMENT') ? 'var(--primary)' : '#e2e8f0', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem' }}>{i+1}</span>
-                {s}
-             </div>
-          ))}
+    <>
+    {showAuthModal && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+         <div style={{ background: '#fff', width: '100%', maxWidth: '500px', borderRadius: '14px', padding: '32px', position: 'relative' }}>
+            <button onClick={() => setShowAuthModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px' }}>×</button>
+            <h2 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>Log in or sign up</h2>
+            <p style={{ fontSize: '15px', color: '#000', marginBottom: '24px' }}>Log in or sign up to complete your booking</p>
+            {authStep === 'EMAIL' && (
+               <>
+                <button onClick={() => signIn('facebook')} style={{ width: '100%', padding: '14px', borderRadius: '40px', border: '1px solid #e2e8f0', background: '#fff', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontWeight: 600 }}><img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" style={{ width: '24px' }} /> Continue with Facebook</button>
+                <button onClick={() => signIn('google')} style={{ width: '100%', padding: '14px', borderRadius: '40px', border: '1px solid #e2e8f0', background: '#fff', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontWeight: 600 }}><img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" style={{ width: '22px' }} /> Continue with Google</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}><div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div><span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>OR</span><div style={{ flex: 1, height: '1px', background: '#e2e8f0' }}></div></div>
+                <form onSubmit={async (e) => { e.preventDefault(); const exists = await checkEmailExists(loginForm.email); setAuthEmail(loginForm.email); if (exists) setAuthStep('PASSWORD'); else { setRegForm(prev => ({ ...prev, email: loginForm.email })); setAuthStep('REGISTER'); } }}><input type="email" placeholder="Email address" value={loginForm.email} onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} style={{ width: '100%', padding: '16px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '24px' }} required /><button type="submit" style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 700 }}>Continue</button></form>
+               </>
+            )}
+            {authStep === 'PASSWORD' && (
+               <form onSubmit={async (e) => { e.preventDefault(); const result = await signIn("credentials", { email: loginForm.email, password: loginForm.password, loginType: "CUSTOMER", redirect: false }); if (result?.error) setLoginError("Invalid credentials"); else { setShowAuthModal(false); setStage("PAYMENT"); } }}><p style={{ fontWeight: 600, marginBottom: '16px' }}>Password for {loginForm.email}</p><input type="password" placeholder="Password" value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} style={{ width: '100%', padding: '16px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '24px' }} required />{loginError && <p style={{ color: '#ef4444', fontSize: '14px', marginBottom: '12px' }}>{loginError}</p>}<button type="submit" style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 700 }}>Login</button></form>
+            )}
+            {authStep === 'REGISTER' && (
+               <form onSubmit={async (e) => { e.preventDefault(); const result = await registerCustomer({ ...regForm, email: authEmail }); if (result.error) setLoginError(result.error); else { setShowAuthModal(false); setStage("PAYMENT"); } }}><div style={{ display: 'grid', gap: '12px' }}><input type="text" placeholder="Full Name" value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} style={{ width: '100%', padding: '16px', borderRadius: '10px', border: '1px solid #cbd5e1' }} required /><input type="tel" placeholder="Phone Number" value={regForm.phone} onChange={(e) => setRegForm({ ...regForm, phone: e.target.value })} style={{ width: '100%', padding: '16px', borderRadius: '10px', border: '1px solid #cbd5e1' }} required /><input type="password" placeholder="Create Password" value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} style={{ width: '100%', padding: '16px', borderRadius: '10px', border: '1px solid #cbd5e1' }} required /><button type="submit" style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 700, marginTop: '12px' }}>Create Account</button></div></form>
+            )}
+         </div>
+      </div>
+    )}
+
+    {stage === "START" && (
+      <>
+        <header style={{ marginBottom: '2.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}><h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: '#0f172a', letterSpacing: '-1.5px', margin: 0 }}>{tenantName} <span style={{ color: '#6366f1', fontSize: '1.2rem', verticalAlign: 'middle' }}>✓</span></h1><button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>🔗</button></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', color: '#64748b' }}><span style={{ fontWeight: 800, color: '#0f172a' }}>{rating}</span><span>{"★".repeat(5)}</span><span>({reviewCount})</span><span>•</span><span style={{ color: '#ef4444', fontWeight: 700 }}>Closed</span><span>•</span><span>{address}</span></div>
+        </header>
+        <section style={{ marginBottom: '3rem', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px', height: '400px' }}><div style={{ background: `url(${shopImage || 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div><div style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: '12px' }}><div style={{ background: `url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div><div style={{ background: `url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div></div></section>
+      </>
+    )}
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'flex-start' }}>
+      <div style={{ flex: 1 }}>
+        {stage === "START" && (<><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '48px', border: '1px solid #f1f5f9', boxShadow: '0 20px 60px rgba(0,0,0,0.02)', textAlign: 'center', marginBottom: '4rem' }}><h1 style={{ fontSize: '3rem', fontWeight: 950, marginBottom: '1rem', color: '#0f172a' }}>Welcome</h1><p style={{ fontSize: '1.2rem', color: '#64748b', fontWeight: 600, marginBottom: '3rem' }}>How many people are joining us?</p><div style={{ display: 'flex', gap: '16px', marginBottom: '4rem' }}>{[1, 2, 3, 4, 5].map(num => (<button key={num} onClick={() => setNumberOfPeople(num)} style={{ width: '72px', height: '72px', borderRadius: '20px', border: numberOfPeople === num ? '2px solid #000' : '1px solid #e2e8f0', background: numberOfPeople === num ? '#f8fafc' : '#fff', color: '#000', fontWeight: 900, fontSize: '1.5rem', cursor: 'pointer' }}>{num}</button>))}</div><button onClick={() => setStage("SERVICES")} style={{ padding: '1.2rem 4rem', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>Continue</button></div>{children}</>)}
+        {stage === "SERVICES" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><button onClick={() => setStage("START")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Select {terminology.serviceLabelPlural}</h2>{numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginBottom: '2.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}<div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>{initialServices.map(service => { const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id); return (<div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ flex: 1 }}><h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', fontWeight: 800 }}>{service.name}</h3><p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>{service.durationMinutes} mins</p><p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>A${service.price}</p></div><div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSelected ? '#6366f1' : '#fff', border: isSelected ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>{isSelected ? '✓' : '+'}</div></div>); })}</div></div>)}
+        {stage === "CALENDAR" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}><button onClick={() => setStage("SERVICES")} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><input type="date" value={targetDate} onChange={(e) => handleFetchSlots(e.target.value)} style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontWeight: 700 }} /></div><h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>Select Date & Time</h2><div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '2rem', paddingBottom: '10px' }}>{[0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => { const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' })); date.setDate(date.getDate() + i); const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date); return (<button key={i} onClick={() => handleFetchSlots(dStr)} style={{ padding: '0.8rem', minWidth: '70px', borderRadius: '14px', border: targetDate === dStr ? '2px solid #000' : '1px solid #e2e8f0', background: targetDate === dStr ? '#f8fafc' : '#fff', cursor: 'pointer' }}><p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 700 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p><p style={{ margin: 0, fontSize: '1.2rem', fontWeight: 950 }}>{date.getDate()}</p></button>); })}</div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '6px' }}>{slots.length > 0 ? slots.map(slot => (<button key={slot.time} onClick={() => { setSelectedTime(slot.time); setAvailableBarbersAtTime(slot.availableBarberIds || []); setStage("BARBERS"); setCurrentPersonIndex(0); }} style={{ padding: '12px 8px', borderRadius: '12px', border: selectedTime === slot.time ? '2px solid #000' : '1px solid #e2e8f0', background: selectedTime === slot.time ? '#000' : '#fff', color: selectedTime === slot.time ? '#fff' : '#0f172a', fontWeight: 800, cursor: 'pointer' }}>{slot.time}</button>)) : (<div style={{ gridColumn: '1 / -1', padding: '3rem', textAlign: 'center', color: '#64748b' }}>No slots available.</div>)}</div></div>)}
+        {stage === "BARBERS" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><button onClick={() => setStage("CALENDAR")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem' }}>Choose Professional</h2>{numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}<div style={{ display: 'grid', gap: '15px' }}><div onClick={() => handleBarberSelect(null)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === null ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}><div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👥</div><p style={{ fontWeight: 800, margin: 0 }}>Any Professional</p></div>{barbers.filter(b => availableBarbersAtTime.includes(b.id)).map(barber => (<div key={barber.id} onClick={() => handleBarberSelect(barber.id)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === barber.id ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}><div style={{ width: '50px', height: '50px', borderRadius: '50%', background: `url(${barber.avatarUrl || 'https://ui-avatars.com/api/?name='+barber.name})`, backgroundSize: 'cover' }}></div><p style={{ fontWeight: 800, margin: 0 }}>{barber.name}</p></div>))}</div></div>)}
+        {stage === "PAYMENT" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><button onClick={() => { setStage("BARBERS"); setCurrentPersonIndex(numberOfPeople - 1); }} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Final Confirmation</h2><div style={{ background: '#f8fafc', padding: '2.5rem', borderRadius: '24px', marginBottom: '2.5rem' }}><p style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#64748b', fontWeight: 600 }}>Booking for <strong style={{ color: '#0f172a' }}>{session?.user?.email}</strong></p><div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '1.5rem', padding: '1.2rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0' }}><input type="checkbox" id="disclaimer" checked={disclaimerAccepted} onChange={(e) => setDisclaimerAccepted(e.target.checked)} style={{ width: '20px', height: '20px', cursor: 'pointer', marginTop: '3px' }} /><label htmlFor="disclaimer" style={{ fontSize: '0.9rem', color: '#475569', cursor: 'pointer', lineHeight: '1.5' }}>I agree to the <Link href="#" style={{ color: '#6366f1', fontWeight: 700 }}>cancellation policy</Link> and understand that bookings are non-refundable within 24 hours of the appointment time.</label></div></div><button onClick={handleCheckout} disabled={isPending || !disclaimerAccepted} style={{ width: '100%', padding: '1.4rem', borderRadius: '50px', background: disclaimerAccepted ? '#6366f1' : '#cbd5e1', color: '#fff', fontWeight: 950, fontSize: '1.2rem', cursor: disclaimerAccepted ? 'pointer' : 'not-allowed', boxShadow: disclaimerAccepted ? '0 12px 40px rgba(99,102,241,0.3)' : 'none' }}>{isPending ? "Initializing Checkout..." : "Confirm & Pay"}</button></div>)}
       </div>
 
-      {stage === "PARTY_SIZE" && (
-          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-             <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>Welcome</h2>
-             <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.95rem', fontWeight: 500 }}>How many people are joining us?</p>
-             
-             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.8rem', flexWrap: 'wrap' }}>
-                {[1, 2, 3, 4, 5].map(n => (
-                  <button 
-                    key={n}
-                    onClick={() => {
-                      setPartySize(n);
-                      setIsGroupBooking(n > 1);
-                      setStage("SERVICES");
-                    }}
-                    style={{ 
-                      width: '60px', 
-                      height: '60px', 
-                      borderRadius: '16px', 
-                      border: '2px solid #e2e8f0', 
-                      background: '#fff', 
-                      fontSize: '1.2rem', 
-                      fontWeight: 900, 
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = 'inherit'; }}
-                  >
-                    {n}
-                  </button>
-                ))}
-             </div>
-             
-          </div>
-      )}
-
-      {stage === "BARBERS" && (
-          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
-             <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Your Professional</h2>
-             <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Select a specific specialist or the first available.</p>
-              <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '2.5rem', fontStyle: 'italic', background: '#f8fafc', padding: '0.8rem', borderRadius: '12px', borderLeft: '4px solid #cbd5e1' }}>
-                The requested professional is subject to availability and may be unavailable due to circumstances beyond our control.
-              </p>
-             
-             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
-                <button 
-                  onClick={() => { setSelectedBarberId(null); setStage("PAYMENT"); }}
-                  style={{ 
-                    padding: '1.5rem', 
-                    background: '#fff', 
-                    border: '2px solid #e2e8f0', 
-                    borderRadius: '24px', 
-                    textAlign: 'center', 
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
-                >
-                   <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary)', color: '#fff', margin: '0 auto 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>✨</div>
-                   <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>Any Specialist</div>
+      <aside style={{ position: 'sticky', top: '2rem' }}>
+        <div style={{ background: '#fff', borderRadius: '28px', border: '1px solid #f1f5f9', padding: '28px', boxShadow: '0 10px 40px rgba(0,0,0,0.03)' }}>
+          {totalPrice === 0 ? (<><h3>Location & Hours</h3><div style={{ height: '200px', borderRadius: '18px', overflow: 'hidden' }}><iframe src={`https://www.google.com/maps?q=${encodeURIComponent(address || "Australia")}&output=embed`} width="100%" height="100%" style={{ border: 0 }}></iframe></div><p>{address}</p></>) : (
+            <><div style={{ display: 'flex', gap: '15px', marginBottom: '24px' }}><div style={{ width: '60px', height: '60px', borderRadius: '14px', overflow: 'hidden' }}><img src={shopImage || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div><div><h3 style={{ margin: '0 0 4px 0', fontSize: '1.05rem', fontWeight: 900 }}>{tenantName}</h3><p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', fontWeight: 800 }}>⭐ {rating} <span style={{ color: '#94a3b8', fontWeight: 600 }}>({reviewCount})</span></p></div></div><div style={{ borderTop: '1px solid #f1f5f9', padding: '24px 0', maxHeight: '400px', overflowY: 'auto' }}>{Object.entries(multiCart).map(([pIdx, items]) => items.length > 0 && (<div key={pIdx} style={{ marginBottom: '20px' }}><p style={{ fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', color: '#6366f1', marginBottom: '10px' }}>Person {Number(pIdx) + 1}</p>{items.map((item, idx) => (<div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}><span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.service.name}</span><span style={{ fontSize: '0.9rem', fontWeight: 800 }}>A${item.service.price}</span></div>))}{selectedBarberIds[Number(pIdx)] && (<p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>With {barbers.find(b => b.id === selectedBarberIds[Number(pIdx)])?.name}</p>)}</div>))}</div><div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}><span style={{ fontSize: '1.1rem', fontWeight: 900 }}>Subtotal</span><span style={{ fontSize: '1.25rem', fontWeight: 950 }}>A${totalPrice}</span></div>
+              {stage !== "PAYMENT" && (
+                <button onClick={nextStage} style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>
+                  {stage === "START" ? "Select Services" : stage === "SERVICES" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Person" : "Confirm Services") : stage === "CALENDAR" ? "Confirm Time" : stage === "BARBERS" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Professional" : "Confirm Professionals") : "Book Now"}
                 </button>
-
-                {barbers.filter(b => availableBarbersAtTime.includes(b.id)).map(b => (
-                  <button 
-                    key={b.id}
-                    onClick={() => { setSelectedBarberId(b.id); setStage("PAYMENT"); }}
-                    style={{ 
-                      padding: '1.5rem', 
-                      background: '#fff', 
-                      border: '2px solid #e2e8f0', 
-                      borderRadius: '24px', 
-                      textAlign: 'center', 
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
-                  >
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 0.5rem', border: '2px solid #f1f5f9' }}>
-                        <img src={b.avatarUrl || `https://ui-avatars.com/api/?name=${b.name || 'P'}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{b.name || 'Professional'}</div>
-                  </button>
-                ))}
-             </div>
-             <button onClick={() => setStage("CALENDAR")} style={{ marginTop: '3rem', width: '100%', padding: '1.2rem', background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 800, cursor: 'pointer' }}>
-                &laquo; Back to Schedule
-             </button>
-          </div>
-      )}
-
-      {stage === "SERVICES" && (
-        <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: 'var(--foreground)' }}>
-                  {partySize > 1 ? `Person ${currentPersonIndex + 1} Selection` : terminology.serviceLabelPlural}
-                </h2>
-                {partySize > 1 && (
-                  <div style={{ 
-                    marginTop: '0.8rem', 
-                    background: 'rgba(99,102,241,0.08)', 
-                    padding: '0.5rem 1rem', 
-                    borderRadius: '12px', 
-                    borderLeft: '4px solid var(--primary)',
-                    display: 'block'
-                  }}>
-                    <p style={{ color: 'var(--primary)', fontSize: '0.85rem', margin: 0, fontWeight: 800 }}>
-                      Choose the service for connoisseur {currentPersonIndex + 1} of {partySize}
-                    </p>
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', alignItems: 'center' }}>
-                <button 
-                  onClick={() => setStage("PARTY_SIZE")}
-                  style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Change Party
-                </button>
-                <div style={{ padding: '0.4rem 1rem', background: 'rgba(0,0,0,0.05)', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--primary)' }}>
-                  {partySize} {partySize === 1 ? 'Customer' : 'Customers'}
-                </div>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {initialServices.map((srv) => (
-                <div key={srv.id} style={{ ...cardStyle, flexDirection: 'column', gap: '1rem', alignItems: 'flex-start' }}>
-                   <div style={{ width: '100%' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                           <div>
-                              <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>{srv.name}</h4>
-                              <p style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 500, margin: '0.2rem 0' }}>{srv.durationMinutes} mins</p>
-                           </div>
-                           <p style={{ color: 'var(--primary)', fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>${srv.price.toFixed(0)}</p>
-                        </div>
-                        {srv.description && <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.6rem', lineHeight: 1.4 }}>{srv.description}</p>}
-                   </div>
-                   <div style={{ width: '100%', display: 'flex', justifyContent: 'stretch' }}>
-                        {currentCartIds.has(srv.id) ? (
-                            <button 
-                                onClick={() => addToCart(srv)}
-                                style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    background: 'var(--primary)', 
-                                    borderRadius: '50px', 
-                                    padding: '0.6rem 1.5rem',
-                                    color: '#fff',
-                                    fontWeight: 800,
-                                    gap: '0.5rem',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-                                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-                            >
-                                <span>Selected</span>
-                                <span style={{ fontSize: '1.2rem' }}>✓</span>
-                            </button>
-                        ) : (
-                            <button 
-                             className="book-btn-hover"
-                             style={bookBtnStyle} 
-                             onClick={() => addToCart(srv)}
-                             onMouseEnter={(e) => {
-                                 e.currentTarget.style.background = '#000';
-                                 e.currentTarget.style.color = '#fff';
-                                 e.currentTarget.style.borderColor = '#000';
-                             }}
-                             onMouseLeave={(e) => {
-                                 e.currentTarget.style.background = '#fff';
-                                 e.currentTarget.style.color = '#1e293b';
-                                 e.currentTarget.style.borderColor = '#e2e8f0';
-                             }}
-                             >
-                             Select
-                            </button>
-                        )}
-                   </div>
-                </div>
-              ))}
-              {initialServices.length === 0 && (
-                <p style={{ color: '#64748b', padding: '3rem', textAlign: 'center', background: '#f8fafc', borderRadius: '20px' }}>No services available for booking at this time.</p>
               )}
-            </div>
-
-            {currentCart.length > 0 && (
-              <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', background: 'rgba(99,102,241,0.05)', borderRadius: '24px', border: '1px solid var(--primary)' }}>
-                <p style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1.5rem', color: '#1e293b' }}>
-                   Excellent choice! Ready to proceed?
-                </p>
-                <button 
-                  onClick={nextPerson}
-                  style={{ 
-                    padding: '1.2rem 3rem', 
-                    background: 'var(--primary)', 
-                    color: '#fff', 
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    fontWeight: 900, 
-                    fontSize: '1.2rem', 
-                    cursor: 'pointer',
-                    boxShadow: '0 20px 40px -10px rgba(99,102,241,0.4)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                >
-                  {currentPersonIndex < partySize - 1 ? `Confirm & Add Person ${currentPersonIndex + 2}` : 'Confirm & Choose Time'}
-                </button>
-              </div>
-            )}
-        </>
-      )}
-
-      {stage === "CALENDAR" && (
-          <div style={{ background: '#fff', padding: 'clamp(1rem, 5vw, 3rem)', borderRadius: '32px', border: '1px solid #e2e8f0' }}>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Select a Time</h2>
-            <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Choose your preferred date to see available openings.</p>
-            
-            <input 
-                type="date" 
-                min={getToday()}
-                value={targetDate} 
-                onChange={(e) => fetchSlots(e.target.value)} 
-                style={{ width: '100%', padding: '1.2rem', marginBottom: '2.5rem', border: '2px solid #f1f5f9', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer', outline: 'none' }} 
-            />
-
-            <div>
-               {slotReason ? (
-                   <div style={{ padding: '2rem', textAlign: 'center', background: '#fff1f2', color: '#be123c', borderRadius: '16px', border: '1px solid #fecdd3', margin: '1rem 0' }}>
-                      {slotReason}
-                   </div>
-               ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(85px, 1fr))', gap: '0.8rem' }}>
-                      {slots.length === 0 && (
-                           <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '3rem', background: '#f8fafc', borderRadius: '24px', border: '1px solid #f1f5f9' }}>
-                               <p style={{ color: '#64748b', fontWeight: 600, marginBottom: '0.5rem' }}>No specialists assigned to these services are available today.</p>
-                               <p style={{ color: 'var(--primary)', fontWeight: 900 }}>Please request a different day.</p>
-                           </div>
-                       )}
-                      {slots.map((s: any) => (
-                          <button 
-                             key={s.time} 
-                             onClick={() => handleTimeSelect(s.time)}
-                             style={{ 
-                                padding: '0.8rem 0.5rem', 
-                                background: '#fff', 
-                                border: '1px solid #e2e8f0', 
-                                borderRadius: '16px', 
-                                color: '#1e293b', 
-                                fontWeight: 800, 
-                                cursor: 'pointer', 
-                                transition: 'all 0.2s',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                gap: '2px'
-                             }}
-                             onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                             onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
-                             >
-                             <span style={{ fontSize: '0.95rem' }}>{s.time}</span>
-                             <span style={{ fontSize: '0.65rem', opacity: 0.6, fontWeight: 700 }}>Ends {format12h(s.finishTime)}</span>
-                          </button>
-                      ))}
-                   </div>
-               )}
-            </div>
-            
-            <button onClick={() => setStage("SERVICES")} style={{ marginTop: '3rem', width: '100%', padding: '1.2rem', background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '16px', fontWeight: 800, cursor: 'pointer' }}>
-                &laquo; Back to {terminology.serviceLabelPlural}
-            </button>
-          </div>
-      )}
-
-      {stage === "PAYMENT" && (
-          <div style={{ 
-            background: '#fff', 
-            padding: 'clamp(1rem, 4vw, 3rem)', 
-            borderRadius: 'clamp(16px, 5vw, 32px)', 
-            border: '1px solid #e2e8f0',
-            width: '100%',
-            boxSizing: 'border-box'
-          }}>
-             {!session?.user ? (
-               <div>
-                  <button 
-                    onClick={() => setStage("CALENDAR")}
-                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginBottom: '1rem', padding: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                  >
-                    ← Back to Schedule
-                  </button>
-                  <h2 style={{ fontSize: 'min(2rem, 8vw)', fontWeight: 900, marginBottom: '2rem' }}>Check Out</h2>
-                  {isLoginMode ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                            <div onClick={saveBookingState} style={{ width: '100%' }}>
-                                <SocialLoginButtons mode="in" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
-                            </div>
-                            
-                            <form onSubmit={handleInPlaceLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                                <input required name="email" type="email" placeholder="Email Address" value={loginForm.email} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
-                                <input required name="password" type="password" placeholder="Password" value={loginForm.password} onChange={handleLoginChange} style={{ width: '100%', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '1rem' }} />
-                                {loginError && <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>{loginError}</p>}
-                                <button type="submit" style={{ width: '100%', padding: '1.2rem', background: '#000', color: '#fff', fontWeight: 900, border: 'none', borderRadius: '16px', cursor: 'pointer' }}>Sign In & Book</button>
-                            </form>
-                            
-                            <button type="button" onClick={() => setIsLoginMode(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Create an account instead</button>
-                        </div>
-                  ) : (
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                        <div onClick={saveBookingState} style={{ width: '100%' }}>
-                            <SocialLoginButtons mode="up" compact={true} callbackUrl={typeof window !== 'undefined' ? window.location.href : '/'} />
-                        </div>
-                        
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.2rem' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>FULL NAME</label>
-                                <input name="name" required placeholder="John Doe" value={regForm.name} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>MOBILE NUMBER</label>
-                                <input name="phone" required type="tel" placeholder="0400 000 000" value={regForm.phone} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>EMAIL ADDRESS</label>
-                            <input name="email" required type="email" placeholder="john@example.com" value={regForm.email} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STREET ADDRESS</label>
-                            <input name="street" required placeholder="e.g. 123 Luxury Way" value={regForm.street} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1.2rem' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', position: 'relative' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SUBURB</label>
-                                <input 
-                                    name="suburb" 
-                                    required
-                                    placeholder="Suburb" 
-                                    value={regForm.suburb} 
-                                    onChange={handleRegChange}
-                                    onFocus={() => setShowSubDropdown(true)}
-                                    onBlur={() => setTimeout(() => setShowSubDropdown(false), 200)}
-                                    style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} 
-                                />
-                                {showSubDropdown && matchingSubs.length > 0 && (
-                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', zIndex: 100, borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                                        {matchingSubs.map(item => (
-                                            <div 
-                                                key={`${item.s}-${item.st}`}
-                                                onClick={() => setRegForm({ ...regForm, suburb: item.s, state: item.st })}
-                                                style={{ padding: '0.8rem 1rem', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, borderBottom: '1px solid #f1f5f9' }}
-                                            >
-                                                {item.s}, {item.st}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>STATE</label>
-                                <input name="state" required placeholder="State" value={regForm.state} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', marginLeft: '4px' }}>SECURE PASSWORD</label>
-                            <input name="password" required type="password" placeholder="Min. 8 characters" value={regForm.password} onChange={handleRegChange} style={{ width: '100%', boxSizing: 'border-box', padding: '1rem', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.95rem' }} />
-                        </div>
-                        
-                        <button type="button" onClick={() => setIsLoginMode(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginTop: '0.5rem' }}>Already have an account? Log in</button>
-                    </div>
-                  )}
-               </div>
-             ) : (
-              <div>
-                  <button 
-                    onClick={() => setStage("CALENDAR")}
-                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 800, cursor: 'pointer', marginBottom: '1rem', padding: 0, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                  >
-                    ← Back to Schedule
-                  </button>
-                  <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Confirm Booking</h2>
-                  <p style={{ color: '#64748b', marginBottom: '2.5rem', fontWeight: 500 }}>Review your selection and complete your booking securely.</p>
-               </div>
-             )}
-
-             <div style={{ marginTop: '2.5rem', padding: 'clamp(1rem, 4vw, 2rem)', background: '#f8fafc', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '1.5rem' }}>Order Summary</h4>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '1.5rem' }}>
-                    {Object.keys(multiCart).map(key => {
-                      const personIndex = Number(key);
-                      const items = multiCart[personIndex];
-                      if (!items || items.length === 0) return null;
-                      return (
-                        <div key={key} style={{ padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: '12px' }}>
-                          <p style={{ fontSize: '0.75rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                            Connoisseur {personIndex + 1}
-                          </p>
-                          {items.map(item => (
-                            <div key={item.service.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.3rem' }}>
-                              <span style={{ fontWeight: 600 }}>{item.service.name} x{item.quantity}</span>
-                              <span style={{ fontWeight: 800 }}>${(item.service.price * item.quantity).toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
-                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                  <span style={{ color: '#64748b', fontWeight: 600 }}>Subtotal</span>
-                  <span style={{ fontWeight: 700 }}>${totalPrice.toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                  <span style={{ color: '#64748b', fontWeight: 600 }}>Priority Booking Fee</span>
-                  <span style={{ fontWeight: 700 }}>$0.50</span>
-                </div>
-                {giftDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#10b981', fontSize: '0.9rem' }}>
-                    <span style={{ fontWeight: 600 }}>Gift Card Applied</span>
-                    <span style={{ fontWeight: 700 }}>-${giftDiscount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px solid #e2e8f0' }}>
-                  <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#0f172a' }}>Total (AUD)</span>
-                  <span style={{ fontWeight: 900, fontSize: '1.2rem', color: '#6366f1' }}>${(finalPrice + 0.50).toFixed(2)}</span>
-                </div>
-                
-                <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Professional</h4>
-                 <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>
-                    {selectedBarberId ? barbers.find(b => b.id === selectedBarberId)?.name : "Any Specialist (First Available)"}
-                 </p>
-
-                 <h4 style={{ fontWeight: 900, textTransform: 'uppercase', fontSize: '0.75rem', color: '#94a3b8', letterSpacing: '1px', marginBottom: '0.5rem', marginTop: '2.5rem' }}>Date & Time</h4>
-                <p style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' }}>{new Date(targetDate).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'short' })} at {selectedTime}</p>
-             </div>
-
-              <div style={{ marginTop: '2.5rem', padding: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '20px' }}>
-                <h4 style={{ fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b', marginBottom: '1rem' }}>Policies & Terms</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ fontSize: '0.85rem', lineHeight: 1.5, color: '#475569' }}>
-                        <strong style={{ color: '#1e293b' }}>Booking Policy:</strong> {bookingPolicy || "A valid payment method is required to secure your booking."}
-                    </div>
-                    <div style={{ fontSize: '0.85rem', lineHeight: 1.5, color: '#475569' }}>
-                        <strong style={{ color: '#1e293b' }}>Cancellation Policy:</strong> {cancellationPolicy || "Cancellations must be made at least 24 hours in advance."}
-                    </div>
-                </div>
-
-                <label style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '1.5rem', cursor: 'pointer', background: agreedToPolicies ? 'rgba(99,102,241,0.05)' : 'transparent', padding: '1rem', borderRadius: '12px', border: agreedToPolicies ? '1px solid #6366f1' : '1px solid transparent', transition: 'all 0.2s' }}>
-                    <input 
-                        type="checkbox" 
-                        checked={agreedToPolicies} 
-                        onChange={(e) => setAgreedToPolicies(e.target.checked)}
-                        style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#6366f1' }}
-                    />
-                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>I agree to the Booking and Cancellation policies.</span>
-                </label>
-              </div>
-
-              <button 
-                 onClick={handleFinalCheckout}
-                 disabled={isPending || isProcessingPayment || !agreedToPolicies}
-                 style={{ 
-                     marginTop: '2.5rem', 
-                     width: '100%', 
-                     padding: '1.4rem', 
-                     background: agreedToPolicies ? '#000' : '#cbd5e1', 
-                     color: '#fff', 
-                     border: 'none', 
-                     borderRadius: '20px', 
-                     fontWeight: 900, 
-                     fontSize: '1.2rem', 
-                     cursor: agreedToPolicies ? 'pointer' : 'not-allowed',
-                     boxShadow: agreedToPolicies ? '0 20px 40px -10px rgba(0,0,0,0.3)' : 'none',
-                     transition: 'all 0.3s ease'
-                 }}>
-                 {isProcessingPayment ? "Redirecting to Secure Checkout..." : "Confirm & Pay Online"}
-              </button>
-          </div>
-      )}
-
-      {/* Persistent Mini-Cart (Fresha Style) */}
-       {allCartItems.length > 0 && stage !== 'PAYMENT' && (
-        <div style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', width: '90%', maxWidth: '600px', background: '#000', color: '#fff', borderRadius: '24px', padding: '1.2rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                {partySize > 1 && (
-                  <button onClick={prevPerson} disabled={currentPersonIndex === 0} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: currentPersonIndex === 0 ? 'not-allowed' : 'pointer', fontSize: '1.2rem' }}>&lsaquo;</button>
-                )}
-                <div>
-                    <p style={{ fontSize: '0.8rem', opacity: 0.6, fontWeight: 700 }}>
-                      {partySize > 1 ? `Person ${currentPersonIndex + 1} of ${partySize}` : `${allCartItems.length} services selected`}
-                    </p>
-                    <p style={{ fontSize: '1.3rem', fontWeight: 900 }}>Total: ${(finalPrice + 0.50).toFixed(2)} AUD</p>
-                </div>
-            </div>
-            
-            {stage === 'SERVICES' ? (
-                <button 
-                  onClick={nextPerson} 
-                  disabled={currentCart.length === 0}
-                  style={{ background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: 900, cursor: currentCart.length === 0 ? 'not-allowed' : 'pointer', opacity: currentCart.length === 0 ? 0.5 : 1 }}
-                >
-                  {currentPersonIndex < partySize - 1 ? 'Next Person' : 'Choose Time'}
-                </button>
-            ) : (
-                <button onClick={() => setStage('PAYMENT')} style={{ background: '#fff', color: '#000', border: 'none', padding: '0.8rem 2rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer' }}>Review & Pay</button>
-            )}
+            </>
+          )}
         </div>
-      )}
+      </aside>
     </div>
+    </>
   );
 }

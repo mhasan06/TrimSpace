@@ -24,13 +24,15 @@ const getSydneyUTC = (dateStr: string, timeStr: string) => {
   return new Date(date.getTime() - (diffHours * 3600000));
 };
 
-export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: string[][], preferredBarberId?: string) {
+export async function fetchPublicSlots(tenantSlug: string, dateStr: string, serviceGroups: number[][], serviceIds: string[], preferredBarberId?: string) {
    console.log(`[Action] fetchPublicSlots called for ${tenantSlug} on ${dateStr}`);
+   console.log(`[Action] Groups:`, JSON.stringify(serviceGroups));
    
    const tenant = await prisma.tenant.findUnique({ where: { slug: tenantSlug } });
    if (!tenant) return { availableSlots: [], reason: "Tenant not found" };
 
-   const slots = await getAvailableSlots(tenant.id, dateStr, serviceGroups, preferredBarberId);
+   // We pass the preferredBarberId to the engine to filter lanes
+   const slots = await getAvailableSlots(tenant.id, dateStr, serviceGroups, serviceIds, preferredBarberId);
    return slots;
 }
 
@@ -297,14 +299,3 @@ export async function validateGiftCard(code: string, tenantSlug: string) {
   }
 }
 
-export async function checkEmailExists(email: string) {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true }
-    });
-    return !!user;
-  } catch (err) {
-    return false;
-  }
-}
