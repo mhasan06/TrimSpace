@@ -142,6 +142,10 @@ export async function getAvailableSlots(
   };
 
   for (let currentMs = startMoment.getTime(); currentMs + durationMs <= endMoment.getTime(); currentMs += stepMs) {
+    // 1. Enforce 2-hour minimum lead time for same-day bookings
+    if (currentMs < Date.now() + (2 * 60 * 60 * 1000)) continue;
+
+    // 2. Check for lunch break conflicts
     if (lunchS && lunchE) {
       if (currentMs < lunchE && currentMs + durationMs > lunchS) continue;
     }
