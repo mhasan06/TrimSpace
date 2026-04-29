@@ -269,24 +269,20 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               
 
       {/* Summary Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #6366f1' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
-            {activeTab === 'future' ? 'Projected Gross' : 'Gross Revenue'}
+            {activeTab === 'future' ? 'Projected Gross' : 'Total Customer Paid'}
           </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.gross.toFixed(2)}</div>
         </div>
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--secondary)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Marketplace Fees</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${totals.platform.toFixed(2)}</div>
-        </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #ef4444' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Processing Costs</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${totals.processing.toFixed(2)}</div>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Secure Processing & Platform Fees</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${(totals.platform + totals.processing).toFixed(2)}</div>
         </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981' }}>
           <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>
-            {activeTab === 'settled_history' ? 'Net Paid to Shop' : 'Net Receivable'}
+            {activeTab === 'settled_history' ? 'Net Paid to Shop' : 'Net Total Payout'}
           </h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
         </div>
@@ -440,14 +436,10 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                     </td>
                     <td>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem 1.5rem', fontSize: '0.75rem' }}>
-                        <span style={{ opacity: 0.6 }}>Gross Revenue:</span>
+                        <span style={{ opacity: 0.6 }}>Total Customer Paid:</span>
                         <span style={{ fontWeight: 800 }}>${event.grossAmount.toFixed(2)}</span>
-                        <span style={{ opacity: 0.6 }}>Commission:</span>
-                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.commissionFee.toFixed(2)}</span>
-                        <span style={{ opacity: 0.6 }}>Processing:</span>
-                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.processingFee.toFixed(2)}</span>
-                        <span style={{ opacity: 0.6 }}>Priority Fee:</span>
-                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${event.priorityFee.toFixed(2)}</span>
+                        <span style={{ opacity: 0.6 }}>Secure Processing & Platform Fees:</span>
+                        <span style={{ fontWeight: 800, color: '#ef4444' }}>-${(event.commissionFee + event.processingFee + event.priorityFee).toFixed(2)}</span>
                       </div>
                     </td>
                     <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
@@ -472,8 +464,8 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
         <h4 style={{ fontSize: '0.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>💡 Financial Insight</h4>
         <p style={{ fontSize: '0.8rem', opacity: 0.7, lineHeight: 1.5 }}>
           {activeTab === 'future' ? 
-            "Future bookings represent expected inflows and deferred revenue. These figures are not realized until the service is marked as completed and the cooling-off period passes." :
-            "Settled transactions have been verified and included in a payout batch. Platform fees include the $0.50 priority booking fee and standard marketplace commission."
+            "Future bookings represent expected inflows. These figures are realized once the service is completed." :
+            "Settled transactions have been verified and included in a payout batch. Platform fees include secure processing, priority booking, and standard marketplace commission."
           }
         </p>
       </div>
