@@ -270,7 +270,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
                           {blocks.map((b, i) => (
                               <div key={i} style={{ 
                                   width: 28, height: 32, borderRadius: 6, 
-                                  background: b === 1 ? '#3b429f' : b === 0 ? '#f1f5f9' : '#e2e8f0',
+                                  background: b === 1 ? '#3b429f' : '#e2e8f0',
                                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                               }}>
                                   {b === 1 && <span style={{ fontSize: '0.5rem', color: 'white', fontWeight: 800 }}>In</span>}
