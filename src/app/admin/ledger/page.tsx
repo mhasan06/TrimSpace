@@ -38,6 +38,13 @@ export default async function AdminLedgerPage() {
     const totalPlatformTake = fees.totalCustomerPrice - fees.basePrice;
     const netPayout = fees.basePrice;
 
+    // Calculate potential refund if cancelled
+    let refundAmount = 0;
+    if (isCancelled && isPaid) {
+      const originalFullPriceFees = calculateServiceFees(app.service.price);
+      refundAmount = originalFullPriceFees.totalCustomerPrice - fees.totalCustomerPrice;
+    }
+
     return {
       id: app.id,
       bookingId: app.bookingGroupId || app.id,
@@ -58,6 +65,8 @@ export default async function AdminLedgerPage() {
       tax: 0, 
       netPayable: netPayout,
       netPlatform: totalPlatformTake,
+      refundAmount: refundAmount,
+      paymentStatus: app.paymentStatus,
       isFuture: isFuture,
       isSettled: !!app.settlementId,
       isDisputed: app.isDisputed,

@@ -24,6 +24,8 @@ interface AdminLedgerEvent {
   tax: number;
   netPayable: number;
   netPlatform: number;
+  refundAmount: number;
+  paymentStatus: string;
   isFuture: boolean;
   isSettled: boolean;
   isDisputed?: boolean;
@@ -41,7 +43,7 @@ interface AdminLedgerEvent {
 }
 
 export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) {
-  const [activeTab, setActiveTab] = useState<'payout_queue' | 'settled_history' | 'disputes' | 'future'>('payout_queue');
+  const [activeTab, setActiveTab] = useState<'payout_queue' | 'settled_history' | 'disputes' | 'refunds' | 'future'>('payout_queue');
   const [disputeSubTab, setDisputeSubTab] = useState<'pending' | 'resolved'>('pending');
   const [expandedShopId, setExpandedShopId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
@@ -112,7 +114,12 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
        return true;
     }
 
-    // 4. Pipeline Forecast (Upcoming bookings)
+    // 4. Refund Management (Cancelled bookings with pending refunds)
+    if (activeTab === 'refunds') {
+       return event.type === 'CANCELLATION_FEE' && event.refundAmount > 0 && event.paymentStatus !== 'PARTIAL_REFUNDED' && event.paymentStatus !== 'REFUNDED';
+    }
+
+    // 5. Pipeline Forecast (Upcoming bookings)
     if (activeTab === 'future') {
        return event.isFuture || !isBeforeToday;
     }
@@ -329,10 +336,11 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
           {[
-            { id: 'payout_queue', label: 'Merchant Payout Queue', icon: '🏧', sub: 'Batches awaiting settlement' },
-            { id: 'settled_history', label: 'Settled History', icon: '📜', sub: 'Completed payout runs' },
-            { id: 'disputes', label: 'Active Disputes', icon: '⚠️', sub: 'Action required' },
-            { id: 'future', label: 'Pipeline Forecast', icon: '📈', sub: 'Upcoming revenue projections' }
+              { id: 'payout_queue', label: 'Merchant Payout Queue', icon: '🏧', sub: 'Batches awaiting settlement' },
+              { id: 'settled_history', label: 'Settled History', icon: '📜', sub: 'Completed payout runs' },
+              { id: 'refunds', label: 'Customer Refund Queue', icon: '💸', sub: 'Owed due to cancellations' },
+              { id: 'disputes', label: 'Active Disputes', icon: '⚠️', sub: 'Action required' },
+              { id: 'future', label: 'Pipeline Forecast', icon: '📈', sub: 'Upcoming revenue projections' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -348,6 +356,11 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                  {tab.id === 'disputes' && data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length > 0 && (
                    <span style={{ background: '#ef4444', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
                      {data.filter(e => e.isDisputed && e.disputeStatus === 'PENDING').length}
+                   </span>
+                 )}
+                 {tab.id === 'refunds' && data.filter(e => e.type === 'CANCELLATION_FEE' && e.refundAmount > 0 && e.paymentStatus !== 'PARTIAL_REFUNDED' && e.paymentStatus !== 'REFUNDED').length > 0 && (
+                   <span style={{ background: '#3b82f6', color: 'white', fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '10px' }}>
+                     {data.filter(e => e.type === 'CANCELLATION_FEE' && e.refundAmount > 0 && e.paymentStatus !== 'PARTIAL_REFUNDED' && e.paymentStatus !== 'REFUNDED').length}
                    </span>
                  )}
               </div>
@@ -412,24 +425,28 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                   <td>
                     <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#10b981' }}>${data.totals.net.toFixed(2)}</div>
                   </td>
-                  <td style={{ textAlign: 'right', paddingRight: '2rem' }}>
-                    {activeTab === 'payout_queue' ? (
-                       <button 
-                         onClick={(e) => { 
-                           e.stopPropagation(); 
-                           handleSettleShop(shopId, data.name, data.totals.net, data.events.map((ev: any) => ev.id)); 
-                         }}
-                         disabled={settlingShopId === shopId}
-                         style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', opacity: settlingShopId === shopId ? 0.5 : 1 }}
-                       >
-                         {settlingShopId === shopId ? 'SETTLING...' : 'MARK AS PAID'}
-                       </button>
-                    ) : (
-                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontWeight: 900, fontSize: '0.8rem' }}>
-                          <span style={{ background: '#10b981', color: 'black', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>PAID & SETTLED</span>
-                       </div>
-                    )}
-                  </td>
+                      <td style={{ textAlign: 'right', paddingRight: '2rem' }}>
+                        {activeTab === 'payout_queue' ? (
+                           <button 
+                             onClick={(e) => { 
+                               e.stopPropagation(); 
+                               handleSettleShop(shopId, data.name, data.totals.net, data.events.map((ev: any) => ev.id)); 
+                             }}
+                             disabled={settlingShopId === shopId}
+                             style={{ background: '#10b981', color: 'black', border: 'none', padding: '0.8rem 1.5rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', opacity: settlingShopId === shopId ? 0.5 : 1 }}
+                           >
+                             {settlingShopId === shopId ? 'SETTLING...' : 'MARK AS PAID'}
+                           </button>
+                        ) : activeTab === 'refunds' ? (
+                            <div style={{ fontWeight: 900, color: '#3b82f6' }}>
+                                ${data.events.reduce((acc: number, ev: any) => acc + ev.refundAmount, 0).toFixed(2)} Owed
+                            </div>
+                        ) : (
+                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontWeight: 900, fontSize: '0.8rem' }}>
+                              <span style={{ background: '#10b981', color: 'black', padding: '0.4rem 0.8rem', borderRadius: '8px' }}>PAID & SETTLED</span>
+                           </div>
+                        )}
+                      </td>
                 </tr>
                 {expandedShopId === shopId && (
                   <tr>
@@ -456,11 +473,21 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                      <td>{event.serviceName}</td>
                                      <td style={{ fontWeight: 700 }}>${event.grossAmount.toFixed(2)}</td>
                                      <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>-${(event.netPlatform + event.processingFee).toFixed(2)}</td>
-                                     <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
+                                       <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
                                        {activeTab === 'disputes' && (
                                          <td style={{ textAlign: 'right', paddingLeft: '1rem' }}>
                                            <button onClick={() => setResolvingEvent(event)} style={{ background: event.disputeStatus?.startsWith('RESOLVED') ? '#6366f1' : '#f59e0b', color: event.disputeStatus?.startsWith('RESOLVED') ? 'white' : 'black', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' }}>
                                              {event.disputeStatus?.startsWith('RESOLVED') ? 'AUDIT' : 'RESOLVE'}
+                                           </button>
+                                         </td>
+                                       )}
+                                       {activeTab === 'refunds' && (
+                                         <td style={{ textAlign: 'right', paddingLeft: '1rem' }}>
+                                           <div style={{ color: '#3b82f6', fontWeight: 900, marginBottom: '0.3rem' }}>REFUND: ${event.refundAmount.toFixed(2)}</div>
+                                           <button 
+                                              onClick={() => alert('Feature coming soon: Automated Stripe Refund. For now, please refund via Stripe dashboard and mark as partial refund in variables.')}
+                                              style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' }}>
+                                              PROCESS REFUND
                                            </button>
                                          </td>
                                        )}
