@@ -13,6 +13,7 @@ import {
 } from "../app/[slug]/actions";
 import { useSession, signIn } from "next-auth/react";
 import { getTerminology } from "@/lib/terminology";
+import { calculateServiceFees, formatPrice } from "@/lib/pricing";
 
 export type Service = {
   id: string;
@@ -105,7 +106,10 @@ export default function BookingFlow({
   }, [numberOfPeople, multiCart, selectedTime, selectedBarberIds, targetDate, tenantSlug]);
 
   const allCartItems = useMemo(() => Object.entries(multiCart).flatMap(([pIdx, items]) => items.map(i => ({ ...i, p: Number(pIdx) }))), [multiCart]);
-  const totalPrice = allCartItems.reduce((acc, i) => acc + (i.service.price * i.quantity), 0);
+  const totalPrice = allCartItems.reduce((acc, i) => {
+    const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price));
+    return acc + (totalCustomerPrice * i.quantity);
+  }, 0);
 
   useEffect(() => { fetchBarbers(tenantSlug).then((data) => setBarbers(data as any)); }, [tenantSlug]);
 
@@ -426,7 +430,42 @@ export default function BookingFlow({
           </button>
         )}
         {stage === "START" && (<><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 2rem', background: '#fff', borderRadius: '48px', border: '1px solid #f1f5f9', boxShadow: '0 20px 60px rgba(0,0,0,0.02)', textAlign: 'center', marginBottom: '4rem' }}><h1 style={{ fontSize: '3rem', fontWeight: 950, marginBottom: '1rem', color: '#0f172a' }}>Welcome</h1><p style={{ fontSize: '1.2rem', color: '#64748b', fontWeight: 600, marginBottom: '3rem' }}>How many people are joining us?</p><div style={{ display: 'flex', gap: '16px', marginBottom: '4rem' }}>{[1, 2, 3, 4, 5].map(num => (<button key={num} onClick={() => setNumberOfPeople(num)} style={{ width: '72px', height: '72px', borderRadius: '20px', border: numberOfPeople === num ? '2px solid #000' : '1px solid #e2e8f0', background: numberOfPeople === num ? '#f8fafc' : '#fff', color: '#000', fontWeight: 900, fontSize: '1.5rem', cursor: 'pointer' }}>{num}</button>))}</div><button onClick={() => setStage("SERVICES")} style={{ padding: '1.2rem 4rem', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>Continue</button></div>{children}</>)}
-        {stage === "SERVICES" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><button onClick={() => setStage("START")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Select {terminology.serviceLabelPlural}</h2>{numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginBottom: '2.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}<div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>{initialServices.map(service => { const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id); return (<div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div style={{ flex: 1 }}><h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', fontWeight: 800 }}>{service.name}</h3><p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>{service.durationMinutes} mins</p><p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>A${service.price}</p></div><div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSelected ? '#6366f1' : '#fff', border: isSelected ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>{isSelected ? '✓' : '+'}</div></div>); })}</div></div>)}
+        {stage === "SERVICES" && (
+          <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+            <button onClick={() => setStage("START")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Select {terminology.serviceLabelPlural}</h2>
+            {numberOfPeople > 1 && (
+              <div style={{ display: 'flex', gap: '10px', marginBottom: '2.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>
+                {Array.from({ length: numberOfPeople }).map((_, i) => (
+                  <button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>
+                    Person {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {initialServices.map(service => {
+                const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id);
+                const { totalCustomerPrice } = calculateServiceFees(Number(service.price));
+                return (
+                  <div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', fontWeight: 800 }}>{service.name}</h3>
+                      <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>{service.durationMinutes} mins</p>
+                      <p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{formatPrice(totalCustomerPrice)}</p>
+                    </div>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSelected ? '#6366f1' : '#fff', border: isSelected ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      {isSelected ? '✓' : '+'}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, marginTop: '20px' }}>
+              * Prices include all secure processing and platform service fees.
+            </p>
+          </div>
+        )}
         {stage === "CALENDAR" && (
           <div style={{ padding: '2.5rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
@@ -578,7 +617,7 @@ export default function BookingFlow({
                       {items.map((item, idx) => (
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.service.name}</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>A${item.service.price}</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>{formatPrice(calculateServiceFees(Number(item.service.price)).totalCustomerPrice)}</span>
                         </div>
                       ))}
                       {selectedBarberIds[Number(pIdx)] && (
@@ -591,7 +630,7 @@ export default function BookingFlow({
               
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '24px', display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                 <span style={{ fontSize: '1.1rem', fontWeight: 900 }}>Subtotal</span>
-                <span style={{ fontSize: '1.25rem', fontWeight: 950 }}>A${totalPrice}</span>
+                <span style={{ fontSize: '1.25rem', fontWeight: 950 }}>{formatPrice(totalPrice)}</span>
               </div>
               {stage !== "PAYMENT" && (
                 <button onClick={nextStage} style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { deleteServiceAction, updateServiceAction, toggleServiceVisibilityAction } from "../app/dashboard/services/actions";
+import { calculateServiceFees, formatPrice } from "@/lib/pricing";
 
 interface Service {
   id: string;
@@ -146,9 +147,27 @@ export default function ServiceManager({ initialServices, barbers, tenantId }: {
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', paddingLeft: '2rem' }}>
-              <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)', whiteSpace: 'nowrap' }}>
-                ${srv.price.toFixed(2)}
-              </span>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)', whiteSpace: 'nowrap', display: 'block' }}>
+                  {formatPrice(srv.price)}
+                </span>
+                <div style={{ fontSize: '0.65rem', color: 'var(--foreground)', opacity: 0.6, marginTop: '4px', textAlign: 'right' }}>
+                  {(() => {
+                    const fees = calculateServiceFees(srv.price);
+                    return (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
+                          <span>Fees:</span>
+                          <span style={{ fontWeight: 700 }}>+{formatPrice(fees.totalFees)}</span>
+                        </div>
+                        <div style={{ fontWeight: 800, color: 'var(--foreground)', opacity: 1, marginTop: '2px' }}>
+                          Customer Pays: {formatPrice(fees.totalCustomerPrice)}
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                  <button 
                    onClick={() => handleToggleVisibility(srv.id, srv.isActive)}

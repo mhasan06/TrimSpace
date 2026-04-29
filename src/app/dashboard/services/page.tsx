@@ -51,6 +51,9 @@ export default async function ServicesDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <label style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>Price ($)</label>
             <input name="price" type="number" step="0.01" placeholder="e.g. 35.00" required style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--foreground)' }} />
+            <p style={{ fontSize: '0.7rem', color: 'var(--foreground)', opacity: 0.6, margin: 0 }}>
+              * Platform will automatically add 1.7% + A$0.30 + 50c fees to this price.
+            </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: 'span 2' }}>
