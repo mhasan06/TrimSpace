@@ -69,7 +69,7 @@ export default function BookingFlow({
   };
   const [targetDate, setTargetDate] = useState<string>(getSydneyToday());
   
-  const [authStep, setAuthStep] = useState<'EMAIL' | 'PASSWORD' | 'REGISTER'>('EMAIL');
+  const [authStep, setAuthStep] = useState<'EMAIL' | 'PASSWORD' | 'REGISTER' | 'VERIFY'>('EMAIL');
   const [authEmail, setAuthEmail] = useState("");
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [regForm, setRegForm] = useState({ name: "", email: "", phone: "", phoneCode: "+61", password: "", street: "", suburb: "", state: "", verifyCode: "" });
