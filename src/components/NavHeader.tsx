@@ -96,7 +96,7 @@ export default function NavHeader() {
                 Log in or sign up
               </Link>
             )}
-            <Link href="/register?type=business" style={{ 
+            <Link href="/partners" style={{ 
               fontWeight: 800, 
               fontSize: '0.95rem', 
               color: '#000', 
@@ -269,7 +269,7 @@ export default function NavHeader() {
                   {isMobile && !session && (
                     <>
                       <div style={{ height: '1px', background: '#f1f5f9', margin: '0.5rem 0' }}></div>
-                      <Link href="/register?type=business" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
+                      <Link href="/partners" onClick={() => setShowMenu(false)} style={{ textDecoration: 'none', color: '#000', fontWeight: 900, fontSize: '1rem' }}>Become a Partner</Link>
                     </>
                   )}
                 </div>
