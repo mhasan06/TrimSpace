@@ -57,6 +57,7 @@ export default function BookingFlow({
   
   const [stage, setStage] = useState<"START" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("START");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [currentPersonIndex, setCurrentPersonIndex] = useState(0);
@@ -580,7 +581,73 @@ export default function BookingFlow({
             </div>
           </div>
         )}
-        {stage === "PAYMENT" && (<div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}><button onClick={() => { setStage("BARBERS"); setCurrentPersonIndex(numberOfPeople - 1); }} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button><h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Final Confirmation</h2><div style={{ background: '#f8fafc', padding: '2.5rem', borderRadius: '24px', marginBottom: '2.5rem' }}><p style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#64748b', fontWeight: 600 }}>Booking for <strong style={{ color: '#0f172a' }}>{session?.user?.email}</strong></p><div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '1.5rem', padding: '1.2rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0' }}><input type="checkbox" id="disclaimer" checked={disclaimerAccepted} onChange={(e) => setDisclaimerAccepted(e.target.checked)} style={{ width: '20px', height: '20px', cursor: 'pointer', marginTop: '3px' }} /><label htmlFor="disclaimer" style={{ fontSize: '0.9rem', color: '#475569', cursor: 'pointer', lineHeight: '1.5' }}>I agree to the <span onClick={() => setShowPolicyModal(true)} style={{ color: '#6366f1', fontWeight: 700, textDecoration: 'underline' }}>cancellation policy</span> and understand that bookings are non-refundable within 24 hours of the appointment time.</label></div></div><button onClick={handleCheckout} disabled={isPending || !disclaimerAccepted} style={{ width: '100%', padding: '1.4rem', borderRadius: '50px', background: disclaimerAccepted ? '#6366f1' : '#cbd5e1', color: '#fff', fontWeight: 950, fontSize: '1.2rem', cursor: disclaimerAccepted ? 'pointer' : 'not-allowed', boxShadow: disclaimerAccepted ? '0 12px 40px rgba(99,102,241,0.3)' : 'none' }}>{isPending ? "Initializing Checkout..." : "Confirm & Pay"}</button></div>)}
+        {stage === "PAYMENT" && (
+          <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+            <button onClick={() => { setStage("BARBERS"); setCurrentPersonIndex(numberOfPeople - 1); }} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
+            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Final Confirmation</h2>
+            
+            <div style={{ background: '#f8fafc', padding: '2.5rem', borderRadius: '24px', marginBottom: '2.5rem' }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: '1.1rem', color: '#64748b', fontWeight: 600 }}>Booking for <strong style={{ color: '#0f172a' }}>{session?.user?.email}</strong></p>
+              
+              {/* Price Breakdown Component */}
+              <div style={{ marginTop: '2rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
+                <button 
+                  onClick={() => setShowPriceBreakdown(!showPriceBreakdown)}
+                  style={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    background: 'none', 
+                    border: 'none', 
+                    padding: 0, 
+                    cursor: 'pointer',
+                    color: '#0f172a'
+                  }}
+                >
+                  <span style={{ fontWeight: 800, fontSize: '1.1rem' }}>Price Details</span>
+                  <span style={{ fontWeight: 900, fontSize: '1.2rem' }}>{showPriceBreakdown ? '−' : '+'}</span>
+                </button>
+                
+                {showPriceBreakdown && (
+                  <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {(() => {
+                      const baseSubtotal = allCartItems.reduce((acc, i) => acc + (Number(i.service.price) * i.quantity), 0);
+                      const totalFeesValue = totalPrice - baseSubtotal;
+                      return (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontWeight: 600, fontSize: '0.95rem' }}>
+                            <span>Services</span>
+                            <span>{formatPrice(baseSubtotal)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontWeight: 600, fontSize: '0.95rem' }}>
+                            <span>Secure Processing & Service Fee</span>
+                            <span>{formatPrice(totalFeesValue)}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: 900, fontSize: '1.1rem', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>
+                            <span>Total</span>
+                            <span>{formatPrice(totalPrice)}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginTop: '2.5rem', padding: '1.2rem', background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                <input type="checkbox" id="disclaimer" checked={disclaimerAccepted} onChange={(e) => setDisclaimerAccepted(e.target.checked)} style={{ width: '20px', height: '20px', cursor: 'pointer', marginTop: '3px' }} />
+                <label htmlFor="disclaimer" style={{ fontSize: '0.9rem', color: '#475569', cursor: 'pointer', lineHeight: '1.5' }}>
+                  I agree to the <span onClick={() => setShowPolicyModal(true)} style={{ color: '#6366f1', fontWeight: 700, textDecoration: 'underline' }}>cancellation policy</span> and understand that bookings are non-refundable within 24 hours of the appointment time.
+                </label>
+              </div>
+            </div>
+            
+            <button onClick={handleCheckout} disabled={isPending || !disclaimerAccepted} style={{ width: '100%', padding: '1.4rem', borderRadius: '50px', background: disclaimerAccepted ? '#6366f1' : '#cbd5e1', color: '#fff', fontWeight: 950, fontSize: '1.2rem', cursor: disclaimerAccepted ? 'pointer' : 'not-allowed', boxShadow: disclaimerAccepted ? '0 12px 40px rgba(99,102,241,0.3)' : 'none' }}>
+              {isPending ? "Initializing Checkout..." : "Confirm & Pay"}
+            </button>
+          </div>
+        )}
       </div>
 
       <aside style={{ position: 'sticky', top: '2rem' }}>
