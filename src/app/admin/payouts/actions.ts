@@ -279,20 +279,18 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
       settlementId
     );
     
-    const chargedGroups = new Set();
+    const settingsRows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PlatformSettings" WHERE id = 'platform_global' LIMIT 1`);
+    const settings = settingsRows?.[0] || { defaultPlatformFee: 0.017 };
+    
     const appsWithFees = appointments.map(a => {
-      const gid = a.bookingGroupId || a.id;
-      let actualPriority = 0;
-      if (!chargedGroups.has(gid)) {
-        actualPriority = 0.50;
-        chargedGroups.add(gid);
-      }
-      const actualRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+      const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+      const fees = calculateServiceFees(actualBaseRev, settings.defaultPlatformFee);
+      
       return {
         ...a,
-        priorityFee: actualPriority,
-        actualServicePrice: actualRev,
-        totalWithFee: actualRev + actualPriority
+        actualServicePrice: fees.basePrice,
+        totalWithFee: fees.totalCustomerPrice,
+        platformDeduction: fees.totalCustomerPrice - fees.basePrice
       };
     });
 

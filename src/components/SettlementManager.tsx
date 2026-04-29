@@ -468,9 +468,9 @@ export default function SettlementManager({
                         <th style={{ textAlign: 'left', padding: '10px' }}>BOOKING ID</th>
                         <th style={{ textAlign: 'left', padding: '10px' }}>DATE / TIME</th>
                         <th style={{ textAlign: 'left', padding: '10px' }}>SERVICE ITEM</th>
-                        <th style={{ textAlign: 'right', padding: '10px' }}>ORIGINAL</th>
-                        <th style={{ textAlign: 'center', padding: '10px' }}>APPLIED POLICY</th>
-                        <th style={{ textAlign: 'right', padding: '10px' }}>FINAL TAKE</th>
+                        <th style={{ textAlign: 'right', padding: '10px' }}>TOTAL CUSTOMER PAID</th>
+                        <th style={{ textAlign: 'right', padding: '10px' }}>SECURE PROCESSING & PLATFORM FEES</th>
+                        <th style={{ textAlign: 'right', padding: '10px' }}>NET TOTAL PAYOUT</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -491,11 +491,9 @@ export default function SettlementManager({
                                 <strong>{a.serviceName}</strong><br/>
                                 <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>Client: {a.customerName}</span>
                             </td>
-                            <td style={{ padding: '10px', textAlign: 'right', fontSize: '0.9rem' }}>${(a.servicePrice || 0).toFixed(2)}</td>
-                            <td style={{ padding: '10px', textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, color: a.status === 'CANCELLED' ? '#ef4444' : '#10b981' }}>
-                                {a.status === 'CANCELLED' ? '50% RETENTION FEE' : 'STANDARD RATE'}
-                            </td>
-                            <td style={{ padding: '10px', textAlign: 'right', fontWeight: 900 }}>${(a.actualServicePrice || a.servicePrice).toFixed(2)}</td>
+                            <td style={{ padding: '10px', textAlign: 'right' }}>${(a.totalWithFee || 0).toFixed(2)}</td>
+                            <td style={{ padding: '10px', textAlign: 'right', color: '#666' }}>-${(a.platformDeduction || 0).toFixed(2)}</td>
+                            <td style={{ padding: '10px', textAlign: 'right', fontWeight: 900 }}>${(a.actualServicePrice || 0).toFixed(2)}</td>
                         </tr>
                     ))}
                 </tbody>
