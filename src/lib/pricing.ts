@@ -18,13 +18,17 @@ export function calculateServiceFees(basePrice: number) {
   const stripePercentFee = basePrice * PRICING_CONSTANTS.STRIPE_PERCENT;
   const totalFees = stripePercentFee + PRICING_CONSTANTS.STRIPE_FLAT + PRICING_CONSTANTS.PLATFORM_FEE;
   
+  // Round to nearest $0.10
+  const rawTotal = basePrice + totalFees;
+  const totalCustomerPrice = Math.round(rawTotal * 10) / 10;
+  
   return {
     basePrice,
     stripePercentFee,
     stripeFlatFee: PRICING_CONSTANTS.STRIPE_FLAT,
     platformFee: PRICING_CONSTANTS.PLATFORM_FEE,
-    totalFees,
-    totalCustomerPrice: basePrice + totalFees
+    totalFees: totalCustomerPrice - basePrice, // Recalculate total fees based on rounded price
+    totalCustomerPrice
   };
 }
 
