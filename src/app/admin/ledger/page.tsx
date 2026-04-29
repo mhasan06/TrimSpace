@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { calculateServiceFees } from '@/lib/pricing';
 import AdminLedgerView from '@/components/AdminLedgerView';
 
 const prisma = new PrismaClient();
@@ -26,18 +27,16 @@ export default async function AdminLedgerPage() {
     const isPaid = app.paymentStatus === 'PAID' || app.paymentStatus === 'PARTIAL_REFUNDED';
     const isFuture = new Date(app.startTime) > new Date();
     
-    const servicePrice = app.service.price;
-    const priorityFee = 0.50;
+    // Use the unified pricing utility
+    const penaltyAmount = isCancelled 
+      ? Number(app.cancellationFee || (app.service.price * 0.5))
+      : Number(app.service.price);
+
+    const fees = calculateServiceFees(penaltyAmount);
     
-    // The amount collected from the customer
-    const grossRevenue = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
-    
-    // The marketplace commission
-    const commissionAmount = Math.abs(isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission));
-    const stripeFee = Math.abs(isPaid ? ((grossRevenue * 0.029) + 0.30) : 0);
-    
-    const platformTotal = commissionAmount + priorityFee;
-    const netPayout = grossRevenue - platformTotal - stripeFee;
+    const grossRevenue = fees.totalCustomerPrice;
+    const totalPlatformTake = fees.totalCustomerPrice - fees.basePrice;
+    const netPayout = fees.basePrice;
 
     return {
       id: app.id,
@@ -50,15 +49,15 @@ export default async function AdminLedgerPage() {
       shopName: app.tenant.name,
       shopId: app.tenantId,
       serviceName: app.service.name,
-      servicePrice: servicePrice,
-      cancellationAmount: isCancelled ? app.cancellationFee : 0,
+      servicePrice: app.service.price,
+      cancellationAmount: isCancelled ? penaltyAmount : 0,
       grossAmount: grossRevenue,
-      commissionFee: commissionAmount,
-      processingFee: stripeFee,
-      priorityFee: priorityFee,
+      commissionFee: 0.50, // Mapping 50c to this field for display grouping
+      processingFee: (totalPlatformTake - 0.50), 
+      priorityFee: 0,
       tax: 0, 
       netPayable: netPayout,
-      netPlatform: platformTotal,
+      netPlatform: totalPlatformTake,
       isFuture: isFuture,
       isSettled: !!app.settlementId,
       isDisputed: app.isDisputed,

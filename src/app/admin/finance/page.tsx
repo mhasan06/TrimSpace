@@ -11,7 +11,7 @@ export default async function AdminFinancePortal() {
   // 1. Fetch Global Live Revenue (Paid appointments not yet batched)
   const liveData = await prisma.$queryRaw<any[]>`
     SELECT 
-        SUM(s.price + 0.5) as total,
+        SUM(ROUND((s.price * 1.017 + 0.80) * 10) / 10.0) as total,
         COUNT(a.id) as count
     FROM "Appointment" a
     JOIN "Service" s ON a."serviceId" = s.id
@@ -19,6 +19,7 @@ export default async function AdminFinancePortal() {
   `;
 
   // 2. Fetch Settlement Totals by Status
+  // (Assuming these were already calculated correctly when settlement was created)
   const settlementStats = await prisma.$queryRaw<any[]>`
     SELECT 
         status,
@@ -36,7 +37,7 @@ export default async function AdminFinancePortal() {
         t.id, 
         t.name,
         COALESCE((
-            SELECT SUM(s2.price + 0.5) 
+            SELECT SUM(ROUND((s2.price * 1.017 + 0.80) * 10) / 10.0)
             FROM "Appointment" a2 
             JOIN "Service" s2 ON a2."serviceId" = s2.id 
             WHERE a2."tenantId" = t.id AND a2."paymentStatus" = 'PAID' AND a2."status" = 'CONFIRMED' AND a2."settlementId" IS NULL
