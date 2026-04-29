@@ -22,6 +22,12 @@ async function ensureAdmin() {
 export async function getPlatformSettingsAction() {
   await ensureAdmin();
   try {
+    // Auto-fix for legacy 2% default
+    await prisma.$executeRawUnsafe(
+      `UPDATE "PlatformSettings" SET "defaultPlatformFee" = 0.017 
+       WHERE "id" = 'platform_global' AND "defaultPlatformFee" = 0.02`
+    );
+
     const rows = await prisma.$queryRawUnsafe<any[]>(
       `SELECT * FROM "PlatformSettings" WHERE "id" = 'platform_global' LIMIT 1`
     );
@@ -33,10 +39,10 @@ export async function getPlatformSettingsAction() {
     if (rows.length === 0) {
       await prisma.$executeRawUnsafe(
         `INSERT INTO "PlatformSettings" ("id", "defaultPlatformFee", "updatedAt") 
-         VALUES ('platform_global', 0.02, NOW()) 
+         VALUES ('platform_global', 0.017, NOW()) 
          ON CONFLICT ("id") DO NOTHING`
       );
-      return { id: "platform_global", defaultPlatformFee: 0.02, schedules: [] };
+      return { id: "platform_global", defaultPlatformFee: 0.017, schedules: [] };
     }
     
     return { ...rows[0], schedules };
