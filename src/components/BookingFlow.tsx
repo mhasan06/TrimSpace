@@ -461,9 +461,25 @@ export default function BookingFlow({
                 );
               })}
             </div>
-            <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, marginTop: '20px' }}>
-              Prices include secure payment processing and platform service fees.
-            </p>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px', 
+              marginTop: '32px', 
+              padding: '16px', 
+              background: '#f8fafc', 
+              borderRadius: '16px',
+              border: '1px solid #f1f5f9'
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem', fontWeight: 700 }}>
+                Prices include secure payment processing and platform service fees.
+              </p>
+            </div>
           </div>
         )}
         {stage === "CALENDAR" && (
@@ -632,6 +648,17 @@ export default function BookingFlow({
                 <span style={{ fontSize: '1.1rem', fontWeight: 900 }}>Subtotal</span>
                 <span style={{ fontSize: '1.25rem', fontWeight: 950 }}>{formatPrice(totalPrice)}</span>
               </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', padding: '12px', background: '#f8fafc', borderRadius: '12px' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.7rem', fontWeight: 700, lineHeight: 1.3 }}>
+                  Prices include secure payment processing and platform service fees.
+                </p>
+              </div>
+
               {stage !== "PAYMENT" && (
                 <button onClick={nextStage} style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>
                   {stage === "SERVICES" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Person" : "Confirm Services") : stage === "CALENDAR" ? "Confirm Time" : stage === "BARBERS" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Professional" : "Confirm Professionals") : "Book Now"}
