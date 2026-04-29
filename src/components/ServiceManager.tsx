@@ -157,7 +157,7 @@ export default function ServiceManager({ initialServices, barbers, tenantId }: {
                     return (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
-                          <span>Fees:</span>
+                          <span>Fees (incl. rounding):</span>
                           <span style={{ fontWeight: 700 }}>+{formatPrice(fees.totalFees)}</span>
                         </div>
                         <div style={{ fontWeight: 800, color: 'var(--foreground)', opacity: 1, marginTop: '2px' }}>
