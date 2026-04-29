@@ -34,24 +34,17 @@ export default async function FinancialLedgerPage() {
     const isPaid = app.paymentStatus === 'PAID' || app.paymentStatus === 'PARTIAL_REFUNDED';
     const isFuture = new Date(app.startTime) > new Date();
     
-    // Use the unified pricing utility
-    const fees = calculateServiceFees(Number(app.service.price));
+    // If cancelled, we base the entire calculation on the cancellation fee
+    const penaltyAmount = isCancelled 
+      ? Number(app.cancellationFee || (app.service.price * 0.5))
+      : Number(app.service.price);
+
+    // Use the unified pricing utility based on the effective price (service or penalty)
+    const fees = calculateServiceFees(penaltyAmount);
     
-    // If cancelled, use the cancellation fee if exists, otherwise 50% of base
-    const basePayout = isCancelled 
-      ? Number(app.cancellationFee || (fees.basePrice * 0.5))
-      : fees.basePrice;
-    
-    // ForCancelled items, we don't show the extra fees in the gross (customer didn't pay them)
-    // but the merchant payout is just the retention amount.
-    const grossRevenue = isCancelled ? basePayout : fees.totalCustomerPrice;
-    
-    // Consolidate all platform/stripe fees into one for the display
-    // Platform = Platform Fee + Stripe Fee
+    const grossRevenue = fees.totalCustomerPrice;
     const totalPlatformTake = fees.totalCustomerPrice - fees.basePrice;
-    
-    // The Shop's actual share
-    const netPayout = basePayout;
+    const netPayout = fees.basePrice;
 
     return {
       id: app.id,
@@ -63,14 +56,14 @@ export default async function FinancialLedgerPage() {
       customer: app.customer.name || 'Unknown Client',
       serviceName: app.service.name,
       servicePrice: app.service.price,
-      cancellationAmount: isCancelled ? basePayout : 0,
+      cancellationAmount: isCancelled ? penaltyAmount : 0,
       grossAmount: grossRevenue,
-      commissionFee: isCancelled ? 0 : 0.50, // Labeled commission but we'll map it to platform fee
-      processingFee: isCancelled ? 0 : (totalPlatformTake - 0.50), // Remaining is processing
-      priorityFee: 0, // We consolidated it
+      commissionFee: 0.50, // Consistently map 50c to this field for display grouping
+      processingFee: (totalPlatformTake - 0.50), 
+      priorityFee: 0,
       tax: 0, 
       netPayable: netPayout,
-      netPlatform: isCancelled ? 0 : totalPlatformTake,
+      netPlatform: totalPlatformTake,
       isFuture: isFuture,
       isSettled: !!app.settlementId,
       isDisputed: app.isDisputed,
