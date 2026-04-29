@@ -334,7 +334,7 @@ export default function SettlementManager({
           <thead>
             <tr>
               <th>Week / Shop</th>
-              <th>Volume (Net)</th>
+              <th>Total Customer Paid</th>
               <th>Status</th>
               <th>Control</th>
             </tr>
@@ -347,12 +347,13 @@ export default function SettlementManager({
                     <p style={{ fontSize: '0.8rem', opacity: 0.6 }}>{s.tenant.name}</p>
                 </td>
                 <td>
-                    <div style={{ fontWeight: 800, color: 'var(--primary)' }}>${s.amount.toFixed(2)}</div>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.5 }}>
-                        Gross: ${s.grossAmount.toFixed(2)} 
-                        <span style={{ marginLeft: '10px', color: 'var(--secondary)', fontWeight: 700 }}>
-                            {s.grossAmount > 0 ? ((s.feeAmount / s.grossAmount) * 100).toFixed(1) : 0}% Fee
-                        </span>
+                    <div style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.2rem' }}>${s.grossAmount.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.75rem', marginTop: '0.4rem' }}>
+                        <span style={{ opacity: 0.6 }}>Net Total Payout:</span> 
+                        <span style={{ fontWeight: 800, color: '#10b981', marginLeft: '5px' }}>${s.amount.toFixed(2)}</span>
+                    </div>
+                    <div style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '0.2rem' }}>
+                        Fees: ${s.feeAmount.toFixed(2)} ({(s.grossAmount > 0 ? ((s.feeAmount / s.grossAmount) * 100).toFixed(1) : 0)}%)
                     </div>
                 </td>
                 <td>
@@ -503,15 +504,15 @@ export default function SettlementManager({
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <div style={{ width: '320px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0' }}>
-                        <span>SUBTOTAL (GROSS):</span>
+                        <span>TOTAL CUSTOMER PAID:</span>
                         <span style={{ fontWeight: 800 }}>${reportData.settlement.grossAmount.toFixed(2)}</span>
                     </div>
                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid black' }}>
-                        <span>TOTAL PLATFORM FEES:</span>
+                        <span>SECURE PROCESSING & PLATFORM FEES:</span>
                         <span style={{ fontWeight: 800 }}>-${reportData.settlement.feeAmount.toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', fontSize: '1.4rem', borderBottom: '3px double black' }}>
-                        <span style={{ fontWeight: 900 }}>TOTAL PAYOUT:</span>
+                        <span style={{ fontWeight: 900 }}>NET TOTAL PAYOUT:</span>
                         <span style={{ fontWeight: 900 }}>${reportData.settlement.amount.toFixed(2)}</span>
                     </div>
                 </div>

@@ -14,8 +14,9 @@ export const PRICING_CONSTANTS = {
   PLATFORM_FEE: 0.50,
 };
 
-export function calculateServiceFees(basePrice: number) {
-  const stripePercentFee = basePrice * PRICING_CONSTANTS.STRIPE_PERCENT;
+export function calculateServiceFees(basePrice: number, customCommissionPercent?: number) {
+  const commissionRate = customCommissionPercent !== undefined ? customCommissionPercent : PRICING_CONSTANTS.STRIPE_PERCENT;
+  const stripePercentFee = basePrice * commissionRate;
   const totalFees = stripePercentFee + PRICING_CONSTANTS.STRIPE_FLAT + PRICING_CONSTANTS.PLATFORM_FEE;
   
   // Round to nearest $0.10

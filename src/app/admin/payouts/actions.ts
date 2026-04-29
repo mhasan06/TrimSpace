@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { calculateServiceFees } from "@/lib/pricing";
 import crypto from "crypto";
 
 // Security Helper
@@ -199,21 +200,19 @@ export async function triggerWeeklyRunAction() {
       // LOOKUP DATE-AWARE FEE
       const feeScale = await getEffectiveFeeForDate(batch.startDate, settings);
       
-      // Rollback: Charge 0.50 per UNIQUE booking (Group or Single)
-      const uniqueBookings = new Set(batch.apps.map(a => a.bookingGroupId || a.id));
-      const priorityFeeTotal = uniqueBookings.size * 0.50;
-      
-      // Use actual take (service price OR cancellation fee)
-      const baseGross = batch.apps.reduce((acc, a) => {
-          const actualServiceRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-          return acc + actualServiceRev;
-      }, 0);
-      const gross = baseGross + priorityFeeTotal;
-      
-      const platformCommission = baseGross * feeScale;
-      const fee = platformCommission + priorityFeeTotal; 
-      const net = gross - fee; 
-      
+      let totalGross = 0;
+      let totalFees = 0;
+      let totalNet = 0;
+
+      batch.apps.forEach(a => {
+        const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+        const fees = calculateServiceFees(actualBaseRev, feeScale);
+        
+        totalGross += fees.totalCustomerPrice;
+        totalFees += (fees.totalCustomerPrice - fees.basePrice);
+        totalNet += fees.basePrice;
+      });
+
       const dayLabel = batch.startDate.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
       const weekLabel = `Daily: ${dayLabel}`;
 
@@ -221,7 +220,7 @@ export async function triggerWeeklyRunAction() {
       await prisma.$executeRawUnsafe(
         `INSERT INTO "Settlement" (id, "tenantId", amount, "grossAmount", "feeAmount", status, "weekLabel", "startDate", "endDate", "createdAt", "updatedAt")
          VALUES ($1, $2, $3, $4, $5, 'OUTSTANDING', $6, $7, $8, NOW(), NOW())`,
-        settlementId, batch.tenantId, net, gross, fee, weekLabel, batch.startDate, batch.endDate
+        settlementId, batch.tenantId, totalNet, totalGross, totalFees, weekLabel, batch.startDate, batch.endDate
       );
 
       const appIds = batch.apps.map(a => a.id);
