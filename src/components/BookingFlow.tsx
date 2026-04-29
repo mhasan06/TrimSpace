@@ -217,8 +217,8 @@ export default function BookingFlow({
       </div>
     )}
     {showAuthModal && (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-         <div style={{ background: '#fff', width: '100%', maxWidth: '500px', borderRadius: '14px', padding: '32px', position: 'relative' }}>
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+         <div style={{ background: '#fff', width: '100%', maxWidth: '500px', maxHeight: '90vh', borderRadius: '24px', padding: '32px', position: 'relative', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             <button onClick={() => setShowAuthModal(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '24px' }}>×</button>
             <h2 style={{ fontSize: '28px', fontWeight: 700, marginBottom: '8px' }}>Log in or sign up</h2>
             <p style={{ fontSize: '15px', color: '#000', marginBottom: '24px' }}>Log in or sign up to complete your booking</p>
@@ -324,7 +324,17 @@ export default function BookingFlow({
                           </div>
                           <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '6px', textTransform: 'uppercase' }}>State</label>
-                            <input type="text" placeholder="State" value={regForm.state} onChange={(e) => setRegForm({ ...regForm, state: e.target.value })} style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }} required />
+                            <input 
+                              type="text" 
+                              placeholder="State" 
+                              name="reg_state"
+                              id="reg_state"
+                              autoComplete="address-level1"
+                              value={regForm.state} 
+                              onChange={(e) => setRegForm({ ...regForm, state: e.target.value })} 
+                              style={{ width: '100%', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }} 
+                              required 
+                            />
                           </div>
                         </div>
                       </div>
