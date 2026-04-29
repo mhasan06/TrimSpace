@@ -174,21 +174,17 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #6366f1' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Gross Collected</h4>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Total Customer Paid</h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.gross.toFixed(2)}</div>
         </div>
-        <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid var(--secondary)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Platform Profit</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.platform.toFixed(2)}</div>
-        </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #ef4444' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Stripe Processing</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.stripe.toFixed(2)}</div>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Secure Processing & Platform Fees</h4>
+          <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>-${(totals.platform + totals.stripe).toFixed(2)}</div>
         </div>
         <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Merchant Liability</h4>
+          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', opacity: 0.6, marginBottom: '0.5rem' }}>Net Total Payout</h4>
           <div style={{ fontSize: '1.8rem', fontWeight: 900 }}>${totals.net.toFixed(2)}</div>
         </div>
       </div>
@@ -394,9 +390,9 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
             <tr style={{ background: 'rgba(255,255,255,0.02)' }}>
               <th style={{ padding: '1.5rem 2rem' }}>Merchant Name</th>
               <th>Transactions</th>
-              <th>Gross Volume</th>
-              <th>Platform Take</th>
-              <th>Net Due to Shop</th>
+              <th>Total Customer Paid</th>
+              <th>Secure Processing & Platform Fees</th>
+              <th>Net Total Payout</th>
               <th style={{ textAlign: 'right', paddingRight: '2rem' }}>{activeTab === 'payout_queue' ? 'Actions' : 'Status'}</th>
             </tr>
           </thead>
@@ -412,7 +408,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                   </td>
                   <td style={{ fontWeight: 700 }}>{data.events.length} events</td>
                   <td style={{ fontWeight: 700 }}>${data.totals.gross.toFixed(2)}</td>
-                  <td style={{ fontWeight: 800, color: 'var(--secondary)' }}>${data.totals.platform.toFixed(2)}</td>
+                  <td style={{ fontWeight: 800, color: 'var(--secondary)' }}>-${(data.totals.platform + data.totals.stripe).toFixed(2)}</td>
                   <td>
                     <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#10b981' }}>${data.totals.net.toFixed(2)}</div>
                   </td>
@@ -441,15 +437,15 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                       <div className="glass" style={{ borderRadius: '16px', padding: '1rem', marginTop: '-1rem' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                              <thead>
-                                <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                   <th style={{ padding: '1rem' }}>REF ID</th>
-                                   <th>Date</th>
-                                   <th>Customer</th>
-                                   <th>Service</th>
-                                   <th>Net Revenue</th>
-                                   <th>Platform Take</th>
-                                   <th style={{ textAlign: 'right' }}>Final Payout</th>
-                                </tr>
+                                 <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', opacity: 0.5, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    <th style={{ padding: '1rem' }}>REF ID</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Total Customer Paid</th>
+                                    <th>Secure Processing & Platform Fees</th>
+                                    <th style={{ textAlign: 'right' }}>Net Total Payout</th>
+                                 </tr>
                              </thead>
                              <tbody>
                                 {data.events.map((event: any) => (
@@ -459,7 +455,7 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
                                      <td style={{ fontWeight: 700 }}>{event.customer}</td>
                                      <td>{event.serviceName}</td>
                                      <td style={{ fontWeight: 700 }}>${event.grossAmount.toFixed(2)}</td>
-                                     <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>-${event.netPlatform.toFixed(2)}</td>
+                                     <td style={{ color: 'var(--secondary)', fontWeight: 700 }}>-${(event.netPlatform + event.processingFee).toFixed(2)}</td>
                                      <td style={{ textAlign: 'right', fontWeight: 900, color: '#10b981' }}>${event.netPayable.toFixed(2)}</td>
                                        {activeTab === 'disputes' && (
                                          <td style={{ textAlign: 'right', paddingLeft: '1rem' }}>

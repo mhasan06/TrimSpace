@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { calculateServiceFees } from "@/lib/pricing";
 
 export async function flagDisputeAction(appointmentId: string, reason: string) {
   try {
@@ -93,13 +94,33 @@ export async function settleMerchantBatchAction(shopId: string, amount: number, 
       return { success: false, error: "Unauthorized. Admin access required." };
     }
 
+    // Fetch appointments to calculate accurate gross and fees
+    const appointments = await prisma.appointment.findMany({
+      where: { id: { in: appointmentIds } },
+      include: { service: true }
+    });
+
+    let totalGross = 0;
+    let totalFees = 0;
+
+    appointments.forEach(app => {
+      const isCancelled = app.status === 'CANCELLED';
+      const penaltyAmount = isCancelled 
+        ? Number(app.cancellationFee || (app.service.price * 0.5))
+        : Number(app.service.price);
+      
+      const fees = calculateServiceFees(penaltyAmount);
+      totalGross += fees.totalCustomerPrice;
+      totalFees += (fees.totalCustomerPrice - fees.basePrice);
+    });
+
     // 1. Create the Settlement record
     const settlement = await prisma.settlement.create({
       data: {
         tenantId: shopId,
-        amount: amount,
-        grossAmount: amount, 
-        feeAmount: 0,
+        amount: amount, // The net payout
+        grossAmount: totalGross, 
+        feeAmount: totalFees,
         status: 'SETTLED',
         weekLabel: `Daily Payrun - ${new Date().toLocaleDateString('en-AU')}`,
         startDate: new Date(),
