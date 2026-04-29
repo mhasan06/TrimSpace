@@ -67,13 +67,14 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
       
       {/* ─── PROFESSIONAL LIGHT HERO ─── */}
       <section style={{ 
-        padding: isMobile ? '40px 1.2rem 40px' : '80px 2.5rem 60px', 
+        padding: isMobile ? '40px 1.2rem' : 'clamp(40px, 8vh, 80px) 2.5rem clamp(40px, 6vh, 60px)', 
         textAlign: isMobile ? 'left' : 'center', 
         background: 'radial-gradient(at 0% 0%, #E0F2FF 0%, transparent 50%), radial-gradient(at 100% 0%, #FAE8FF 0%, transparent 50%), radial-gradient(at 50% 100%, #F5F3FF 0%, transparent 50%), #ffffff',
         display: 'flex',
         flexDirection: 'column',
         alignItems: isMobile ? 'flex-start' : 'center',
-        minHeight: isMobile ? 'auto' : '450px',
+        justifyContent: 'center',
+        minHeight: isMobile ? 'auto' : 'clamp(350px, 60vh, 450px)',
         position: 'relative'
       }}>
         <div style={{ maxWidth: '1200px', width: '100%', position: 'relative', zIndex: 1 }}>
