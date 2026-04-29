@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "../app/dashboard/page.module.css";
+import { calculateServiceFees } from "@/lib/pricing";
 
 interface UpcomingLedgerTableProps {
   appointments: any[];
@@ -17,12 +18,14 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
     const map = new Map();
     list.forEach(app => {
         const gid = app.bookingGroupId || `${app.tenantId}_${app.customerId}_${new Date(app.startTime).toISOString().split('T')[0]}`;
+        const fees = calculateServiceFees(Number(app.service.price));
+        
         if (!map.has(gid)) {
             map.set(gid, { 
                 ...app, 
                 services: [], 
-                totalPrice: 0.50, // Rollback Priority Fee
-                totalRetention: 0.50,
+                totalPrice: 0, 
+                totalRetention: 0,
                 totalStripe: 0,
                 totalGift: 0
             });
@@ -38,10 +41,12 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
           paymentStatus: app.paymentStatus, 
           paymentMethod: app.paymentMethod,
           status: app.status,
-          retentionFee
+          retentionFee,
+          fees
         });
-        g.totalPrice += app.service.price;
-        g.totalRetention += (retentionFee !== null ? retentionFee : app.service.price);
+        
+        g.totalPrice += fees.totalCustomerPrice;
+        g.totalRetention += (retentionFee !== null ? retentionFee : fees.totalCustomerPrice);
         g.totalStripe += Number(app.amountPaidStripe || 0);
         g.totalGift += Number(app.amountPaidGift || 0);
     });
@@ -227,19 +232,34 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
                     <h4 style={{ fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '1px' }}>Service Details</h4>
-                    {viewingInvoice.services.map((s: any, idx: number) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid #f1f5f9' }}>
-                            <div>
-                                <div style={{ fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : '#1e293b', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
-                                <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>Service Charge</div>
+                    {viewingInvoice.services.map((s: any, idx: number) => {
+                        const rounding = s.fees.totalCustomerPrice - (s.fees.basePrice + s.fees.stripePercentFee + s.fees.stripeFlatFee + s.fees.platformFee);
+                        return (
+                            <div key={idx} style={{ padding: '1rem 0', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <div>
+                                        <div style={{ fontWeight: 700, color: s.status === 'CANCELLED' ? '#ef4444' : '#1e293b', textDecoration: s.status === 'CANCELLED' ? 'line-through' : 'none' }}>{s.name}</div>
+                                        <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>Service Charge</div>
+                                    </div>
+                                    <div style={{ fontWeight: 800 }}>${s.price.toFixed(2)}</div>
+                                </div>
+                                {!viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.3rem' }}>
+                                            <span>Secure Processing & Platform Fees</span>
+                                            <span>${(s.fees.stripePercentFee + s.fees.stripeFlatFee + s.fees.platformFee).toFixed(2)}</span>
+                                        </div>
+                                        {Math.abs(rounding) > 0.001 && (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
+                                                <span>Rounding Adjustment</span>
+                                                <span>{rounding > 0 ? '+' : ''}${rounding.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                             </div>
-                            <div style={{ fontWeight: 800 }}>${s.price.toFixed(2)}</div>
-                        </div>
-                    ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6 }}>
-                        <span>Priority Booking Fee (Standard)</span>
-                        <span>$0.50</span>
-                    </div>
+                        );
+                    })}
                 </div>
 
                 <div style={{ borderTop: '2px solid #f1f5f9', paddingTop: '1.5rem' }}>
@@ -248,14 +268,14 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                         <span style={{ textTransform: 'uppercase' }}>{viewingInvoice.paymentMethod || "CASH / INSTORE"}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', fontWeight: 900, fontSize: '1.2rem', color: '#6366f1' }}>
-                        <span>Total Paid / Payout</span>
-                        <span>${(viewingInvoice.totalStripe + viewingInvoice.totalGift).toFixed(2)}</span>
+                        <span>Total Paid by Customer</span>
+                        <span>${viewingInvoice.totalPrice.toFixed(2)}</span>
                     </div>
                     {viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
                         <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #ef4444' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#ef4444' }}>
                                 <span>Retention Held (50%)</span>
-                                <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + (s.status === 'CANCELLED' ? (s.retentionFee || s.price * 0.5) : s.price), 0) + 0.50).toFixed(2)}</span>
+                                <span>${viewingInvoice.totalRetention.toFixed(2)}</span>
                             </div>
                         </div>
                     )}
