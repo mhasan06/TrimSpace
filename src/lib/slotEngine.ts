@@ -37,12 +37,14 @@ export async function getAvailableSlots(
     prisma.user.findMany({ 
       where: { 
         tenantId, role: "BARBER", isActive: true,
-        OR: flatServiceIds.map(sid => ({ services: { some: { id: sid } } })),
-        OR: [
-          { staffShifts: { some: { date: requestedDateStr, isDayOff: false } } },
-          { AND: [
-            { staffShifts: { none: { date: requestedDateStr } } },
-            { staffSchedules: { some: { dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay(), isActive: true } } }
+        AND: [
+          { OR: flatServiceIds.map(sid => ({ services: { some: { id: sid } } })) },
+          { OR: [
+            { staffShifts: { some: { date: requestedDateStr, isDayOff: false } } },
+            { AND: [
+              { staffShifts: { none: { date: requestedDateStr } } },
+              { staffSchedules: { some: { dayOfWeek: getSydneyUTC(requestedDateStr, "12:00").getUTCDay(), isActive: true } } }
+            ]}
           ]}
         ]
       },
