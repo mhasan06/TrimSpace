@@ -585,7 +585,7 @@ export default function BookingFlow({
               </div>
               {stage !== "PAYMENT" && (
                 <button onClick={nextStage} style={{ width: '100%', padding: '18px', borderRadius: '50px', background: '#000', color: '#fff', border: 'none', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>
-                  {stage === "START" ? "Select Services" : stage === "SERVICES" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Person" : "Confirm Services") : stage === "CALENDAR" ? "Confirm Time" : stage === "BARBERS" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Professional" : "Confirm Professionals") : "Book Now"}
+                  {stage === "SERVICES" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Person" : "Confirm Services") : stage === "CALENDAR" ? "Confirm Time" : stage === "BARBERS" ? (currentPersonIndex < numberOfPeople - 1 ? "Next Professional" : "Confirm Professionals") : "Book Now"}
                 </button>
               )}
             </>
