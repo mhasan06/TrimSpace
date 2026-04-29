@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import styles from "../app/dashboard/page.module.css";
+import { calculateServiceFees } from "@/lib/pricing";
 import SettlementTable from "./SettlementTable";
 
 export default function ShopSettlementDashboard({ appointments }: { appointments: any[] }) {
@@ -68,27 +69,24 @@ export default function ShopSettlementDashboard({ appointments }: { appointments
 
     // 3. Calculate Breakdown
     const breakdown = useMemo(() => {
-        let digital = 0;
-        let gift = 0;
-        let cancellation = 0;
-        let cash = 0;
+        let totalCustomerPaid = 0;
+        let totalFees = 0;
+        let totalPayout = 0;
 
         filteredApps.forEach(app => {
-            const price = Number(app.service?.price || app.sp || 0);
+            const fees = calculateServiceFees(Number(app.service?.price || 0));
             if (app.status === 'CANCELLED') {
-                cancellation += Number(app.cancellationFee || (price * 0.5));
+                const retention = Number(app.cancellationFee || (fees.basePrice * 0.5));
+                totalPayout += retention;
+                totalCustomerPaid += retention;
             } else {
-                if (Number(app.amountPaidGift || 0) > 0) gift += Number(app.amountPaidGift);
-                
-                if (app.paymentMethod === 'CARD_ONLINE') {
-                    digital += Number(app.amountPaidStripe || (price - Number(app.amountPaidGift || 0)));
-                } else {
-                    cash += (price - Number(app.amountPaidGift || 0));
-                }
+                totalCustomerPaid += fees.totalCustomerPrice;
+                totalFees += (fees.totalCustomerPrice - fees.basePrice);
+                totalPayout += fees.basePrice;
             }
         });
 
-        return { digital, gift, cancellation, cash, total: digital + gift + cancellation + cash };
+        return { totalCustomerPaid, totalFees, totalPayout };
     }, [filteredApps]);
 
     const activeLabel = weeklyOptions.find(o => o[0] === selectedWeek)?.[1];
@@ -169,25 +167,20 @@ export default function ShopSettlementDashboard({ appointments }: { appointments
 
             {/* Financial Breakdown Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #3b82f6', background: 'rgba(59, 130, 246, 0.05)' }}>
-                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>DIGITAL REVENUE</h4>
-                    <p style={{ fontSize: '1.75rem', fontWeight: 900 }}>${breakdown.digital.toFixed(2)}</p>
-                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>Stripe & Online</p>
-                </div>
-                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid var(--primary)', background: 'rgba(212, 175, 55, 0.05)' }}>
-                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>GIFT CREDIT</h4>
-                    <p style={{ fontSize: '1.75rem', fontWeight: 900 }}>${breakdown.gift.toFixed(2)}</p>
-                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>Redeemed value</p>
+                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #6366f1', background: 'rgba(99, 102, 241, 0.05)' }}>
+                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>TOTAL CUSTOMER PAID</h4>
+                    <p style={{ fontSize: '1.75rem', fontWeight: 900 }}>${breakdown.totalCustomerPaid.toFixed(2)}</p>
+                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>All-inclusive revenue</p>
                 </div>
                 <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', borderLeft: '4px solid #ef4444', background: 'rgba(239, 68, 68, 0.05)' }}>
-                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>CANCELLATIONS</h4>
-                    <p style={{ fontSize: '1.75rem', fontWeight: 900 }}>${breakdown.cancellation.toFixed(2)}</p>
-                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>50% Retention fees</p>
+                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>SECURE PROCESSING & PLATFORM FEES</h4>
+                    <p style={{ fontSize: '1.75rem', fontWeight: 900 }}>${breakdown.totalFees.toFixed(2)}</p>
+                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>Platform deductions</p>
                 </div>
-                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', borderLeft: '4px solid var(--secondary)' }}>
-                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>PERIOD TOTAL</h4>
-                    <p style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--secondary)' }}>${breakdown.total.toFixed(2)}</p>
-                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>Current selection sum</p>
+                <div className="glass" style={{ padding: '1.5rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', borderLeft: '4px solid #16a34a' }}>
+                    <h4 style={{ fontSize: '0.7rem', opacity: 0.6, marginBottom: '0.5rem', letterSpacing: '1px' }}>NET TOTAL PAYOUT</h4>
+                    <p style={{ fontSize: '1.75rem', fontWeight: 900, color: '#16a34a' }}>${breakdown.totalPayout.toFixed(2)}</p>
+                    <p style={{ fontSize: '0.7rem', opacity: 0.4, marginTop: '0.3rem' }}>Shop revenue after fees</p>
                 </div>
             </div>
 
