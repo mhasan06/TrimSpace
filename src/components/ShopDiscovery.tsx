@@ -249,7 +249,7 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
                   <h4 style={{ color: '#000', fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '1rem' }}>For Partners</h4>
                   <h2 style={{ fontSize: isMobile ? '2.2rem' : '3rem', fontWeight: 950, lineHeight: 1.1, color: '#000', marginBottom: '1.5rem' }}>Scale your studio effortlessly.</h2>
                   <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2rem', lineHeight: 1.6 }}>The unified platform for top-tier grooming and wellness experts.</p>
-                  <Link href="/register?type=business" style={{ background: '#000', color: '#fff', padding: '1.2rem 2rem', borderRadius: '14px', fontWeight: 800, textDecoration: 'none', display: 'inline-block' }}>Become a Partner</Link>
+                  <Link href="/partners" style={{ background: '#000', color: '#fff', padding: '1.2rem 2rem', borderRadius: '14px', fontWeight: 800, textDecoration: 'none', display: 'inline-block' }}>Become a Partner</Link>
               </div>
               <div style={{ flex: 1, width: '100%' }}>
                   <div style={{ background: '#fff', padding: '2rem', borderRadius: '32px', border: '1px solid #e2e8f0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>

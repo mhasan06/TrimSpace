@@ -26,7 +26,7 @@ export default function PartnersPage() {
             <Link href="/partner-login" style={{ color: 'var(--foreground)', fontWeight: 600, fontSize: '0.875rem' }}>
               Log in
             </Link>
-            <Link href="/register?type=partner" style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'white', fontSize: '0.875rem', fontWeight: 700, borderRadius: '8px', textDecoration: 'none', transition: 'background-color 0.2s' }}>
+            <Link href="/register?type=business" style={{ padding: '10px 20px', backgroundColor: 'var(--primary)', color: 'white', fontSize: '0.875rem', fontWeight: 700, borderRadius: '8px', textDecoration: 'none', transition: 'background-color 0.2s' }}>
               Join TrimSpace
             </Link>
           </div>
@@ -44,7 +44,7 @@ export default function PartnersPage() {
         </p>
         
         <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/register?type=partner" style={{ padding: '16px 32px', backgroundColor: 'var(--primary)', color: 'white', fontWeight: 700, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.125rem', textDecoration: 'none' }}>
+          <Link href="/register?type=business" style={{ padding: '16px 32px', backgroundColor: 'var(--primary)', color: 'white', fontWeight: 700, borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.125rem', textDecoration: 'none' }}>
             Get started for free <ArrowRight size={20} />
           </Link>
           <Link href="#features" style={{ padding: '16px 32px', backgroundColor: 'transparent', border: '2px solid var(--border)', color: 'var(--foreground)', fontWeight: 700, borderRadius: '8px', display: 'flex', alignItems: 'center', fontSize: '1.125rem', textDecoration: 'none' }}>
@@ -154,7 +154,7 @@ export default function PartnersPage() {
       <section style={{ backgroundColor: 'var(--foreground)', color: 'var(--background)', padding: '100px 24px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, marginBottom: '24px' }}>Ready to build your empire?</h2>
         <p style={{ fontSize: '1.25rem', color: '#94a3b8', marginBottom: '40px', maxWidth: '600px', margin: '0 auto 40px auto' }}>Join the elite network of barbershops using TrimSpace to scale their operations and redefine the client experience.</p>
-        <Link href="/register?type=partner" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '16px 40px', backgroundColor: 'var(--primary)', color: 'white', fontWeight: 800, borderRadius: '8px', fontSize: '1.125rem', textDecoration: 'none' }}>
+        <Link href="/register?type=business" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', padding: '16px 40px', backgroundColor: 'var(--primary)', color: 'white', fontWeight: 800, borderRadius: '8px', fontSize: '1.125rem', textDecoration: 'none' }}>
           Join TrimSpace Now
         </Link>
       </section>
