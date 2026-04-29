@@ -115,7 +115,7 @@ export default function AnalyticsDashboard({
                             <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} tickFormatter={(val) => `$${val}`} />
                             <Tooltip 
                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 700 }}
-                                formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+                                formatter={(value: any) => [`$${Number(value || 0).toFixed(2)}`, 'Revenue']}
                             />
                             <Area type="monotone" dataKey="stripe" stroke="#3b429f" strokeWidth={4} fillOpacity={1} fill="url(#colorStripe)" />
                         </AreaChart>
@@ -148,7 +148,7 @@ export default function AnalyticsDashboard({
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
+                                    <Tooltip formatter={(value: any) => `$${Number(value || 0).toFixed(2)}`} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
                                     <Legend verticalAlign="bottom" height={36} iconType="circle" />
                                 </PieChart>
                             </ResponsiveContainer>
