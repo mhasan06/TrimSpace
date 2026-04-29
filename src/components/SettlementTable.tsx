@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "../app/dashboard/page.module.css";
+import { calculateServiceFees } from "@/lib/pricing";
 
 interface SettlementTableProps {
   appointments: any[];
@@ -9,18 +10,20 @@ interface SettlementTableProps {
 export default function SettlementTable({ appointments }: SettlementTableProps) {
   
   const downloadCSV = () => {
-    const headers = ["Booking ID", "Date", "Customer", "Service", "Original Price", "Final Take", "Digital (Stripe)", "Credit (Gift)", "Status (Actual)"];
+    const headers = ["Booking ID", "Date", "Customer", "Service", "Original Total", "Fees", "Final Take", "Status (Actual)"];
     const rows = appointments.map(app => {
-        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : app.service.price;
+        const fees = calculateServiceFees(Number(app.service.price));
+        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : fees.basePrice;
+        const totalFees = app.status === 'CANCELLED' ? 0 : (fees.totalCustomerPrice - fees.basePrice);
+        
         return [
             app.id.substring(app.id.length - 8).toUpperCase(),
             new Date(app.startTime).toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney' }),
             app.customer.name || "Unknown",
             app.service.name,
-            `$${app.service.price.toFixed(2)}`,
+            `$${fees.totalCustomerPrice.toFixed(2)}`,
+            `$${totalFees.toFixed(2)}`,
             `$${finalTake.toFixed(2)}`,
-            `$${Number(app.amountPaidStripe || 0).toFixed(2)}`,
-            `$${Number(app.amountPaidGift || 0).toFixed(2)}`,
             app.status === 'CANCELLED' ? "CANCELLED" : app.paymentStatus
         ];
     });
@@ -41,31 +44,35 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
     const groups: any[] = [];
     const map = new Map();
     list.forEach(app => {
-    const gid = app.bookingGroupId || `${app.tenantId}_${app.customerId}_${new Date(app.startTime).toISOString().split('T')[0]}`;
+        const gid = app.bookingGroupId || `${app.tenantId}_${app.customerId}_${new Date(app.startTime).toISOString().split('T')[0]}`;
+        const fees = calculateServiceFees(Number(app.service.price));
+        
         if (!map.has(gid)) {
             map.set(gid, { 
                 ...app, 
                 services: [], 
-                totalPrice: 0,
-                totalDigital: 0,
-                totalGift: 0,
+                totalOriginal: 0,
+                totalFees: 0,
                 totalFinalTake: 0
             });
             groups.push(map.get(gid));
         }
         const g = map.get(gid);
-        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : app.service.price;
+        const finalTake = app.status === 'CANCELLED' ? Number(app.cancellationFee || (app.service.price * 0.5)) : fees.basePrice;
+        const itemFees = app.status === 'CANCELLED' ? 0 : (fees.totalCustomerPrice - fees.basePrice);
+        
         g.services.push({ 
           ...app.service, 
           finalTake, 
+          itemFees,
           id: app.id, 
           status: app.status, 
           paymentStatus: app.paymentStatus, 
-          invoiceUrl: app.invoiceUrl 
+          invoiceUrl: app.invoiceUrl,
+          fees
         });
-        g.totalPrice += app.service.price;
-        g.totalDigital += Number(app.amountPaidStripe || 0);
-        g.totalGift += Number(app.amountPaidGift || 0);
+        g.totalOriginal += fees.totalCustomerPrice;
+        g.totalFees += itemFees;
         g.totalFinalTake += finalTake;
     });
     return groups;
@@ -103,10 +110,9 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Services & Breakdown</th>
-                        <th>Gross</th>
+                        <th>Original Total</th>
+                        <th>Fees</th>
                         <th>Final Take</th>
-                        <th>Digital</th>
-                        <th>Gift</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -142,7 +148,7 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
                                             <div>
                                                 <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{s.name}</div>
                                                 <div style={{ fontSize: '0.65rem', opacity: 0.5 }}>
-                                                    {s.status === 'CANCELLED' ? 'CANCELLED (50% Fee)' : s.paymentStatus}
+                                                    {s.status === 'CANCELLED' ? 'CANCELLED (50% Fee)' : `Fees: $${s.itemFees.toFixed(2)}`}
                                                 </div>
                                             </div>
                                             <div style={{ fontSize: '0.8rem', fontWeight: 800 }}>${s.finalTake.toFixed(2)}</div>
@@ -150,10 +156,9 @@ export default function SettlementTable({ appointments }: SettlementTableProps) 
                                     ))}
                                 </div>
                             </td>
-                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.6 }}>${group.totalPrice.toFixed(2)}</td>
-                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: 'var(--secondary)' }}>${group.totalFinalTake.toFixed(2)}</td>
-                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.7 }}>${group.totalDigital.toFixed(2)}</td>
-                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', color: 'var(--primary)', fontWeight: 700 }}>${group.totalGift.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.6 }}>${group.totalOriginal.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.6, color: '#ef4444' }}>${group.totalFees.toFixed(2)}</td>
+                            <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: '#16a34a' }}>${group.totalFinalTake.toFixed(2)}</td>
                             <td style={{ verticalAlign: 'top', paddingTop: '1.5rem' }}>
                                 {group.services.some((s: any) => s.invoiceUrl) && (
                                     <a href={group.services.find((s: any) => s.invoiceUrl).invoiceUrl} target="_blank" rel="noreferrer" style={{ background: 'var(--primary)', color: 'black', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 900, textDecoration: 'none' }}>INV</a>

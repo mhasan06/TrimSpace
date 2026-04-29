@@ -25,6 +25,8 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                 ...app, 
                 services: [], 
                 totalPrice: 0, 
+                totalFees: 0,
+                totalPayout: 0,
                 totalRetention: 0,
                 totalStripe: 0,
                 totalGift: 0
@@ -46,7 +48,9 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
         });
         
         g.totalPrice += fees.totalCustomerPrice;
-        g.totalRetention += (retentionFee !== null ? retentionFee : fees.totalCustomerPrice);
+        g.totalFees += (fees.totalCustomerPrice - fees.basePrice);
+        g.totalPayout += fees.basePrice;
+        g.totalRetention += (retentionFee !== null ? retentionFee : fees.basePrice);
         g.totalStripe += Number(app.amountPaidStripe || 0);
         g.totalGift += Number(app.amountPaidGift || 0);
     });
@@ -124,8 +128,9 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
           <tr>
             <th>Booking Reference</th>
             <th>Client Name</th>
-            <th>Session Details (Services & Barbers)</th>
+            <th>Session Details</th>
             <th>Original Total</th>
+            <th>Fees</th>
             <th>Final Take</th>
             <th>Session Date</th>
           </tr>
@@ -195,7 +200,10 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.5, fontSize: '0.9rem' }}>
                 ${group.totalPrice.toFixed(2)}
               </td>
-              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: 'var(--secondary)', fontSize: '1.2rem' }}>
+              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.5, fontSize: '0.9rem', color: '#ef4444' }}>
+                ${group.totalFees.toFixed(2)}
+              </td>
+              <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', fontWeight: 900, color: '#16a34a', fontSize: '1.2rem' }}>
                 ${group.totalRetention.toFixed(2)}
               </td>
               <td style={{ verticalAlign: 'top', paddingTop: '1.5rem', opacity: 0.7, fontSize: '0.9rem' }}>
