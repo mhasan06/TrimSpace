@@ -12,9 +12,10 @@ export interface InvoiceData {
   time: string;
   services: { name: string; price: number; status?: string }[];
   totalPrice: number;
+  processingFee?: number;
+  platformFee?: number;
+  roundingAdjustment?: number;
   status?: string;
-  serviceName?: string;
-  servicePrice?: number;
 }
 
 export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
@@ -66,15 +67,14 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   doc.text(data.customerName, 130, 85);
 
   // ─── TABLE ───
-  const netAmount = data.services.reduce((acc, s) => {
+  const baseTotal = data.services.reduce((acc, s) => {
     const itemFee = s.status === "CANCELLED" ? s.price * 0.5 : s.price;
     return acc + itemFee;
   }, 0);
   
-  const originalTotal = data.services.reduce((acc, s) => acc + s.price, 0);
-  const refundAmount = originalTotal - netAmount;
+  const originalBaseTotal = data.services.reduce((acc, s) => acc + s.price, 0);
+  const refundAmount = originalBaseTotal - baseTotal;
   const isCancelled = data.status === "CANCELLED";
-  const showPriority = !isCancelled; // Only show if not fully cancelled
 
   const tableData = data.services.map(s => {
       const itemCancelled = s.status === "CANCELLED";
@@ -86,18 +86,37 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
       ];
   });
 
-  if (showPriority) {
-    tableData.push([
-      "Priority Booking Fee",
-      `$${priorityFee.toFixed(2)}`,
-      "Standard Rate",
-      `$${priorityFee.toFixed(2)}`
-    ]);
+  // Add Fees
+  if (!isCancelled) {
+    if (data.processingFee) {
+      tableData.push([
+        "Secure Processing Fee",
+        "",
+        "Standard Rate",
+        `$${data.processingFee.toFixed(2)}`
+      ]);
+    }
+    if (data.platformFee) {
+      tableData.push([
+        "Platform Service Fee",
+        "",
+        "Standard Rate",
+        `$${data.platformFee.toFixed(2)}`
+      ]);
+    }
+    if (data.roundingAdjustment && Math.abs(data.roundingAdjustment) > 0.001) {
+      tableData.push([
+        "Rounding Adjustment",
+        "",
+        "Policy",
+        `${data.roundingAdjustment > 0 ? '+' : ''}$${data.roundingAdjustment.toFixed(2)}`
+      ]);
+    }
   }
 
   autoTable(doc, {
     startY: 105,
-    head: [["Service Item", "Original Price", "Applied Policy", "Final Amount"]],
+    head: [["Item / Service", "Price", "Policy", "Amount"]],
     body: tableData,
     theme: "striped",
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
@@ -113,8 +132,7 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   const finalY = (doc as any).lastAutoTable.finalY + 15;
   doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
-  const grandTotal = netAmount + (showPriority ? priorityFee : 0);
-  doc.text(`Total Charged: $${grandTotal.toFixed(2)}`, 190, finalY, { align: "right" });
+  doc.text(`Total Charged: $${data.totalPrice.toFixed(2)}`, 190, finalY, { align: "right" });
 
   if (refundAmount > 0) {
     doc.setFontSize(10);

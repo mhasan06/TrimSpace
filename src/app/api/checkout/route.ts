@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { calculateServiceFees } from "@/lib/pricing";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeKey 
@@ -45,45 +46,31 @@ export async function POST(req: Request) {
       }
     }
 
-    const cartTotal = cart.reduce((acc: number, i: any) => acc + (i.service.price * i.quantity), 0);
-    const amountAfterGift = Math.max(0, cartTotal - giftDiscount);
-    
-    // OPTION A: Add $0.50 Priority Booking Fee
-    const priorityFee = 0.50;
-    const finalAmount = amountAfterGift + priorityFee;
+    // Calculate all-inclusive total using the utility
+    const allInclusiveTotal = cart.reduce((acc: number, i: any) => {
+        const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price));
+        return acc + (totalCustomerPrice * i.quantity);
+    }, 0);
+
+    const finalAmount = Math.max(0, allInclusiveTotal - giftDiscount);
 
     if (finalAmount <= 0) {
       return NextResponse.json({ bypassStripe: true, giftDiscount, giftCardId });
     }
 
     // Map cart to Stripe line items
-    let line_items;
-    
-    if (giftDiscount > 0 || priorityFee > 0) {
-      line_items = [{
-        price_data: {
-          currency: "aud",
-          product_data: {
-            name: "Booking Total (Inc. Priority Fee)",
-            description: `Base: $${amountAfterGift.toFixed(2)} + Priority Fee: $${priorityFee.toFixed(2)}`,
-          },
-          unit_amount: Math.round(finalAmount * 100),
+    // We use a single line item with the rounded total to match our UI breakdown
+    const line_items = [{
+      price_data: {
+        currency: "aud",
+        product_data: {
+          name: "Booking Total",
+          description: `Total for ${cart.length} service(s) at ${tenantSlug}. Incl. secure processing and platform fees.`,
         },
-        quantity: 1,
-      }];
-    } else {
-      line_items = cart.map((item: any) => ({
-        price_data: {
-          currency: "aud",
-          product_data: {
-            name: item.service.name,
-            description: `Booking at ${tenantSlug} for ${targetDate} at ${selectedTime}`,
-          },
-          unit_amount: Math.round(item.service.price * 100), // Stripe expects cents
-        },
-        quantity: item.quantity,
-      }));
-    }
+        unit_amount: Math.round(finalAmount * 100), // Stripe expects cents
+      },
+      quantity: 1,
+    }];
 
     // Dynamic Origin Detection: Ensures Stripe always redirects back to the current site (Prod or Local)
     const origin = req.headers.get("origin") || process.env.NEXTAUTH_URL || 'http://localhost:3000';

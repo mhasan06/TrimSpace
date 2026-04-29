@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generateTaxInvoice } from '@/lib/invoiceGenerator';
+import { calculateServiceFees } from '@/lib/pricing';
+import { PRICING_CONSTANTS } from '@/lib/pricing';
 
 export async function GET(
   req: Request,
@@ -33,6 +35,21 @@ export async function GET(
     }
 
     // 3. Prepare data for PDF generator
+    const servicesWithFees = groupAppointments.map(a => {
+        const fees = calculateServiceFees(Number(a.service.price));
+        return {
+            name: a.service.name,
+            price: Number(a.service.price),
+            status: a.status,
+            fees
+        };
+    });
+
+    const totalProcessing = servicesWithFees.reduce((acc, s) => acc + (s.status === "CANCELLED" ? 0 : (s.fees.stripePercentFee + s.fees.stripeFlatFee)), 0);
+    const totalPlatform = servicesWithFees.reduce((acc, s) => acc + (s.status === "CANCELLED" ? 0 : s.fees.platformFee), 0);
+    const totalBasePrice = servicesWithFees.reduce((acc, s) => acc + (s.status === "CANCELLED" ? s.price * 0.5 : s.price), 0);
+    const finalRoundedTotal = servicesWithFees.reduce((acc, s) => acc + (s.status === "CANCELLED" ? s.price * 0.5 : s.fees.totalCustomerPrice), 0);
+    
     const invoiceData = {
       bookingId: (appointment as any).bookingGroupId || appointment.id.substring(appointment.id.length - 8).toUpperCase(),
       customerName: appointment.customer.name || 'Valued Customer',
@@ -42,15 +59,12 @@ export async function GET(
       tenantABN: (appointment.tenant as any).abn || '00 000 000 000',
       date: appointment.startTime.toLocaleDateString('en-AU', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
       time: appointment.startTime.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit', hour12: true }),
-      services: groupAppointments.map(a => ({ 
-        name: a.service.name, 
-        price: a.service.price,
-        status: a.status
-      })),
-      totalPrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0),
-      status: appointment.status,
-      serviceName: groupAppointments.length > 1 ? `${groupAppointments.length} Services` : appointment.service.name,
-      servicePrice: groupAppointments.reduce((acc, a) => acc + a.service.price, 0)
+      services: servicesWithFees.map(s => ({ name: s.name, price: s.price, status: s.status })),
+      totalPrice: finalRoundedTotal,
+      processingFee: totalProcessing,
+      platformFee: totalPlatform,
+      roundingAdjustment: finalRoundedTotal - (totalBasePrice + totalProcessing + totalPlatform),
+      status: appointment.status
     };
 
     // 4. Generate PDF

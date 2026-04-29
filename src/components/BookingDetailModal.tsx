@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { calculateServiceFees } from "@/lib/pricing";
 
 export type BookingDetail = {
   id: string;
@@ -169,10 +170,30 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
           <div style={{ marginTop: "1.2rem", padding: "1.1rem", background: "rgba(255,255,255,0.03)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)" }}>
             <p style={{ fontSize: "0.7rem", opacity: 0.4, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "0.8rem" }}>Payment Breakdown</p>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Priority Booking Fee</span>
-              <span style={{ fontWeight: 700 }}>$0.50</span>
-            </div>
+            {(() => {
+              const fees = calculateServiceFees(Number(booking.servicePrice));
+              const rounding = fees.totalCustomerPrice - (fees.basePrice + fees.stripePercentFee + fees.stripeFlatFee + fees.platformFee);
+              return (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Secure Processing</span>
+                    <span style={{ fontWeight: 700 }}>${(fees.stripePercentFee + fees.stripeFlatFee).toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Platform Service Fee</span>
+                    <span style={{ fontWeight: 700 }}>${fees.platformFee.toFixed(2)}</span>
+                  </div>
+                  {Math.abs(rounding) > 0.001 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                      <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Rounding Adjustment</span>
+                      <span style={{ fontWeight: 700 }}>
+                        {rounding > 0 ? '+' : ''}${rounding.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             {Number(booking.amountPaidStripe) > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
