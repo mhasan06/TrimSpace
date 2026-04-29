@@ -152,10 +152,30 @@ function CustomerDashboardContent({
                                 <span>Subtotal</span>
                                 <span>${(viewingInvoice.services.reduce((acc: number, s: any) => acc + s.price, 0)).toFixed(2)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', fontWeight: 900, borderTop: '1px solid #f1f5f9', marginTop: '0.5rem', fontSize: '1.1rem' }}>
-                                <span>Total Paid</span>
-                                <span>${viewingInvoice.totalPrice.toFixed(2)}</span>
-                            </div>
+                            {(() => {
+                                const baseSum = viewingInvoice.services.reduce((acc: number, s: any) => acc + s.price, 0);
+                                const totalWithFees = viewingInvoice.services.reduce((acc: number, s: any) => {
+                                    const base = Number(s.price);
+                                    const stripeFee = (base * 0.017) + 0.30;
+                                    const platformFee = 0.50;
+                                    const rawTotal = base + stripeFee + platformFee;
+                                    const rounded = Math.round(rawTotal * 10) / 10;
+                                    return acc + rounded;
+                                }, 0);
+                                const feesLine = totalWithFees - baseSum;
+                                return (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', opacity: 0.6, fontSize: '0.8rem' }}>
+                                            <span>Secure Processing & Platform Fees</span>
+                                            <span>${feesLine.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.8rem 0', fontWeight: 900, borderTop: '1px solid #f1f5f9', marginTop: '0.5rem', fontSize: '1.1rem' }}>
+                                            <span>Total Paid</span>
+                                            <span>${totalWithFees.toFixed(2)}</span>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
 
                         <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
