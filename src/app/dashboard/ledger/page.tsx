@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getActiveTenantContext } from "@/lib/support";
 import { redirect } from "next/navigation";
+import { calculateServiceFees } from "@/lib/pricing";
 import ComprehensiveLedger from "@/components/ComprehensiveLedger";
 import styles from "../page.module.css";
 
@@ -33,21 +34,24 @@ export default async function FinancialLedgerPage() {
     const isPaid = app.paymentStatus === 'PAID' || app.paymentStatus === 'PARTIAL_REFUNDED';
     const isFuture = new Date(app.startTime) > new Date();
     
-    const servicePrice = app.service.price;
-    const priorityFee = 0.50;
+    // Use the unified pricing utility
+    const fees = calculateServiceFees(Number(app.service.price));
     
-    // The amount collected from the customer
-    const grossRevenue = isCancelled ? (app.cancellationFee + priorityFee) : (servicePrice + priorityFee);
+    // If cancelled, use the cancellation fee if exists, otherwise 50% of base
+    const basePayout = isCancelled 
+      ? Number(app.cancellationFee || (fees.basePrice * 0.5))
+      : fees.basePrice;
     
-    // Ensure all fees are absolute positive values
-    const commissionAmount = Math.abs(isCancelled ? (app.cancellationFee * platformCommission) : (servicePrice * platformCommission));
-    const stripeFee = Math.abs(isPaid ? ((grossRevenue * 0.029) + 0.30) : 0);
+    // ForCancelled items, we don't show the extra fees in the gross (customer didn't pay them)
+    // but the merchant payout is just the retention amount.
+    const grossRevenue = isCancelled ? basePayout : fees.totalCustomerPrice;
     
-    // Total Platform take = Commission + Priority Fee
-    const platformTotal = commissionAmount + priorityFee;
+    // Consolidate all platform/stripe fees into one for the display
+    // Platform = Platform Fee + Stripe Fee
+    const totalPlatformTake = fees.totalCustomerPrice - fees.basePrice;
     
-    // The Shop's actual share = EVERYTHING COLLECTED - EVERYTHING TAKEN BY PLATFORM/STRIPE
-    const netPayout = grossRevenue - platformTotal - stripeFee;
+    // The Shop's actual share
+    const netPayout = basePayout;
 
     return {
       id: app.id,
@@ -58,15 +62,15 @@ export default async function FinancialLedgerPage() {
       status: app.settlementId ? 'SETTLED' : (isPaid ? 'PENDING' : (isFuture ? 'PENDING' : 'FAILED')),
       customer: app.customer.name || 'Unknown Client',
       serviceName: app.service.name,
-      servicePrice: servicePrice,
-      cancellationAmount: isCancelled ? app.cancellationFee : 0,
+      servicePrice: app.service.price,
+      cancellationAmount: isCancelled ? basePayout : 0,
       grossAmount: grossRevenue,
-      commissionFee: commissionAmount,
-      processingFee: stripeFee,
-      priorityFee: priorityFee,
+      commissionFee: isCancelled ? 0 : 0.50, // Labeled commission but we'll map it to platform fee
+      processingFee: isCancelled ? 0 : (totalPlatformTake - 0.50), // Remaining is processing
+      priorityFee: 0, // We consolidated it
       tax: 0, 
       netPayable: netPayout,
-      netPlatform: platformTotal,
+      netPlatform: isCancelled ? 0 : totalPlatformTake,
       isFuture: isFuture,
       isSettled: !!app.settlementId,
       isDisputed: app.isDisputed,
