@@ -462,7 +462,7 @@ export default function BookingFlow({
               })}
             </div>
             <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600, marginTop: '20px' }}>
-              * Prices include all secure processing and platform service fees.
+              Prices include secure payment processing and platform service fees.
             </p>
           </div>
         )}
