@@ -74,22 +74,14 @@ export default function SupportPage() {
         </div>
 
         {/* Contact Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '80px' }}>
-          <div style={{ padding: '32px', borderRadius: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '80px' }}>
+          <div style={{ width: '100%', maxWidth: '400px', padding: '32px', borderRadius: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center' }}>
             <div style={{ width: '48px', height: '48px', background: '#000', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#fff' }}>
               <Mail size={24} />
             </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>Email Support</h3>
             <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Response time: Under 24h</p>
-            <a href="mailto:support@trimspace.com" style={{ color: '#000', fontWeight: 900, textDecoration: 'none', fontSize: '0.95rem' }}>support@trimspace.com</a>
-          </div>
-          <div style={{ padding: '32px', borderRadius: '24px', background: '#f8fafc', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <div style={{ width: '48px', height: '48px', background: '#000', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: '#fff' }}>
-              <MessageCircle size={24} />
-            </div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '8px' }}>Live Chat</h3>
-            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '16px' }}>Available Mon-Fri, 9am-5pm</p>
-            <span style={{ color: '#000', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer' }}>Start a Conversation</span>
+            <a href="mailto:support@trimspace.com" style={{ color: '#000', fontWeight: 900, textDecoration: 'none', fontSize: '1.1rem' }}>support@trimspace.com</a>
           </div>
         </div>
 
