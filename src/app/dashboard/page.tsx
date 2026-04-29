@@ -91,7 +91,7 @@ export default async function DashboardOverview({ searchParams }: { searchParams
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const [globalStats, outlookRaw, staffStats, monthlyRaw, weeklyRaw, uniqueCustomerCount, barbers, barberReviews, alerts]: any[] = await Promise.all([
+  const [globalStats, outlookRaw, staffStats, monthlyRaw, weeklyRaw, uniqueCustomerCount, barbers, barberReviews, alerts, shopBusinessHours]: any[] = await Promise.all([
     // 1. Grouped Financial Stats
     prisma.$queryRaw`
       SELECT 
@@ -160,6 +160,12 @@ export default async function DashboardOverview({ searchParams }: { searchParams
       where: { tenantId },
       orderBy: { createdAt: 'desc' },
       take: 5
+    }),
+
+    // 10. Business Hours
+    prisma.businessHours.findMany({
+      where: { tenantId },
+      orderBy: { dayOfWeek: 'asc' }
     })
   ]);
 
@@ -362,6 +368,27 @@ export default async function DashboardOverview({ searchParams }: { searchParams
                       <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>{uniqueCustomerCount}</div>
                    </div>
                 </div>
+             </div>
+          </div>
+
+          <div className={styles.recentSection} style={{ marginBottom: 0 }}>
+             <div className={styles.cardHeader}>
+                <h2>Business Hours</h2>
+                <div className={styles.cardHeaderAction}>...</div>
+             </div>
+             <div style={{ marginTop: '1rem' }}>
+                {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map((dayName, idx) => {
+                    const dayNum = (idx + 1) % 7;
+                    const hours = (shopBusinessHours as any[]).find(h => h.dayOfWeek === dayNum);
+                    return (
+                        <div key={dayName} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: idx === 6 ? 'none' : '1px solid #f1f5f9' }}>
+                            <span style={{ fontWeight: 700, color: '#475569', fontSize: '0.9rem' }}>{dayName}</span>
+                            <span style={{ fontWeight: 800, color: hours ? '#0f172a' : '#ef4444', fontSize: '0.9rem' }}>
+                                {hours ? `${hours.openTime} - ${hours.closeTime}` : 'Closed'}
+                            </span>
+                        </div>
+                    );
+                })}
              </div>
           </div>
        </div>

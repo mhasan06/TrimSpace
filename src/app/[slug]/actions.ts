@@ -62,12 +62,12 @@ export async function registerCustomer(formData: any) {
     });
     if (existing) throw new Error("Email or Username already taken");
 
-    const token = crypto.randomBytes(32).toString("hex");
+    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
         name,
-        username,
+        username: username || email.split('@')[0],
         email,
         phone,
         password: hashedPassword,
@@ -75,12 +75,12 @@ export async function registerCustomer(formData: any) {
         street: formData.street,
         suburb: formData.suburb,
         state: formData.state,
-        verificationToken: token,
+        verificationToken: verifyCode,
         emailVerified: null
       }
     });
 
-    await sendVerificationEmail(email, name, token);
+    await sendVerificationEmail(email, name, verifyCode);
     return { success: true, userId: user.id };
   } catch (err: any) {
     return { error: err.message };

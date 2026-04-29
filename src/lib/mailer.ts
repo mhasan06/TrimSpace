@@ -169,14 +169,17 @@ export async function sendVerificationEmail(email: string, name: string, token: 
         <div style="font-family: sans-serif; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
           <h2 style="color: #3b82f6;">Welcome to TrimSpace</h2>
           <p>Hello ${name},</p>
-          <p>Thank you for joining our community. Please verify your email address to activate your account and start booking.</p>
+          <p>Thank you for joining our community. Use the verification code below to activate your account and complete your booking:</p>
           
-          <div style="margin: 30px 0; text-align: center;">
-            <a href="${verifyUrl}" style="display: inline-block; padding: 12px 30px; background: #000; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1rem;">Verify Email Address</a>
+          <div style="margin: 30px 0; text-align: center; background: #f8fafc; padding: 30px; border-radius: 12px; border: 2px dashed #cbd5e1;">
+            <div style="font-size: 42px; font-weight: 900; letter-spacing: 12px; color: #000;">${token}</div>
+            <p style="margin-top: 10px; font-size: 14px; color: #64748b; font-weight: 600; text-transform: uppercase;">Verification Code</p>
           </div>
 
-          <p style="font-size: 0.85rem; color: #64748b;">If the button above doesn't work, copy and paste this link into your browser:</p>
-          <p style="font-size: 0.8rem; word-break: break-all; color: #3b82f6;">${verifyUrl}</p>
+          <p style="font-size: 0.85rem; color: #64748b;">Or click the button below to verify automatically:</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${verifyUrl}" style="display: inline-block; padding: 12px 30px; background: #000; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1rem;">Verify Automatically</a>
+          </div>
           
           <p style="margin-top: 30px; font-size: 0.8rem; color: #9ca3af;">If you didn't create an account, you can safely ignore this email.</p>
         </div>

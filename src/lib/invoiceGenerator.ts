@@ -132,7 +132,7 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(239, 68, 68); // Red (#ef4444)
-  doc.text("The requested professional is subject to availability and may be unavailable due to circumstances beyond our control.", 20, finalY + 15);
+  doc.text("Note: Your preferred professional may not be available due to unexpected circumstances.", 20, finalY + 22);
   
   // Reset color for footer
   doc.setTextColor(100);
