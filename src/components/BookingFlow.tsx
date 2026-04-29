@@ -621,7 +621,7 @@ export default function BookingFlow({
                             <span>{formatPrice(baseSubtotal)}</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b', fontWeight: 600, fontSize: '0.95rem' }}>
-                            <span>Secure Processing & Service Fee</span>
+                            <span>Secure Processing & Platform Fees</span>
                             <span>{formatPrice(totalFeesValue)}</span>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f172a', fontWeight: 900, fontSize: '1.1rem', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e2e8f0' }}>

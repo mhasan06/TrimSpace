@@ -88,28 +88,13 @@ export async function generateTaxInvoice(data: InvoiceData): Promise<any> {
 
   // Add Fees
   if (!isCancelled) {
-    if (data.processingFee) {
+    const totalFees = data.totalPrice - baseTotal;
+    if (totalFees > 0) {
       tableData.push([
-        "Secure Processing Fee",
+        "Secure Processing & Platform Fees",
         "",
         "Standard Rate",
-        `$${data.processingFee.toFixed(2)}`
-      ]);
-    }
-    if (data.platformFee) {
-      tableData.push([
-        "Platform Service Fee",
-        "",
-        "Standard Rate",
-        `$${data.platformFee.toFixed(2)}`
-      ]);
-    }
-    if (data.roundingAdjustment && Math.abs(data.roundingAdjustment) > 0.001) {
-      tableData.push([
-        "Rounding Adjustment",
-        "",
-        "Policy",
-        `${data.roundingAdjustment > 0 ? '+' : ''}$${data.roundingAdjustment.toFixed(2)}`
+        `$${totalFees.toFixed(2)}`
       ]);
     }
   }

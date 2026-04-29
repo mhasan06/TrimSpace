@@ -172,25 +172,13 @@ export default function BookingDetailModal({ booking, onClose }: Props) {
 
             {(() => {
               const fees = calculateServiceFees(Number(booking.servicePrice));
-              const rounding = fees.totalCustomerPrice - (fees.basePrice + fees.stripePercentFee + fees.stripeFlatFee + fees.platformFee);
+              const totalFees = fees.totalCustomerPrice - fees.basePrice;
               return (
                 <>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Secure Processing</span>
-                    <span style={{ fontWeight: 700 }}>${(fees.stripePercentFee + fees.stripeFlatFee).toFixed(2)}</span>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Secure Processing & Platform Fees</span>
+                    <span style={{ fontWeight: 700 }}>${totalFees.toFixed(2)}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Platform Service Fee</span>
-                    <span style={{ fontWeight: 700 }}>${fees.platformFee.toFixed(2)}</span>
-                  </div>
-                  {Math.abs(rounding) > 0.001 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                      <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Rounding Adjustment</span>
-                      <span style={{ fontWeight: 700 }}>
-                        {rounding > 0 ? '+' : ''}${rounding.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
                 </>
               );
             })()}

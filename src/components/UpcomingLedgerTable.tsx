@@ -233,7 +233,7 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2.5rem' }}>
                     <h4 style={{ fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '1px' }}>Service Details</h4>
                     {viewingInvoice.services.map((s: any, idx: number) => {
-                        const rounding = s.fees.totalCustomerPrice - (s.fees.basePrice + s.fees.stripePercentFee + s.fees.stripeFlatFee + s.fees.platformFee);
+                        const totalItemFees = s.fees.totalCustomerPrice - s.price;
                         return (
                             <div key={idx} style={{ padding: '1rem 0', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -244,18 +244,10 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                                     <div style={{ fontWeight: 800 }}>${s.price.toFixed(2)}</div>
                                 </div>
                                 {!viewingInvoice.services.some((s: any) => s.status === 'CANCELLED') && (
-                                    <>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6, marginBottom: '0.3rem' }}>
-                                            <span>Secure Processing & Platform Fees</span>
-                                            <span>${(s.fees.stripePercentFee + s.fees.stripeFlatFee + s.fees.platformFee).toFixed(2)}</span>
-                                        </div>
-                                        {Math.abs(rounding) > 0.001 && (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
-                                                <span>Rounding Adjustment</span>
-                                                <span>{rounding > 0 ? '+' : ''}${rounding.toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                    </>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', opacity: 0.6 }}>
+                                        <span>Secure Processing & Platform Fees</span>
+                                        <span>${totalItemFees.toFixed(2)}</span>
+                                    </div>
                                 )}
                             </div>
                         );
