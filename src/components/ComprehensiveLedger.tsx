@@ -152,104 +152,123 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
               ✕
             </button>
 
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>
-              {selectedEvent.disputeStatus?.startsWith('RESOLVED') ? 'Dispute Audit Trail' : 'Dispute Investigation'}
-            </h2>
-
-            <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px dashed #f59e0b' }}>
-               <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Your Original Reason:</div>
-               <div style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>"{selectedEvent.disputeReason || 'No reason provided'}"</div>
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Transaction Receipt</div>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, margin: 0 }}>{selectedEvent.serviceName}</h2>
+              <p style={{ opacity: 0.6, marginTop: '0.2rem' }}>Booking Ref: {selectedEvent.id.slice(-8).toUpperCase()}</p>
             </div>
 
-            <div style={{ marginBottom: '2rem' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, textTransform: 'uppercase', marginBottom: '1rem' }}>Investigation Timeline:</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-                {(selectedEvent.disputeNotes || []).length === 0 && (
-                  <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.4, border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '16px' }}>
-                    No investigation notes yet. The platform admin will update this thread soon.
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div>
+                <h4 style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Customer</h4>
+                <p style={{ fontWeight: 800 }}>{selectedEvent.customer}</p>
+              </div>
+              <div>
+                <h4 style={{ fontSize: '0.65rem', opacity: 0.5, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Service Date</h4>
+                <p style={{ fontWeight: 800 }}>{new Date(selectedEvent.serviceDate).toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+              </div>
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '20px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
+              <h4 style={{ fontSize: '0.7rem', fontWeight: 900, marginBottom: '1rem', opacity: 0.5 }}>FINANCIAL SUMMARY</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ opacity: 0.7 }}>Total Customer Paid</span>
+                  <span style={{ fontWeight: 800 }}>${selectedEvent.grossAmount.toFixed(2)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ef4444' }}>
+                  <span style={{ opacity: 0.7 }}>Secure Processing & Platform Fees</span>
+                  <span style={{ fontWeight: 800 }}>-${(selectedEvent.commissionFee + selectedEvent.processingFee + selectedEvent.priorityFee).toFixed(2)}</span>
+                </div>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.8rem', display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
+                  <span style={{ fontWeight: 900 }}>Net Total Payout</span>
+                  <span style={{ fontWeight: 900, color: '#16a34a' }}>${selectedEvent.netPayable.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dispute Section - Only shown if already disputed or if merchant wants to start one */}
+            {(selectedEvent.isDisputed || selectedEvent.disputeStatus?.startsWith('RESOLVED')) ? (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '1rem' }}>
+                  {selectedEvent.disputeStatus?.startsWith('RESOLVED') ? 'Dispute Audit Trail' : 'Dispute Investigation'}
+                </h3>
+                
+                <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px dashed #f59e0b' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', marginBottom: '0.3rem' }}>Original Dispute Reason:</div>
+                  <div style={{ fontStyle: 'italic', fontSize: '0.9rem' }}>"{selectedEvent.disputeReason || 'No reason provided'}"</div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                  {(selectedEvent.disputeNotes || []).map((note, idx) => (
+                    <div key={idx} style={{ 
+                      alignSelf: note.authorRole === 'MERCHANT' ? 'flex-end' : 'flex-start',
+                      maxWidth: '85%',
+                      background: note.authorRole === 'ADMIN' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.07)',
+                      padding: '1rem',
+                      borderRadius: '16px',
+                      borderBottomRightRadius: note.authorRole === 'MERCHANT' ? '2px' : '16px',
+                      borderBottomLeftRadius: note.authorRole === 'ADMIN' ? '2px' : '16px',
+                      border: note.authorRole === 'ADMIN' ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                      <div style={{ fontSize: '0.6rem', fontWeight: 900, opacity: 0.8, marginBottom: '0.3rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                        <span>{note.authorName} ({note.authorRole === 'ADMIN' ? 'Platform Support' : 'Your Team'})</span>
+                        <span>{new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <div style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{note.content}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {!selectedEvent.disputeStatus?.startsWith('RESOLVED') && (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <textarea 
+                      placeholder="Reply to the admin..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      style={{ width: '100%', height: '80px', background: 'transparent', color: 'white', border: 'none', outline: 'none', resize: 'none', fontSize: '0.9rem' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={handleAddNote}
+                        disabled={isAddingNote || !newComment}
+                        style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', opacity: isAddingNote || !newComment ? 0.5 : 1 }}
+                      >
+                        {isAddingNote ? 'Sending...' : 'REPLY'}
+                      </button>
+                    </div>
                   </div>
                 )}
-                {(selectedEvent.disputeNotes || []).map((note, idx) => (
-                  <div key={idx} style={{ 
-                    alignSelf: note.authorRole === 'MERCHANT' ? 'flex-end' : 'flex-start',
-                    maxWidth: '85%',
-                    background: note.authorRole === 'ADMIN' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.07)',
-                    padding: '1rem',
-                    borderRadius: '16px',
-                    borderBottomRightRadius: note.authorRole === 'MERCHANT' ? '2px' : '16px',
-                    borderBottomLeftRadius: note.authorRole === 'ADMIN' ? '2px' : '16px',
-                    border: note.authorRole === 'ADMIN' ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.1)'
-                  }}>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 900, opacity: 0.8, marginBottom: '0.3rem', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                      <span>{note.authorName} ({note.authorRole === 'ADMIN' ? 'Platform Support' : 'Your Team'})</span>
-                      <span>{new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
-                    <div style={{ fontSize: '0.9rem', whiteSpace: 'pre-wrap' }}>{note.content}</div>
-                  </div>
-                ))}
               </div>
-
-              {!selectedEvent.disputeStatus?.startsWith('RESOLVED') && selectedEvent.isDisputed && (
-                <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            ) : (
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
+                <button 
+                  onClick={(e) => {
+                    const el = e.currentTarget.nextElementSibling as HTMLElement;
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  style={{ background: 'none', border: '1px solid #ef4444', color: '#ef4444', padding: '0.6rem 1.2rem', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  🚩 FLAG A DISPUTE
+                </button>
+                <div style={{ display: 'none', marginTop: '1rem' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.5rem', color: '#ef4444' }}>Raise a Financial Dispute</h4>
+                  <p style={{ opacity: 0.6, fontSize: '0.8rem', marginBottom: '1rem' }}>If there is an issue with this payout amount, provide a reason below. This will freeze the payout for review.</p>
                   <textarea 
-                    placeholder="Provide additional evidence or reply to the admin..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    style={{ width: '100%', height: '80px', background: 'transparent', color: 'white', border: 'none', outline: 'none', resize: 'none', fontSize: '0.9rem' }}
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button 
-                      onClick={handleAddNote}
-                      disabled={isAddingNote || !newComment}
-                      style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '10px', fontWeight: 800, cursor: 'pointer', opacity: isAddingNote || !newComment ? 0.5 : 1 }}
-                    >
-                      {isAddingNote ? 'Sending...' : 'REPLY TO CASE'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {selectedEvent.disputeStatus?.startsWith('RESOLVED') && (
-              <div style={{ 
-                padding: '1.5rem', borderRadius: '20px', 
-                background: selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                border: `1px solid ${selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444'}`,
-                marginBottom: '1rem'
-              }}>
-                <div style={{ fontWeight: 900, fontSize: '0.7rem', opacity: 0.6, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Final Administrative Verdict:</div>
-                <div style={{ fontSize: '0.95rem', whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
-                  {selectedEvent.disputeResolutionMemo}
-                </div>
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontWeight: 900, fontSize: '0.8rem', color: selectedEvent.disputeStatus === 'RESOLVED_PAYOUT' ? '#10b981' : '#ef4444', textTransform: 'uppercase' }}>
-                     VERDICT: {selectedEvent.disputeStatus.replace('RESOLVED_', '')}
-                  </div>
-                  <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>
-                    Resolved on {selectedEvent.disputeResolvedAt ? new Date(selectedEvent.disputeResolvedAt).toLocaleDateString() : ''}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!selectedEvent.isDisputed && !selectedEvent.disputeStatus?.startsWith('RESOLVED') && (
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                <p style={{ opacity: 0.7, fontSize: '0.9rem', marginBottom: '1.5rem' }}>If there is an issue with this transaction, you can flag it for administrative review.</p>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <textarea 
-                    placeholder="Reason for dispute (e.g. incorrect amount, customer claim)..."
+                    placeholder="Reason for dispute..."
                     value={disputeReason}
                     onChange={(e) => setDisputeReason(e.target.value)}
-                    style={{ flex: 1, height: '100px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', outline: 'none' }}
+                    style={{ width: '100%', height: '100px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', padding: '1rem', outline: 'none', marginBottom: '1rem' }}
                   />
+                  <button 
+                    onClick={handleFlagDispute}
+                    disabled={isFlagging || !disputeReason}
+                    style={{ width: '100%', background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isFlagging || !disputeReason ? 0.5 : 1 }}
+                  >
+                    {isFlagging ? 'Flagging...' : 'SUBMIT DISPUTE'}
+                  </button>
                 </div>
-                <button 
-                  onClick={handleFlagDispute}
-                  disabled={isFlagging || !disputeReason}
-                  style={{ width: '100%', marginTop: '1rem', background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', opacity: isFlagging || !disputeReason ? 0.5 : 1 }}
-                >
-                  {isFlagging ? 'Flagging...' : 'FLAG FOR DISPUTE'}
-                </button>
               </div>
             )}
 
@@ -261,7 +280,7 @@ export default function ComprehensiveLedger({ data }: { data: LedgerEvent[] }) {
                 cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
               }}
             >
-              CLOSE CLAIM VIEW
+              CLOSE RECEIPT
             </button>
           </div>
         </div>
