@@ -55,10 +55,9 @@ export async function fetchBarbers(tenantSlug: string) {
 }
 
 export async function registerCustomer(formData: any) {
-  const { name, username, email, phone, password } = formData;
-  try {
+    const lowerEmail = email.toLowerCase();
     const existing = await prisma.user.findFirst({
-      where: { OR: [{ email }, { username }] }
+      where: { OR: [{ email: lowerEmail }, { username }] }
     });
     if (existing) throw new Error("Email or Username already taken");
 
@@ -67,8 +66,8 @@ export async function registerCustomer(formData: any) {
     const user = await prisma.user.create({
       data: {
         name,
-        username: username || email.split('@')[0],
-        email,
+        username: username || lowerEmail.split('@')[0],
+        email: lowerEmail,
         phone,
         password: hashedPassword,
         role: "CUSTOMER",
@@ -300,7 +299,7 @@ export async function validateGiftCard(code: string, tenantSlug: string) {
 export async function checkEmailExists(email: string) {
   try {
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
       select: { id: true }
     });
     return !!user;
