@@ -55,7 +55,9 @@ export async function fetchBarbers(tenantSlug: string) {
 }
 
 export async function registerCustomer(formData: any) {
-    const lowerEmail = email.toLowerCase();
+  const { name, username, email, phone, password } = formData;
+  const lowerEmail = email.toLowerCase();
+  try {
     const existing = await prisma.user.findFirst({
       where: { OR: [{ email: lowerEmail }, { username }] }
     });
