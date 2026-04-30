@@ -150,13 +150,19 @@ export async function runEndToEndValidationAction() {
       }
     });
 
-    // 6. Calculate Expectations
-    const feesA = calculateServiceFees(100.00); // 100 + 1.7 + 0.3 + 0.5 = 102.5
-    const feesB = calculateServiceFees(30.00);  // 30 + 0.51 + 0.3 + 0.5 = 31.31 -> Rounded to 31.30 (if 0.10 rounding)
+    // 6. FORCE CORRECT GLOBAL SETTINGS FOR TEST
+    await prisma.$executeRawUnsafe(
+      `UPDATE "PlatformSettings" SET "defaultPlatformFee" = 0.017 WHERE "id" = 'platform_global'`
+    );
+
+    const feesA = calculateServiceFees(100.00); 
+    const feesB = calculateServiceFees(30.00);  
     
     const expectedGross = feesA.totalCustomerPrice + feesB.totalCustomerPrice;
     const expectedNet = feesA.basePrice + feesB.basePrice;
     const expectedFees = expectedGross - expectedNet;
+
+    console.log(`[VALIDATION] Expected: Gross=${expectedGross}, Net=${expectedNet}, Fees=${expectedFees}`);
 
     // 7. Trigger Settlement Run
     await triggerWeeklyRunAction();

@@ -243,6 +243,8 @@ export async function triggerWeeklyRunAction() {
         totalNet += fees.basePrice;
       });
 
+      console.log(`[BATCHER] Creating Settlement for ${batch.tenantId}: Gross=${totalGross}, Net=${totalNet}, Fees=${totalFees}, FeeScale=${feeScale}`);
+
       const dayLabel = batch.startDate.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
       const weekLabel = `Daily: ${dayLabel}`;
 
