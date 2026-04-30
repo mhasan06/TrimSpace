@@ -3,98 +3,84 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql" 
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-
 model Tenant {
-  id        String   @id @default(cuid())
-  name      String   // Shop Name
-  slug      String   @unique
-  
-  // Physical Address (Split)
-  street    String?
-  suburb    String?
-  state     String?
-  country   String?  @default("Australia")
-  address   String?  // Formatted full address for quick rendering
-  
-  // Contact Details
-  phoneCode String?  @default("+61")
-  phone     String?
-  website   String?
-
-  // Business Registration Info
-  businessName String? // Legal Entity Name
-  abn       String?  @default("00 000 000 000")
-  
-  isActive  Boolean  @default(false)
-  category  String?  @default("BARBER") // BARBER, SALON, SPA, SKIN, NAILS
-  templateId String? @default("LUXURY") // LUXURY, VINTAGE, MINIMAL
-  shopImage  String?
-  galleryImages String[] @default([])
-  customerPhotos String[] @default([])
-  description String? @db.Text
-  enabledFeatures Json?    @default("[\"OVERVIEW\", \"SERVICES\", \"CUSTOMERS\", \"ROSTER\", \"REPORTS\", \"LEDGER\", \"SETTINGS\"]")
-  
-  // Financial Details (AU Standard)
-  bankName      String?
-  bsb           String?
-  accountNumber String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  maxBarbers Int @default(3)
-
-  users             User[]
-  services          Service[]
-  businessHours     BusinessHours[]
+  id                String             @id @default(cuid())
+  name              String
+  slug              String             @unique
+  address           String?
+  phone             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  isActive          Boolean            @default(false)
+  category          String?            @default("BARBER")
+  templateId        String?            @default("LUXURY")
+  abn               String?            @default("00 000 000 000")
+  shopImage         String?
+  customerPhotos    String[]           @default([])
+  description       String?
+  galleryImages     String[]           @default([])
+  enabledFeatures   Json?              @default("[\"OVERVIEW\", \"SERVICES\", \"CUSTOMERS\", \"ROSTER\", \"REPORTS\", \"LEDGER\", \"SETTINGS\"]")
+  accountNumber     String?
+  bankName          String?
+  bsb               String?
+  businessName      String?
+  country           String?            @default("Australia")
+  phoneCode         String?            @default("+61")
+  state             String?
+  street            String?
+  suburb            String?
+  website           String?
+  maxBarbers        Int                @default(3)
   appointments      Appointment[]
-  scheduleOverrides ScheduleOverride[]
+  bankHistory       BankHistory[]
+  businessHours     BusinessHours[]
+  favorites         Favorite[]
   giftCards         GiftCard[]
   alerts            MerchantAlert[]
-  settlements       Settlement[]
   reviews           Review[]
-  favorites         Favorite[]
-  bankHistory       BankHistory[]
-  supportTickets    SupportTicket[]
+  scheduleOverrides ScheduleOverride[]
+  services          Service[]
+  settlements       Settlement[]
   staffSchedules    StaffSchedule[]
   staffShifts       StaffShift[]
+  supportTickets    SupportTicket[]
+  users             User[]
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  username  String?  @unique
-  phone     String?
-  name      String?
-  password  String?  
-  role      String   @default("CUSTOMER") // CUSTOMER, ADMIN, BARBER
-  tenantId  String?
-  bio       String? @db.Text
-  avatarUrl String?
-  suburb    String?
-  state     String?
-  street    String?
-  gender    String?
-  isActive  Boolean @default(true)
-  emailVerified DateTime?
+  id                String          @id @default(cuid())
+  email             String          @unique
+  name              String?
+  password          String?
+  role              String          @default("CUSTOMER")
+  tenantId          String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  username          String?         @unique
+  phone             String?
+  isActive          Boolean         @default(true)
+  avatarUrl         String?
+  bio               String?
+  gender            String?
+  state             String?
+  suburb            String?
+  street            String?
+  emailVerified     DateTime?
   verificationToken String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant       Tenant?       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments Appointment[] @relation("CustomerAppointments")
-  barberJobs   Appointment[] @relation("BarberAppointments")
-  
-  reviewsGiven    Review[] @relation("CustomerReviews")
-  reviewsReceived Review[] @relation("BarberReviews")
-  favorites       Favorite[]
-  staffSchedules  StaffSchedule[]
-  staffShifts     StaffShift[]
-  services        Service[]
+  barberJobs        Appointment[]   @relation("BarberAppointments")
+  appointments      Appointment[]   @relation("CustomerAppointments")
+  favorites         Favorite[]
+  reviewsReceived   Review[]        @relation("BarberReviews")
+  reviewsGiven      Review[]        @relation("CustomerReviews")
+  staffSchedules    StaffSchedule[]
+  staffShifts       StaffShift[]
+  tenant            Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  services          Service[]       @relation("ServiceToUser")
 }
 
 model BankHistory {
@@ -103,176 +89,162 @@ model BankHistory {
   bankName      String?
   bsb           String?
   accountNumber String?
-  changedBy     String? // User ID who made the change
+  changedBy     String?
   createdAt     DateTime @default(now())
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Service {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   name            String
-  description     String?
-  isActive        Boolean  @default(true)
   durationMinutes Int
   price           Float
   tenantId        String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
-  barbers      User[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  isActive        Boolean       @default(true)
+  description     String?
+  appointments    Appointment[]
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  barbers         User[]        @relation("ServiceToUser")
 }
 
-
 model BusinessHours {
-  id        String   @id @default(cuid())
-  dayOfWeek Int      // 0 = Sunday, 1 = Monday, etc.
-  openTime  String   // HH:mm (e.g. 09:00)
-  closeTime String   // HH:mm (e.g. 18:00)
-  lunchStart String? // HH:mm Optional lunch break start
-  lunchEnd   String? // HH:mm Optional lunch break end
-  activeStaff Int    @default(1) // Controls parallel constraint
-  tenantId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  dayOfWeek   Int
+  openTime    String
+  closeTime   String
+  lunchStart  String?
+  lunchEnd    String?
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  activeStaff Int      @default(1)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model ScheduleOverride {
   id        String   @id @default(cuid())
-  date      String   // YYYY-MM-DD
-  reason    String?  // e.g. "Christmas Eve"
-  isClosed  Boolean  @default(true) // Entire day closed?
+  date      String
+  reason    String?
+  isClosed  Boolean  @default(true)
   tenantId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Appointment {
-  id         String   @id @default(cuid())
-  startTime  DateTime
-  endTime    DateTime
-  status     String   @default("PENDING") 
-  customerId String
-  barberId   String
-  serviceId  String
-  tenantId   String
-  paymentMethod String @default("CASH") // CASH, CARD_ONLINE, CARD_INSTORE
-  paymentStatus String @default("UNPAID") // UNPAID, PAID, REFUNDED
-  invoiceUrl    String?
-  emailSent      Boolean  @default(false)
-  amountPaidStripe Float  @default(0)
-  amountPaidGift   Float  @default(0)
-  giftCardId    String?
+  id                    String        @id @default(cuid())
+  startTime             DateTime
+  endTime               DateTime
+  status                String        @default("PENDING")
+  customerId            String
+  barberId              String
+  serviceId             String
+  tenantId              String
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  paymentMethod         String        @default("CASH")
+  paymentStatus         String        @default("UNPAID")
+  invoiceUrl            String?
+  amountPaidGift        Float         @default(0)
+  amountPaidStripe      Float         @default(0)
+  emailSent             Boolean       @default(false)
+  giftCardId            String?
   stripePaymentIntentId String?
-  bookingGroupId String?
-  cancellationFee Float    @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  customer User    @relation("CustomerAppointments", fields: [customerId], references: [id], onDelete: Cascade)
-  barber   User    @relation("BarberAppointments", fields: [barberId], references: [id], onDelete: Cascade)
-  service  Service @relation(fields: [serviceId], references: [id])
-  tenant   Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  giftCard GiftCard? @relation(fields: [giftCardId], references: [id])
-  
-  settlementId String?
-  settlement   Settlement? @relation(fields: [settlementId], references: [id])
-  
-  review       Review?
-
-  // Dispute Management
-  isDisputed   Boolean  @default(false)
-  disputeReason String?
-  disputeStatus String? // PENDING, RESOLVED_PAYOUT, RESOLVED_REFUND
-  disputeResolvedAt DateTime?
-  disputeResolvedBy String?
-  disputeResolutionMemo String? @db.Text
-  disputeNotes  DisputeNote[]
+  settlementId          String?
+  bookingGroupId        String?
+  cancellationFee       Float         @default(0)
+  disputeReason         String?
+  disputeResolutionMemo String?
+  disputeResolvedAt     DateTime?
+  disputeStatus         String?
+  isDisputed            Boolean       @default(false)
+  disputeResolvedBy     String?
+  platformFeeFlat       Float         @default(0.80)
+  platformFeeRate       Float         @default(0.017)
+  barber                User          @relation("BarberAppointments", fields: [barberId], references: [id], onDelete: Cascade)
+  customer              User          @relation("CustomerAppointments", fields: [customerId], references: [id], onDelete: Cascade)
+  giftCard              GiftCard?     @relation(fields: [giftCardId], references: [id])
+  service               Service       @relation(fields: [serviceId], references: [id])
+  settlement            Settlement?   @relation(fields: [settlementId], references: [id])
+  tenant                Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  disputeNotes          DisputeNote[]
+  review                Review?
 }
 
 model DisputeNote {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   appointmentId String
-  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  content       String   @db.Text
+  content       String
   authorName    String
-  authorRole    String   // ADMIN, MERCHANT
-  createdAt     DateTime @default(now())
+  authorRole    String
+  createdAt     DateTime    @default(now())
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model GiftCard {
-  id            String   @id @default(cuid())
-  code          String   @unique // The redemption code (e.g. CARD-XXXX-YYYY)
-  initialValue  Float
-  balance       Float
-  recipientEmail String?
-  isActive      Boolean  @default(true)
-  stripeSessionId String? @unique
-  tenantId      String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments Appointment[]
+  id              String        @id @default(cuid())
+  code            String        @unique
+  initialValue    Float
+  balance         Float
+  recipientEmail  String?
+  isActive        Boolean       @default(true)
+  tenantId        String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  stripeSessionId String?       @unique
+  appointments    Appointment[]
+  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model MerchantAlert {
   id        String   @id @default(cuid())
-  type      String   // BOOKING_CONFIRMED, BOOKING_CANCELLED
+  type      String
   message   String
-  metadata  Json?    // Added for interactive links (e.g., {"date": "2024-04-12", "appointmentId": "..."})
   isRead    Boolean  @default(false)
   tenantId  String
   createdAt DateTime @default(now())
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  metadata  Json?
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Settlement {
-  id              String   @id @default(cuid())
-  tenantId        String
-  amount          Float    // Net Amount (Gross - Fee)
-  grossAmount     Float    // Total charged to customers
-  feeAmount       Float    // Platform's cut
-  status          String   @default("OUTSTANDING") // OUTSTANDING, SETTLED, INVESTIGATION, DISPUTE
-  weekLabel       String   // e.g. "Week 15 - 2026"
-  startDate       DateTime
-  endDate         DateTime
-  adminComments   String?  @db.Text
-  metadata        Json?    // For audit history (status changes, timestamps)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  appointments    Appointment[]
+  id            String        @id @default(cuid())
+  tenantId      String
+  amount        Float
+  grossAmount   Float
+  feeAmount     Float
+  status        String        @default("OUTSTANDING")
+  weekLabel     String
+  startDate     DateTime
+  endDate       DateTime
+  adminComments String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  appointments  Appointment[]
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model PlatformSettings {
-  id                 String   @id @default("platform_global")
-  defaultPlatformFee Float    @default(0.02)
+  id                      String    @id @default("platform_global")
+  defaultPlatformFee      Float     @default(0.02)
+  updatedAt               DateTime  @updatedAt
+  platformName            String    @default("Antigravity Platform")
+  platformAbl             String    @default("00 000 000 000")
+  platformAddress         String?
+  platformEmail           String?
+  platformPhone           String?
   defaultFeeEffectiveFrom DateTime?
-  platformName       String   @default("Antigravity Platform")
-  platformAbl        String   @default("00 000 000 000")
-  platformAddress    String?
-  platformPhone      String?
-  platformEmail      String?
-  cancellationPolicy String?  @default("All cancellations must be made at least 24 hours in advance to avoid a cancellation fee.") @db.Text
-  bookingPolicy      String?  @default("A valid credit card is required to secure your booking. Priority fees may apply for peak times.") @db.Text
-  
-  // Dynamic Cancellation Tiers
-  penaltyLongThreshold  Int    @default(48) // Hours
-  penaltyShortThreshold Int    @default(24) // Hours
-  penaltyLongRate       Float  @default(0.0)  // 0%
-  penaltyMidRate        Float  @default(0.2)  // 20%
-  penaltyShortRate      Float  @default(1.0)  // 100%
-
-  updatedAt          DateTime @updatedAt
+  bookingPolicy           String?   @default("A valid credit card is required to secure your booking. Priority fees may apply for peak times.")
+  cancellationPolicy      String?   @default("All cancellations must be made at least 24 hours in advance to avoid a cancellation fee.")
+  penaltyLongRate         Float     @default(0.0)
+  penaltyLongThreshold    Int       @default(48)
+  penaltyMidRate          Float     @default(0.2)
+  penaltyShortRate        Float     @default(1.0)
+  penaltyShortThreshold   Int       @default(24)
 }
 
 model PlatformFeeSchedule {
@@ -283,23 +255,20 @@ model PlatformFeeSchedule {
 }
 
 model Review {
-  id            String   @id @default(cuid())
-  rating        Int      // 1 to 5
-  comment       String?  @db.Text
-  isPublic      Boolean  @default(true)
-  
-  appointmentId String   @unique
+  id            String      @id @default(cuid())
+  rating        Int
+  comment       String?
+  isPublic      Boolean     @default(true)
+  appointmentId String      @unique
   tenantId      String
   customerId    String
   barberId      String
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  customer      User        @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
   barber        User        @relation("BarberReviews", fields: [barberId], references: [id], onDelete: Cascade)
+  customer      User        @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Favorite {
@@ -307,9 +276,8 @@ model Favorite {
   userId    String
   tenantId  String
   createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tenantId])
 }
@@ -324,42 +292,40 @@ model GlobalSetting {
 }
 
 model SupportTicket {
-  id          String   @id @default(cuid())
-  subject     String
-  category    String   @default("GENERAL") // GENERAL, BILLING, TECHNICAL, FEATURE
-  status      String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
-  tenantId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  messages    SupportMessage[]
+  id        String           @id @default(cuid())
+  subject   String
+  category  String           @default("GENERAL")
+  status    String           @default("OPEN")
+  priority  String           @default("NORMAL")
+  tenantId  String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  SupportMessage[]
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model SupportMessage {
-  id          String   @id @default(cuid())
-  ticketId    String
-  senderId    String
-  senderRole  String   // ADMIN, MERCHANT
-  content     String   @db.Text
-  createdAt   DateTime @default(now())
-
-  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id         String        @id @default(cuid())
+  ticketId   String
+  senderId   String
+  senderRole String
+  content    String
+  createdAt  DateTime      @default(now())
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 }
+
 model StaffSchedule {
   id        String   @id @default(cuid())
   userId    String
   tenantId  String
-  dayOfWeek Int      // 0 = Sunday, 1 = Monday, etc.
+  dayOfWeek Int
   startTime String   @default("09:00")
   endTime   String   @default("17:00")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, dayOfWeek])
 }
@@ -368,16 +334,15 @@ model StaffShift {
   id        String   @id @default(cuid())
   userId    String
   tenantId  String
-  date      String   // YYYY-MM-DD
-  startTime String?  // Optional: override start
-  endTime   String?  // Optional: override end
+  date      String
+  startTime String?
+  endTime   String?
   isDayOff  Boolean  @default(false)
   reason    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
 }
