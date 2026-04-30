@@ -72,6 +72,11 @@ export async function updatePlatformSettingsAction(data: {
   address?: string;
   phone?: string;
   email?: string;
+  penaltyLongThreshold?: number;
+  penaltyShortThreshold?: number;
+  penaltyLongRate?: number;
+  penaltyMidRate?: number;
+  penaltyShortRate?: number;
 }) {
   await ensureAdmin();
   try {
