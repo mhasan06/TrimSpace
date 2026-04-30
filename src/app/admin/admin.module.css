@@ -1,14 +1,85 @@
 .adminContainer {
   display: flex;
   min-height: 100vh;
-  background: #020617; /* Deepest Navy */
+  background: #020617; 
   color: #f8fafc;
   font-family: 'Inter', system-ui, sans-serif;
+  
+  /* Theme Overrides for All Children */
+  --background: #020617;
+  --foreground: #f8fafc;
+  --card: #0f172a;
+  --card-foreground: #f8fafc;
+  --border: rgba(255, 255, 255, 0.1);
+  --primary: #3b82f6;
+  --accent: #94a3b8;
+}
+
+/* Force high-contrast text on all sub-elements */
+.adminContainer h1, 
+.adminContainer h2, 
+.adminContainer h3, 
+.adminContainer h4 {
+  color: #ffffff !important;
+}
+
+.adminContainer p, 
+.adminContainer span, 
+.adminContainer label {
+  color: #cbd5e1;
+}
+
+/* Fix for Tables and Cards in sub-pages */
+.adminContainer :global(.glass),
+.adminContainer :global(.card) {
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+
+.adminContainer :global(table) {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.adminContainer :global(th) {
+  background: rgba(30, 41, 59, 0.8) !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1rem !important;
+}
+
+.adminContainer :global(td) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding: 1rem !important;
+  color: #e2e8f0 !important;
+}
+
+.adminContainer :global(tr:hover) {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Fix for Inputs in sub-pages */
+.adminContainer :global(input),
+.adminContainer :global(textarea),
+.adminContainer :global(select) {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.adminContainer :global(input:focus) {
+  border-color: #3b82f6 !important;
+  outline: none !important;
 }
 
 .sidebar {
   width: 280px;
-  background: #0f172a; /* Slate 900 */
+  background: #0f172a; 
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
@@ -17,6 +88,7 @@
   top: 0;
   height: 100vh;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+  z-index: 100;
 }
 
 .systemBadge {
