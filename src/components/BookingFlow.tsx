@@ -786,6 +786,56 @@ export default function BookingFlow({
         </div>
       </aside>
     </div>
+    
+    {/* ─── MOBILE STICKY FOOTER (FRESHA STYLE) ─── */}
+    {isMobile && stage !== "START" && stage !== "PAYMENT" && allCartItems.length > 0 && (
+      <div style={{
+        position: 'fixed',
+        bottom: '60px',
+        left: 0,
+        right: 0,
+        height: '85px',
+        background: '#000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 1.5rem',
+        zIndex: 1001,
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.15)'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {allCartItems.length} {allCartItems.length === 1 ? terminology.serviceLabel : terminology.serviceLabelPlural}
+            </span>
+          </div>
+          <p style={{ margin: 0, fontSize: '1.4rem', fontWeight: 950, color: '#fff', letterSpacing: '-0.5px' }}>{formatPrice(totalPrice)}</p>
+        </div>
+        
+        <button 
+          onClick={nextStage}
+          disabled={stage === "CALENDAR" && !selectedTime}
+          style={{
+            padding: '0.9rem 2.4rem',
+            borderRadius: '12px',
+            background: (stage === "CALENDAR" && !selectedTime) ? '#334155' : '#fff',
+            color: (stage === "CALENDAR" && !selectedTime) ? '#94a3b8' : '#000',
+            fontWeight: 900,
+            fontSize: '1.1rem',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    )}
     </>
   );
 }
