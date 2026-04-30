@@ -24,7 +24,7 @@ interface ServiceWithBarbers extends Service {
   barbers: Barber[];
 }
 
-export default function ServiceManager({ initialServices, barbers, tenantId }: { initialServices: any[], barbers: Barber[], tenantId: string }) {
+export default function ServiceManager({ initialServices, barbers, tenantId, platformSettings }: { initialServices: any[], barbers: Barber[], tenantId: string, platformSettings?: any }) {
   const router = useRouter();
   const [services, setServices] = useState<ServiceWithBarbers[]>(initialServices);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -153,7 +153,7 @@ export default function ServiceManager({ initialServices, barbers, tenantId }: {
                 </span>
                 <div style={{ fontSize: '0.65rem', color: 'var(--foreground)', opacity: 0.6, marginTop: '4px', textAlign: 'right' }}>
                   {(() => {
-                    const fees = calculateServiceFees(srv.price);
+                    const fees = calculateServiceFees(srv.price, platformSettings?.defaultPlatformFee ?? 0.017);
                     return (
                       <>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '4px' }}>
