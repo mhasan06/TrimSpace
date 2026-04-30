@@ -163,7 +163,7 @@ export async function triggerWeeklyRunAction() {
     }
 
     const appointments = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT a.*, s.price as "servicePrice", a."cancellationFee"
+      `SELECT a.*, s.price as "servicePrice", a."cancellationFee", a."platformFeeRate", a."platformFeeFlat"
        FROM "Appointment" a
        JOIN "Service" s ON a."serviceId" = s.id
        WHERE a."paymentStatus" IN ('PAID', 'PARTIAL_REFUNDED')
@@ -205,7 +205,11 @@ export async function triggerWeeklyRunAction() {
 
       batch.apps.forEach(a => {
         const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-        const fees = calculateServiceFees(actualBaseRev, feeScale);
+        
+        // Snapshot Model: Prioritize the rate captured at booking. 
+        // Fallback to dynamic feeScale only for legacy appointments (where platformFeeRate might be null/0.017 but we want to be safe)
+        const appFeeRate = a.platformFeeRate ?? feeScale;
+        const fees = calculateServiceFees(actualBaseRev, appFeeRate);
         
         totalGross += fees.totalCustomerPrice;
         totalFees += (fees.totalCustomerPrice - fees.basePrice);
@@ -268,7 +272,7 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
   await ensureAdmin();
   try {
     const appointments = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT a.id, a."startTime", a.status, a."paymentMethod", a."amountPaidStripe", a."bookingGroupId", a."cancellationFee", s.name as "serviceName", s.price as "servicePrice", u.name as "customerName"
+      `SELECT a.id, a."startTime", a.status, a."paymentMethod", a."amountPaidStripe", a."bookingGroupId", a."cancellationFee", a."platformFeeRate", a."platformFeeFlat", s.name as "serviceName", s.price as "servicePrice", u.name as "customerName"
        FROM "Appointment" a JOIN "Service" s ON a."serviceId" = s.id JOIN "User" u ON a."customerId" = u.id
        WHERE a."settlementId" = $1 ORDER BY a."startTime" ASC`,
       settlementId
@@ -277,7 +281,9 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
     const appsWithFees = [];
     for (const a of appointments) {
       const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-      const feeScale = await getEffectivePlatformFee(new Date(a.startTime));
+      
+      // Use Snapshot if available
+      const feeScale = a.platformFeeRate ?? (await getEffectivePlatformFee(new Date(a.startTime)));
       const fees = calculateServiceFees(actualBaseRev, feeScale);
       
       appsWithFees.push({
@@ -318,22 +324,27 @@ export async function getShopSettlementReportAction(settlementId: string) {
     if (settlementRows.length === 0) throw new Error("Settlement not found or permission denied.");
 
     const appointments = await prisma.$queryRawUnsafe<any[]>(
-      `SELECT a.id, a."startTime", a.status, a."paymentMethod", a."amountPaidStripe", a."bookingGroupId", a."cancellationFee", s.name as "serviceName", s.price as "servicePrice", u.name as "customerName"
+      `SELECT a.id, a."startTime", a.status, a."paymentMethod", a."amountPaidStripe", a."bookingGroupId", a."cancellationFee", a."platformFeeRate", a."platformFeeFlat", s.name as "serviceName", s.price as "servicePrice", u.name as "customerName"
        FROM "Appointment" a JOIN "Service" s ON a."serviceId" = s.id JOIN "User" u ON a."customerId" = u.id
        WHERE a."settlementId" = $1 ORDER BY a."startTime" ASC`,
       settlementId
     );
     // Add Priority Fee to each appointment for the report
-    const appsWithFees = appointments.map(a => {
-      const actualRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-      const actualPriority = a.status === 'CANCELLED' ? 0 : 0.50;
-      return {
+    const appsWithFees = [];
+    for (const a of appointments) {
+      const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
+      
+      // Use Snapshot Model
+      const feeScale = a.platformFeeRate ?? (await getEffectivePlatformFee(new Date(a.startTime)));
+      const fees = calculateServiceFees(actualBaseRev, feeScale);
+      
+      appsWithFees.push({
         ...a,
-        priorityFee: actualPriority,
-        actualServicePrice: actualRev,
-        totalWithFee: actualRev + actualPriority
-      };
-    });
+        actualServicePrice: fees.basePrice,
+        totalWithFee: fees.totalCustomerPrice,
+        platformDeduction: fees.totalCustomerPrice - fees.basePrice
+      });
+    }
 
     const platformRows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PlatformSettings" WHERE id = 'platform_global' LIMIT 1`);
     return { appointments: appsWithFees, settlement: settlementRows[0], platform: platformRows[0] };
