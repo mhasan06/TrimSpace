@@ -90,7 +90,13 @@ export default function BookingFlow({
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   
   const getSydneyToday = () => {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    const now = new Date();
+    const sydneyTime = new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+    // If it's 3pm or later (15:00), default to tomorrow
+    if (sydneyTime.getHours() >= 15) {
+      sydneyTime.setDate(sydneyTime.getDate() + 1);
+    }
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(sydneyTime);
   };
   const [targetDate, setTargetDate] = useState<string>(getSydneyToday());
   
@@ -520,12 +526,17 @@ export default function BookingFlow({
             {/* Date Selector */}
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '2.5rem', paddingBottom: '12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-              {[0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => {
-                const date = new Date(new Date().toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
-                date.setDate(date.getDate() + i);
-                const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
-                const isSelected = targetDate === dStr;
-                return (
+              {(() => {
+                const now = new Date();
+                const sydneyNow = new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+                const startOffset = sydneyNow.getHours() >= 15 ? 1 : 0;
+                
+                return [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => {
+                  const date = new Date(sydneyNow);
+                  date.setDate(date.getDate() + i + startOffset);
+                  const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+                  const isSelected = targetDate === dStr;
+                  return (
                   <button 
                     key={i} 
                     onClick={() => handleFetchSlots(dStr)} 
@@ -543,9 +554,10 @@ export default function BookingFlow({
                   >
                     <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, opacity: isSelected ? 0.8 : 0.6 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
                     <p style={{ margin: '4px 0 0 0', fontSize: '1.4rem', fontWeight: 950 }}>{date.getDate()}</p>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              })()}
             </div>
 
             {/* Time Grid */}
