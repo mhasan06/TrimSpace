@@ -523,7 +523,6 @@ export default function BookingFlow({
             
             <h2 style={{ fontSize: '2.2rem', fontWeight: 950, marginBottom: '2rem', letterSpacing: '-1px' }}>Select Date & Time</h2>
             
-            {/* Date Selector */}
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '2.5rem', paddingBottom: '12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <style>{`div::-webkit-scrollbar { display: none; }`}</style>
               {(() => {
@@ -537,26 +536,26 @@ export default function BookingFlow({
                   const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
                   const isSelected = targetDate === dStr;
                   return (
-                  <button 
-                    key={i} 
-                    onClick={() => handleFetchSlots(dStr)} 
-                    style={{ 
-                      padding: '1rem', 
-                      minWidth: '85px', 
-                      borderRadius: '18px', 
-                      border: isSelected ? '2px solid #000' : '1px solid #f1f5f9', 
-                      background: isSelected ? '#000' : '#fff', 
-                      color: isSelected ? '#fff' : '#0f172a',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      flexShrink: 0
-                    }}
-                  >
-                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, opacity: isSelected ? 0.8 : 0.6 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '1.4rem', fontWeight: 950 }}>{date.getDate()}</p>
+                    <button 
+                      key={i} 
+                      onClick={() => handleFetchSlots(dStr)} 
+                      style={{ 
+                        padding: '1rem', 
+                        minWidth: '85px', 
+                        borderRadius: '18px', 
+                        border: isSelected ? '2px solid #000' : '1px solid #f1f5f9', 
+                        background: isSelected ? '#000' : '#fff', 
+                        color: isSelected ? '#fff' : '#0f172a',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        flexShrink: 0
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, opacity: isSelected ? 0.8 : 0.6 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '1.4rem', fontWeight: 950 }}>{date.getDate()}</p>
                     </button>
                   );
-                })}
+                });
               })()}
             </div>
 
