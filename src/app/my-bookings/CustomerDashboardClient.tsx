@@ -156,11 +156,8 @@ function CustomerDashboardContent({
                                 const baseSum = viewingInvoice.services.reduce((acc: number, s: any) => acc + s.price, 0);
                                 const totalWithFees = viewingInvoice.services.reduce((acc: number, s: any) => {
                                     const base = Number(s.price);
-                                    const stripeFee = (base * 0.017) + 0.30;
-                                    const platformFee = 0.50;
-                                    const rawTotal = base + stripeFee + platformFee;
-                                    const rounded = Math.round(rawTotal * 10) / 10;
-                                    return acc + rounded;
+                                    const fees = calculateServiceFees(base);
+                                    return acc + fees.totalCustomerPrice;
                                 }, 0);
                                 const feesLine = totalWithFees - baseSum;
                                 return (
