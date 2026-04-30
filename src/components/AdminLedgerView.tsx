@@ -167,7 +167,6 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
         <div>
