@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Strict Super-Admin Checking
   const role = (session?.user as any)?.role;
-  if (role !== "ADMIN" && process.env.NODE_ENV === "production") {
+  if (role !== "ADMIN") {
     redirect("/");
   }
 
