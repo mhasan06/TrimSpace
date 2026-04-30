@@ -23,10 +23,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className={styles.adminContainer}>
       <aside className={styles.sidebar}>
-        <div style={{ paddingBottom: '1.5rem', borderBottom: '1px solid #f1f5f9', marginBottom: '2rem' }}>
+        <div style={{ paddingBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
           <div className={styles.systemBadge}>PLATFORM ADMIN</div>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.03em' }}>Command Center</h2>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.3rem', fontWeight: 600 }}>Global Marketplace Control</p>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#ffffff', margin: 0, letterSpacing: '-0.03em' }}>Command Center</h2>
+          <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.3rem', fontWeight: 600 }}>Global Marketplace Control</p>
         </div>
 
         <nav style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className={styles.mainContent}>
         <header className={styles.header}>
           <div>
-             <h1 style={{ color: '#0f172a', margin: 0 }}>Administrative Console</h1>
+             <h1 style={{ color: '#ffffff', margin: 0, fontSize: '2.25rem', fontWeight: 900 }}>Administrative Console</h1>
              <p style={{ color: '#6366f1', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', marginTop: '0.4rem' }}>Global Root Access</p>
           </div>
           <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
