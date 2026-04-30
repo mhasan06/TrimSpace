@@ -46,8 +46,8 @@ export default function MobileBottomNav() {
       bottom: 0,
       left: 0,
       right: 0,
-      height: '75px',
-      background: 'rgba(255, 255, 255, 0.85)',
+      height: '60px',
+      background: 'rgba(255, 255, 255, 0.9)',
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
       borderTop: '1px solid rgba(0, 0, 0, 0.05)',
@@ -71,19 +71,19 @@ export default function MobileBottomNav() {
               flexDirection: 'column',
               alignItems: 'center',
               textDecoration: 'none',
-              gap: '4px',
+              gap: '2px',
               transition: 'transform 0.1s'
             }}
           >
             <span style={{ 
-              fontSize: '1.4rem', 
+              fontSize: '1.1rem', 
               opacity: isActive ? 1 : 0.4,
               transform: isActive ? 'scale(1.1)' : 'scale(1)'
             }}>
               {item.icon}
             </span>
             <span style={{ 
-              fontSize: '0.65rem', 
+              fontSize: '0.55rem', 
               fontWeight: 800, 
               color: isActive ? '#000' : '#64748b',
               textTransform: 'uppercase',

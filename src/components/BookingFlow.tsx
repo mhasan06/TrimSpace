@@ -748,14 +748,14 @@ export default function BookingFlow({
                     <div key={pIdx} style={{ marginBottom: '20px' }}>
                       <p style={{ fontSize: '0.8rem', fontWeight: 900, textTransform: 'uppercase', color: '#6366f1', marginBottom: '10px' }}>Person {Number(pIdx) + 1}</p>
                       {items.map((item, idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.service.name}</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>{formatPrice(calculateServiceFees(Number(item.service.price), getDynamicFeeForDate(targetDate)).totalCustomerPrice)}</span>
+                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <div>
+                            <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>{item.service.name}</p>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>{item.service.durationMinutes} mins</p>
+                          </div>
+                          <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{formatPrice(Number(item.service.price))}</span>
                         </div>
                       ))}
-                      {selectedBarberIds[Number(pIdx)] && (
-                        <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>With {barbers.find(b => b.id === selectedBarberIds[Number(pIdx)])?.name}</p>
-                      )}
                     </div>
                   ))
                 )}
