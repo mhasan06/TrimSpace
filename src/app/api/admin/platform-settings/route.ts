@@ -10,18 +10,36 @@ export async function PUT(req: Request) {
     }
 
     try {
-        const { cancellationPolicy, bookingPolicy } = await req.json();
+        const { 
+            cancellationPolicy, 
+            bookingPolicy,
+            penaltyLongThreshold,
+            penaltyShortThreshold,
+            penaltyLongRate,
+            penaltyMidRate,
+            penaltyShortRate
+        } = await req.json();
 
         const updated = await prisma.platformSettings.upsert({
             where: { id: 'platform_global' },
             update: {
                 cancellationPolicy,
-                bookingPolicy
+                bookingPolicy,
+                penaltyLongThreshold: Number(penaltyLongThreshold),
+                penaltyShortThreshold: Number(penaltyShortThreshold),
+                penaltyLongRate: Number(penaltyLongRate),
+                penaltyMidRate: Number(penaltyMidRate),
+                penaltyShortRate: Number(penaltyShortRate)
             },
             create: {
                 id: 'platform_global',
                 cancellationPolicy,
-                bookingPolicy
+                bookingPolicy,
+                penaltyLongThreshold: Number(penaltyLongThreshold),
+                penaltyShortThreshold: Number(penaltyShortThreshold),
+                penaltyLongRate: Number(penaltyLongRate),
+                penaltyMidRate: Number(penaltyMidRate),
+                penaltyShortRate: Number(penaltyShortRate)
             }
         });
 
