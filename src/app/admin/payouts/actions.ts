@@ -67,7 +67,7 @@ export async function getPlatformSettingsAction() {
 export async function updatePlatformSettingsAction(data: {
   fee?: number;
   effectiveFrom?: string; // ISO Date for schedules
-  defaultFeeEffectiveFrom?: string; // NEW: ISO Date for the global default
+  defaultFeeEffectiveFrom?: string; // ISO Date for the global default
   name?: string;
   abl?: string;
   address?: string;
@@ -81,65 +81,49 @@ export async function updatePlatformSettingsAction(data: {
 }) {
   await ensureAdmin();
   try {
-    // Handling Fee Scheduling
-    if (data.fee !== undefined) {
-      const feeDecimal = data.fee / 100;
-      
-      if (data.effectiveFrom) {
-        // Create Schedule
-        await prisma.$executeRawUnsafe(
-          `INSERT INTO "PlatformFeeSchedule" (id, "feePercentage", "effectiveFrom", "createdAt")
-           VALUES ($1, $2, $3, NOW())`,
-          crypto.randomUUID(), feeDecimal, new Date(data.effectiveFrom)
-        );
-      } else {
-        // Immediate Update with optional effective date
-        await prisma.$executeRawUnsafe(
-          `UPDATE "PlatformSettings" 
-           SET "defaultPlatformFee" = $1, 
-               "defaultFeeEffectiveFrom" = $2,
-               "updatedAt" = NOW() 
-           WHERE "id" = 'platform_global'`,
-          feeDecimal, data.defaultFeeEffectiveFrom ? new Date(data.defaultFeeEffectiveFrom) : null
-        );
-      }
+    // 1. Handling Fee Scheduling (separate table)
+    if (data.fee !== undefined && data.effectiveFrom) {
+      await prisma.platformFeeSchedule.create({
+        data: {
+          feePercentage: data.fee / 100,
+          effectiveFrom: new Date(data.effectiveFrom)
+        }
+      });
+      revalidatePath("/admin/payouts");
+      return { success: true };
     }
 
-    // Standard Identity Fields
-    if (data.name !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformName" = $1 WHERE "id" = 'platform_global'`, data.name);
+    // 2. Handling Direct Settings Updates
+    const updatePayload: any = {};
+    if (data.fee !== undefined) updatePayload.defaultPlatformFee = data.fee / 100;
+    if (data.defaultFeeEffectiveFrom !== undefined) {
+      updatePayload.defaultFeeEffectiveFrom = data.defaultFeeEffectiveFrom ? new Date(data.defaultFeeEffectiveFrom) : null;
     }
-    if (data.penaltyLongThreshold !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyLongThreshold" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyLongThreshold));
-    }
-    if (data.penaltyShortThreshold !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyShortThreshold" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyShortThreshold));
-    }
-    if (data.penaltyLongRate !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyLongRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyLongRate));
-    }
-    if (data.penaltyMidRate !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyMidRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyMidRate));
-    }
-    if (data.penaltyShortRate !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyShortRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyShortRate));
-    }
-    if (data.abl !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformAbl" = $1 WHERE "id" = 'platform_global'`, data.abl);
-    }
-    if (data.address !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformAddress" = $1 WHERE "id" = 'platform_global'`, data.address);
-    }
-    if (data.phone !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformPhone" = $1 WHERE "id" = 'platform_global'`, data.phone);
-    }
-    if (data.email !== undefined) {
-      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformEmail" = $1 WHERE "id" = 'platform_global'`, data.email);
-    }
+    if (data.name !== undefined) updatePayload.platformName = data.name;
+    if (data.abl !== undefined) updatePayload.platformAbl = data.abl;
+    if (data.address !== undefined) updatePayload.platformAddress = data.address;
+    if (data.phone !== undefined) updatePayload.platformPhone = data.phone;
+    if (data.email !== undefined) updatePayload.platformEmail = data.email;
+    
+    // Cancellation Penalty Rules
+    if (data.penaltyLongThreshold !== undefined) updatePayload.penaltyLongThreshold = Number(data.penaltyLongThreshold);
+    if (data.penaltyShortThreshold !== undefined) updatePayload.penaltyShortThreshold = Number(data.penaltyShortThreshold);
+    if (data.penaltyLongRate !== undefined) updatePayload.penaltyLongRate = Number(data.penaltyLongRate);
+    if (data.penaltyMidRate !== undefined) updatePayload.penaltyMidRate = Number(data.penaltyMidRate);
+    if (data.penaltyShortRate !== undefined) updatePayload.penaltyShortRate = Number(data.penaltyShortRate);
+
+    const updated = await prisma.platformSettings.update({
+      where: { id: 'platform_global' },
+      data: updatePayload
+    });
+
     revalidatePath("/admin/payouts");
-    const updated = await getPlatformSettingsAction();
+    // Also revalidate insights since they depend on these fees
+    revalidatePath("/admin/insights");
+
     return { success: true, settings: updated };
   } catch (err: any) {
+    console.error("[SETTINGS_UPDATE_ERROR]", err);
     return { error: err.message };
   }
 }
