@@ -1,94 +1,164 @@
 .adminContainer {
   display: flex;
   min-height: 100vh;
-  background: #020617; 
-  color: #f8fafc;
+  background: #f1f5f9; /* Professional Platinum/Slate 100 */
+  color: #1e293b;
   font-family: 'Inter', system-ui, sans-serif;
   
-  /* Theme Overrides for All Children */
-  --background: #020617;
-  --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --border: rgba(255, 255, 255, 0.1);
-  --primary: #3b82f6;
-  --accent: #94a3b8;
+  /* Modern Enterprise Variables */
+  --sidebar-bg: #0f172a; /* Slate 900 */
+  --accent-color: #6366f1; /* Indigo 500 */
+  --danger-color: #ef4444; /* Red 500 */
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
 }
 
-/* Force high-contrast text on all sub-elements */
-.adminContainer h1, 
-.adminContainer h2, 
-.adminContainer h3, 
-.adminContainer h4 {
-  color: #ffffff !important;
+/* Sidebar Reset: Dark & Authoritative */
+.sidebar {
+  width: 280px;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
+  z-index: 100;
 }
 
-.adminContainer p, 
-.adminContainer span, 
-.adminContainer label {
-  color: #cbd5e1;
+.systemBadge {
+  font-size: 0.65rem;
+  background: var(--danger-color);
+  color: #fff;
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
 }
 
-/* Fix for Tables and Cards in sub-pages */
+.navSectionLabel {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  color: #94a3b8;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-bottom: 0.2rem;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.activeNavLink {
+  background: rgba(99, 102, 241, 0.1) !important;
+  color: #818cf8 !important;
+  border-right: 3px solid #818cf8;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 2.5rem 3.5rem;
+  overflow-y: auto;
+}
+
+/* Header: Clean & Balanced */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.statusIndicator {
+  background: #ecfdf5;
+  color: #059669;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid #d1fae5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.statusPulse {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+/* Global Content Reset for Admin */
 .adminContainer :global(.glass),
 .adminContainer :global(.card) {
-  background: rgba(15, 23, 42, 0.6) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  color: #f8fafc !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-light) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  color: var(--text-main) !important;
+  padding: 1.5rem !important;
 }
 
 .adminContainer :global(table) {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
 }
 
 .adminContainer :global(th) {
-  background: rgba(30, 41, 59, 0.8) !important;
-  color: #94a3b8 !important;
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  font-weight: 800;
-  padding: 1rem !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid var(--border-light) !important;
 }
 
 .adminContainer :global(td) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-  padding: 1rem !important;
-  color: #e2e8f0 !important;
+  border-bottom: 1px solid var(--border-light) !important;
+  color: #1e293b !important;
 }
 
 .adminContainer :global(tr:hover) {
-  background: rgba(255, 255, 255, 0.02) !important;
+  background: #f8fafc !important;
 }
 
-/* Fix for Inputs in sub-pages */
-.adminContainer :global(input),
-.adminContainer :global(textarea),
-.adminContainer :global(select) {
-  background: #0f172a !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
+.footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.adminContainer :global(input:focus) {
-  border-color: #3b82f6 !important;
-  outline: none !important;
-}
-
-.sidebar {
-  width: 280px;
-  background: #0f172a; 
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  display: flex;
-  flex-direction: column;
-  padding: 2rem 1.5rem;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
-  z-index: 100;
+.specialLink {
+  color: #fca5a5;
 }
 
 .systemBadge {
