@@ -30,27 +30,27 @@ export default async function PayoutsPage() {
 
   return (
     <>
-      <header className={`${styles.header} glass`} style={{ borderBottom: '2px solid var(--primary)' }}>
+      <header style={{ marginBottom: '2.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
         <div>
-           <h1 style={{ color: 'var(--foreground)', textTransform: 'uppercase', letterSpacing: '2px' }}>Platform Financial Ops</h1>
-           <p style={{ color: 'var(--accent)', marginTop: '0.3rem', fontSize: '0.9rem', fontWeight: 600 }}>Master Ledger & Merchant Settlement Control</p>
+           <h1 style={{ color: '#0f172a', fontSize: '2rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '1px' }}>Platform Financial Ops</h1>
+           <p style={{ color: '#64748b', marginTop: '0.3rem', fontSize: '1rem', fontWeight: 600 }}>Master Ledger & Merchant Settlement Control</p>
         </div>
       </header>
 
-      <div className={styles.statsGrid} style={{ marginTop: '2rem', marginBottom: '3rem' }}>
-         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid var(--secondary)' }}>
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>Owed to Shops</h3>
-            <p className={styles.statNumber} style={{ color: 'var(--secondary)', fontSize: '2.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
+         <div style={{ background: '#fff', padding: '2rem', borderRadius: '24px', border: '1px solid #e2e8f0', borderLeft: '6px solid #4f46e5', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '1rem' }}>Owed to Shops</h3>
+            <p style={{ color: '#0f172a', fontSize: '2.5rem', fontWeight: 900, margin: 0 }}>
                 ${totalOutstanding.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </p>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Net outstanding for all processed weeks</p>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem', fontWeight: 600 }}>Net outstanding for all processed weeks</p>
          </div>
-         <div className={`${styles.statCard} glass`} style={{ borderLeft: '4px solid #ef4444' }}>
-            <h3 style={{ fontSize: '0.8rem', opacity: 0.7, textTransform: 'uppercase' }}>Active Inquiries</h3>
-            <p className={styles.statNumber} style={{ color: '#ef4444', fontSize: '2.5rem' }}>
+         <div style={{ background: '#fff', padding: '2rem', borderRadius: '24px', border: '1px solid #e2e8f0', borderLeft: '6px solid #ef4444', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '1rem' }}>Active Inquiries</h3>
+            <p style={{ color: '#ef4444', fontSize: '2.5rem', fontWeight: 900, margin: 0 }}>
                 {investigationCount}
             </p>
-            <p style={{ fontSize: '0.85rem', fontWeight: 600 }}>Batches flagged for review/dispute</p>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.5rem', fontWeight: 600 }}>Batches flagged for review/dispute</p>
          </div>
       </div>
 

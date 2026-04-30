@@ -176,7 +176,7 @@ export default function SettlementManager({
                     value={settings.platformName} 
                     onChange={(e) => setSettings({...settings, platformName: e.target.value})}
                     onBlur={(e) => handleUpdateIdentity('name', e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                    style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                 />
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function SettlementManager({
                     value={settings.platformAbl} 
                     onChange={(e) => setSettings({...settings, platformAbl: e.target.value})}
                     onBlur={(e) => handleUpdateIdentity('abl', e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                    style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                 />
             </div>
             <div style={{ flex: 1.5 }}>
@@ -197,7 +197,7 @@ export default function SettlementManager({
                     onChange={(e) => setSettings({...settings, platformAddress: e.target.value})}
                     onBlur={(e) => handleUpdateIdentity('address', e.target.value)}
                     placeholder="Enter full business address"
-                    style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                    style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                 />
             </div>
             <div>
@@ -208,7 +208,7 @@ export default function SettlementManager({
                     onChange={(e) => setSettings({...settings, platformPhone: e.target.value})}
                     onBlur={(e) => handleUpdateIdentity('phone', e.target.value)}
                     placeholder="+1 234 567 890"
-                    style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                    style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                 />
             </div>
             <div>
@@ -218,7 +218,7 @@ export default function SettlementManager({
                     value={settings.platformEmail || ""} 
                     onChange={(e) => setSettings({...settings, platformEmail: e.target.value})}
                     onBlur={(e) => handleUpdateIdentity('email', e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                    style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                 />
             </div>
          </div>
@@ -226,7 +226,7 @@ export default function SettlementManager({
 
       {/* 2. Commission Scheduling */}
       <section className="glass" style={{ padding: '2rem', marginBottom: '2.5rem', border: '1px solid var(--secondary)' }}>
-         <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: 'var(--secondary)', textTransform: 'uppercase' }}>Commission Management</h2>
+         <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4f46e5', textTransform: 'uppercase' }}>Commission Management</h2>
          
          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
             {/* Left: Current Fee */}
@@ -245,24 +245,24 @@ export default function SettlementManager({
                             type="number" 
                             value={feeInput} 
                             onChange={(e) => setFeeInput(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem 2.5rem 0.8rem 1rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: 900, fontSize: '1.2rem' }} 
+                            style={{ width: '100%', padding: '0.8rem 2.5rem 0.8rem 1rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: 900, fontSize: '1.2rem' }} 
                         />
-                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: 'var(--secondary)' }}>%</span>
+                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#64748b' }}>%</span>
                     </div>
                     <input 
                         type="date" 
                         value={defaultFeeEffectiveDate}
                         onChange={(e) => setDefaultFeeEffectiveDate(e.target.value)}
-                        style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px', colorScheme: 'dark' }} 
+                        style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                     />
                     <button 
                         onClick={handleUpdateCurrentFee}
                         disabled={isUpdating}
-                        style={{ padding: '0.8rem 1.5rem', background: 'var(--secondary)', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
+                        style={{ padding: '0.8rem 1.5rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
                         UPDATE NOW
                     </button>
                 </div>
-                <p style={{ marginTop: '1rem', fontSize: '0.75rem', opacity: 0.5 }}>This rate applies to all weekly runs for bookings occurring <b>on or after</b> the selected date. Leave date blank to apply to all history.</p>
+                <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#64748b' }}>This rate applies to all weekly runs for bookings occurring <b>on or after</b> the selected date. Leave date blank to apply to all history.</p>
             </div>
 
             {/* Right: Schedule New Fee */}
@@ -275,20 +275,20 @@ export default function SettlementManager({
                             placeholder="New Fee %"
                             value={futureFee}
                             onChange={(e) => setFutureFee(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px' }} 
+                            style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                         />
                     </div>
                     <input 
                         type="date" 
                         value={effectiveDate}
                         onChange={(e) => setEffectiveDate(e.target.value)}
-                        style={{ width: '100%', padding: '0.8rem', background: '#000', color: 'white', border: '1px solid var(--border)', borderRadius: '8px', colorScheme: 'dark' }} 
+                        style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
                     />
                 </div>
                 <button 
                     onClick={handleScheduleFee}
                     disabled={isUpdating}
-                    style={{ width: '100%', padding: '0.8rem', background: 'white', color: 'black', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
+                    style={{ width: '100%', padding: '0.8rem', background: '#1e293b', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
                     SCHEDULE RATE CHANGE
                 </button>
             </div>
@@ -296,14 +296,14 @@ export default function SettlementManager({
 
          {/* Upcoming Schedules List */}
          {settings.schedules?.length > 0 && (
-            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
-                <h4 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', opacity: 0.6 }}>UPCOMING SCHEDULED CHANGES</h4>
+            <div style={{ marginTop: '2rem', padding: '1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <h4 style={{ fontSize: '0.75rem', fontWeight: 900, marginBottom: '1rem', color: '#64748b' }}>UPCOMING SCHEDULED CHANGES</h4>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                     {settings.schedules.map((s: any) => (
-                        <div key={s.id} style={{ padding: '0.75rem 1rem', background: '#000', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        <div key={s.id} style={{ padding: '0.75rem 1rem', background: '#fff', border: '1px solid var(--border)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                             <div>
-                                <span style={{ fontWeight: 900, color: 'var(--secondary)', fontSize: '1.1rem' }}>{(s.feePercentage * 100).toFixed(1)}%</span>
-                                <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>Effective: {new Date(s.effectiveFrom).toLocaleDateString()}</p>
+                                <span style={{ fontWeight: 900, color: '#4f46e5', fontSize: '1.1rem' }}>{(s.feePercentage * 100).toFixed(1)}%</span>
+                                <p style={{ fontSize: '0.7rem', color: '#64748b' }}>Effective: {new Date(s.effectiveFrom).toLocaleDateString()}</p>
                             </div>
                             <button 
                                 onClick={() => handleDeleteSchedule(s.id)}
@@ -315,21 +315,21 @@ export default function SettlementManager({
                 </div>
             </div>
          )}
-         {isUpdating && <p style={{ fontSize: '0.7rem', color: 'var(--secondary)', marginTop: '1rem', fontWeight: 800 }}>SYNCING CENTRAL COMMISSION RECORDS...</p>}
+         {isUpdating && <p style={{ fontSize: '0.7rem', color: '#4f46e5', marginTop: '1rem', fontWeight: 800 }}>SYNCING CENTRAL COMMISSION RECORDS...</p>}
       </section>
 
       {/* 3. The Ledger Grid */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 900 }}>Financial Settlement Ledger</h2>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a' }}>Financial Settlement Ledger</h2>
         <button 
             onClick={handleTriggerRun}
             disabled={isRunning}
-            style={{ padding: '1rem 2rem', background: 'white', color: 'black', border: '2px solid black', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
+            style={{ padding: '1rem 2rem', background: '#fff', color: '#0f172a', border: '2px solid #0f172a', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
             {isRunning ? "PROCESSING..." : "TRIGGER SETTLEMENT RUN"}
         </button>
       </div>
 
-      <div className="glass" style={{ overflow: 'hidden', border: '1px solid var(--border)', borderRadius: '16px' }}>
+      <div style={{ background: '#fff', overflow: 'hidden', border: '1px solid var(--border)', borderRadius: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <table className={styles.table}>
           <thead>
             <tr>

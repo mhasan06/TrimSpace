@@ -1,59 +1,46 @@
 .adminContainer {
   display: flex;
   min-height: 100vh;
-  background: #f1f5f9; /* Professional Platinum/Slate 100 */
-  color: #1e293b;
+  background: #ffffff; /* Clean Canvas White */
+  color: #1e293b; /* High-contrast Slate */
   font-family: 'Inter', system-ui, sans-serif;
   
-  /* Global Theme Mapping for Children */
-  --background: 240 10% 3.9%; /* This is used by some Shadcn-like components, but let's use HEX for ours */
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #4f46e5;
-  
-  /* Modern Enterprise Sidebar Variables */
-  --sidebar-bg: #0f172a; 
-  --danger-color: #ef4444;
+  /* Clean Canvas Variables */
+  --sidebar-bg: #f8fafc; /* Soft Pearl */
+  --accent-color: #4f46e5; /* Indigo */
+  --danger-color: #ef4444; 
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
 }
 
-/* Sidebar Reset: Dark & Authoritative */
+/* Sidebar: Clean, Light & Airy */
 .sidebar {
   width: 280px;
   background: var(--sidebar-bg);
+  border-right: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
   position: sticky;
   top: 0;
   height: 100vh;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
   z-index: 100;
 }
 
 .systemBadge {
-  font-size: 0.65rem;
-  background: var(--danger-color);
-  color: #fff;
+  font-size: 0.6rem;
+  background: #f1f5f9;
+  color: #475569;
   display: inline-block;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.6rem;
   border-radius: 6px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.05em;
   margin-bottom: 1.5rem;
   text-transform: uppercase;
+  border: 1px solid #e2e8f0;
 }
 
 .navSectionLabel {
@@ -61,7 +48,7 @@
   margin-bottom: 0.75rem;
   font-size: 0.7rem;
   font-weight: 800;
-  color: #475569;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -69,8 +56,8 @@
 .navLink {
   display: flex;
   align-items: center;
-  padding: 0.8rem 1rem;
-  color: #94a3b8;
+  padding: 0.75rem 1rem;
+  color: #64748b;
   text-decoration: none;
   border-radius: 10px;
   font-size: 0.9rem;
@@ -80,23 +67,24 @@
 }
 
 .navLink:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  background: #f1f5f9;
+  color: var(--accent-color);
 }
 
 .activeNavLink {
-  background: rgba(99, 102, 241, 0.1) !important;
-  color: #818cf8 !important;
-  border-right: 3px solid #818cf8;
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+  box-shadow: 0 1px 2px rgba(79, 70, 229, 0.1);
 }
 
 .mainContent {
   flex: 1;
   padding: 2.5rem 3.5rem;
   overflow-y: auto;
+  background: #ffffff;
 }
 
-/* Header: Clean & Balanced */
+/* Header: Ultra-Clean */
 .header {
   display: flex;
   justify-content: space-between;
@@ -107,42 +95,55 @@
 }
 
 .header h1 {
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-main);
   letter-spacing: -0.02em;
 }
 
 .statusIndicator {
-  background: #ecfdf5;
-  color: #059669;
+  background: #f0fdf4;
+  color: #166534;
   padding: 0.5rem 1rem;
-  border-radius: 10px;
-  font-size: 0.75rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
   font-weight: 700;
-  border: 1px solid #d1fae5;
+  border: 1px solid #dcfce7;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .statusPulse {
   width: 8px;
   height: 8px;
-  background: #10b981;
+  background: #22c55e;
   border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+  animation: pulse 2s infinite;
 }
 
-/* Global Content Reset for Admin */
-.adminContainer :global(.glass),
-.adminContainer :global(.card) {
-  background: var(--card-bg) !important;
-  border: 1px solid var(--border-light) !important;
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Global Component Reset for All-Light */
+.adminContainer :global(.card),
+.adminContainer :global(.glass) {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 16px !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  color: var(--text-main) !important;
-  padding: 1.5rem !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  color: #1e293b !important;
+}
+
+.adminContainer :global(input),
+.adminContainer :global(select),
+.adminContainer :global(textarea) {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .adminContainer :global(table) {
@@ -151,28 +152,19 @@
 
 .adminContainer :global(th) {
   background: #f8fafc !important;
-  color: #475569 !important;
+  color: #64748b !important;
   font-weight: 700 !important;
-  border-bottom: 2px solid var(--border-light) !important;
-}
-
-.adminContainer :global(td) {
-  border-bottom: 1px solid var(--border-light) !important;
-  color: #1e293b !important;
-}
-
-.adminContainer :global(tr:hover) {
-  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
 .footer {
   margin-top: auto;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border-light);
 }
 
 .specialLink {
-  color: #fca5a5;
+  color: #ef4444;
 }
 
 .systemBadge {
