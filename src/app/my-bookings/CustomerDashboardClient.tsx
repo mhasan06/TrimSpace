@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { calculateServiceFees } from "@/lib/pricing";
 import CustomerProfileManager from "@/components/CustomerProfileManager";
 import CustomerLogoutButton from "@/components/CustomerLogoutButton";
 import SessionHistoryTable from "./SessionHistoryTable";
