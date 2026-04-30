@@ -1,11 +1,10 @@
 .adminContainer {
   display: flex;
   min-height: 100vh;
-  background: #ffffff; /* Unified Pure White */
-  color: #0f172a; /* Deep Midnight Navy for 100% Visibility */
+  background: #ffffff !important; /* Absolute White Force */
+  color: #0f172a; 
   font-family: 'Inter', system-ui, sans-serif;
   
-  /* Modern Lux High-Contrast Variables */
   --sidebar-bg: #ffffff;
   --accent-color: #4f46e5; 
   --card-bg: #ffffff;
@@ -14,7 +13,7 @@
   --border-sep: #f1f5f9;
 }
 
-/* Sidebar: Solid, Clean & Highly Visible */
+/* Sidebar: PROTECTED (As per User Request) */
 .sidebar {
   width: 280px;
   background: #ffffff;
@@ -56,7 +55,7 @@
   display: flex;
   align-items: center;
   padding: 0.85rem 1.25rem;
-  color: #0f172a; /* Solid Deep Navy */
+  color: #0f172a; 
   text-decoration: none;
   border-radius: 12px;
   font-size: 0.95rem;
@@ -78,14 +77,15 @@
   border: 1px solid #dbeafe !important;
 }
 
+/* Main Canvas: AGGRESSIVE WHITE FORCE */
 .mainContent {
   flex: 1;
   padding: 3.5rem 4.5rem;
   overflow-y: auto;
-  background: #ffffff;
+  background: #ffffff !important; /* Kill the Black Canvas */
+  min-height: 100vh;
 }
 
-/* Header: High Contrast Lux */
 .header {
   display: flex;
   justify-content: space-between;
@@ -93,6 +93,7 @@
   margin-bottom: 4rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--border-sep);
+  background: #ffffff !important;
 }
 
 .header h1 {
@@ -129,7 +130,6 @@
   100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
 
-/* Global Content Reset for Total Visibility */
 .adminContainer :global(.card),
 .adminContainer :global(.glass) {
   background: #ffffff !important;
