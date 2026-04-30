@@ -424,14 +424,20 @@ export default function BookingFlow({
     {stage === "START" && (
       <>
         <header style={{ marginBottom: '2.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}><h1 style={{ fontSize: '2.4rem', fontWeight: 950, color: '#0f172a', letterSpacing: '-1.5px', margin: 0 }}>{tenantName} <span style={{ color: '#6366f1', fontSize: '1.2rem', verticalAlign: 'middle' }}>✓</span></h1><button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>🔗</button></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', color: '#64748b' }}><span style={{ fontWeight: 800, color: '#0f172a' }}>{rating}</span><span>{"★".repeat(5)}</span><span>({reviewCount})</span><span>•</span><span style={{ color: '#ef4444', fontWeight: 700 }}>Closed</span><span>•</span><span>{address}</span></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}><h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)', fontWeight: 950, color: '#0f172a', letterSpacing: '-1.5px', margin: 0 }}>{tenantName} <span style={{ color: '#6366f1', fontSize: '1.2rem', verticalAlign: 'middle' }}>✓</span></h1><button style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer' }}>🔗</button></div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 12px', fontSize: '0.95rem', color: '#64748b' }}><span style={{ fontWeight: 800, color: '#0f172a' }}>{rating}</span><span>{"★".repeat(5)}</span><span>({reviewCount})</span><span>•</span><span style={{ color: '#ef4444', fontWeight: 700 }}>Closed</span><span>•</span><span>{address}</span></div>
         </header>
-        <section style={{ marginBottom: '3rem', borderRadius: '24px', overflow: 'hidden', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px', height: '400px' }}><div style={{ background: `url(${shopImage || 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div><div style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: '12px' }}><div style={{ background: `url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div><div style={{ background: `url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div></div></section>
+        <section className={styles.galleryGrid} style={{ marginBottom: '3rem', borderRadius: '24px', overflow: 'hidden' }}>
+          <div className={styles.mainImage} style={{ background: `url(${shopImage || 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&q=80'})`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+          <div className={styles.sideGallery} style={{ display: 'grid', gridTemplateRows: '1fr 1fr', gap: '12px' }}>
+            <div style={{ background: `url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+            <div style={{ background: `url('https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80')`, backgroundSize: 'cover', backgroundPosition: 'center' }}></div>
+          </div>
+        </section>
       </>
     )}
 
-    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: '2rem', alignItems: 'flex-start', position: 'relative', width: '100%' }}>
+    <div className={styles.mainLayout} style={{ position: 'relative', width: '100%' }}>
       <div style={{ position: 'relative', minWidth: 0 }}>
         {stage !== "START" && (
           <button 

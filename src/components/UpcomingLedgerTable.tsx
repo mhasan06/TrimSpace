@@ -78,10 +78,19 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
   return (
     <>
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div className="glass" style={{ padding: '1.5rem', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Filter By Period:</span>
-          <div style={{ display: 'flex', gap: '0.6rem' }}>
+      <div className="glass" style={{ 
+        padding: '1.25rem', 
+        borderRadius: '20px', 
+        display: 'flex', 
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        gap: '1.25rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Filter:</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
             {['week', 'month', 'year'].map(p => {
               const isActive = currentPeriod === p || (!currentPeriod && p === 'week');
               return (
@@ -92,7 +101,7 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
                     background: isActive ? '#6366f1' : 'rgba(0,0,0,0.05)', 
                     color: isActive ? 'white' : '#64748b',
                     border: isActive ? 'none' : '1px solid #e2e8f0', 
-                    padding: '0.6rem 1.2rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem',
+                    padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.7rem',
                     transition: 'all 0.2s',
                     opacity: isActive ? 1 : 0.6
                   }}
@@ -103,21 +112,23 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
             })}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Date Range:</span>
-          <input 
-            type="date" 
-            defaultValue={startDate?.toISOString().split('T')[0]} 
-            onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
-            style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
-          />
-          <span style={{ opacity: 0.5, color: '#64748b', fontWeight: 900 }}>to</span>
-          <input 
-            type="date" 
-            defaultValue={endDate?.toISOString().split('T')[0]} 
-            onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
-            style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.6rem', borderRadius: '12px', fontWeight: 800, outline: 'none' }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px' }}>Range:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <input 
+              type="date" 
+              defaultValue={startDate?.toISOString().split('T')[0]} 
+              onChange={(e) => handleDateChange(e.target.value, endDate?.toISOString().split('T')[0] || e.target.value)}
+              style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.5rem', borderRadius: '10px', fontWeight: 800, outline: 'none', fontSize: '0.85rem' }}
+            />
+            <span style={{ opacity: 0.5, color: '#64748b', fontWeight: 900, fontSize: '0.8rem' }}>to</span>
+            <input 
+              type="date" 
+              defaultValue={endDate?.toISOString().split('T')[0]} 
+              onChange={(e) => handleDateChange(startDate?.toISOString().split('T')[0] || e.target.value, e.target.value)}
+              style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '0.5rem', borderRadius: '10px', fontWeight: 800, outline: 'none', fontSize: '0.85rem' }}
+            />
+          </div>
         </div>
       </div>
 
@@ -225,11 +236,11 @@ export default function UpcomingLedgerTable({ appointments, currentPeriod, start
 
     {viewingInvoice && (
         <div className="no-print" style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div className="printable-invoice" style={{ width: '100%', maxWidth: '600px', background: 'white', borderRadius: '32px', padding: '3rem', color: '#1e293b', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="printable-invoice" style={{ width: '100%', maxWidth: '600px', background: 'white', borderRadius: '32px', padding: 'min(3rem, 5vw)', color: '#1e293b', maxHeight: '90vh', overflowY: 'auto' }}>
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>Business Standard Invoice</div>
-                    <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Transaction Summary</h2>
-                    <p style={{ opacity: 0.5, fontSize: '0.9rem' }}>{viewingInvoice.bookingGroupId ? `Group Reference: ${viewingInvoice.bookingGroupId.toUpperCase()}` : `Session ID: ${viewingInvoice.id.toUpperCase()}`}</p>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '0.5rem' }}>Business Standard Invoice</div>
+                    <h2 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 900, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Transaction Summary</h2>
+                    <p style={{ opacity: 0.5, fontSize: '0.8rem' }}>{viewingInvoice.bookingGroupId ? `Group Ref: ${viewingInvoice.bookingGroupId.toUpperCase()}` : `ID: ${viewingInvoice.id.toUpperCase()}`}</p>
                 </div>
 
                 <div style={{ background: '#f8fafc', borderRadius: '24px', padding: '1.5rem', marginBottom: '2rem' }}>

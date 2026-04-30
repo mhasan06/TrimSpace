@@ -6,7 +6,7 @@
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Sidebar: Light with Scrolling */
+/* Sidebar: Fixed with Scrolling Support */
 .sidebar {
   width: 280px;
   background: #ffffff;
@@ -19,6 +19,18 @@
   height: 100vh;
   z-index: 100;
   overflow-y: auto;
+  transition: transform 0.3s ease, width 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 1.5rem 1rem;
+    border-right: none;
+    border-bottom: 1px solid #f1f5f9;
+  }
 }
 
 .sidebar::-webkit-scrollbar {
@@ -91,6 +103,15 @@
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  .adminContainer {
+    flex-direction: column;
+  }
+  .mainContent {
+    padding: 2rem 1.25rem;
+  }
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -107,6 +128,18 @@
   color: #0f172a;
   letter-spacing: -0.05em;
   margin: 0;
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+  }
 }
 
 .statusIndicator {

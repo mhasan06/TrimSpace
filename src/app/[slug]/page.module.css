@@ -101,6 +101,13 @@
     gap: 0.75rem;
 }
 
+@media (max-width: 640px) {
+    .mainTitle {
+        font-size: 1.8rem;
+        letter-spacing: -1px;
+    }
+}
+
 .verifiedBadge {
     display: flex;
     align-items: center;
@@ -156,6 +163,20 @@
     border-bottom: 1px solid #f1f5f9;
     z-index: 50;
     margin-bottom: 3rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.stickyNav::-webkit-scrollbar {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .stickyNav {
+        gap: 1.25rem;
+        padding: 0.8rem 0;
+        margin-bottom: 1.5rem;
+    }
 }
 
 .stickyNav a {
@@ -297,7 +318,7 @@
         display: none;
     }
     .galleryGrid {
-        height: 350px;
+        height: 250px;
     }
     .mainImage {
         grid-column: span 2;
@@ -307,13 +328,24 @@
     }
     .mobileBookBtn {
         display: block;
-        margin-top: 2rem;
+        margin-top: 1.5rem;
         background: #000;
         color: #fff;
         text-align: center;
-        padding: 1rem;
-        border-radius: 12px;
+        padding: 1.1rem;
+        border-radius: 14px;
         font-weight: 800;
         text-decoration: none;
+        font-size: 1rem;
+    }
+    .topBar {
+        padding: 0.75rem 1rem;
+    }
+    .sectionTitle {
+        font-size: 1.4rem;
+        margin-bottom: 1.25rem;
+    }
+    .section {
+        margin-bottom: 3rem;
     }
 }

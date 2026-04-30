@@ -52,10 +52,10 @@ function RegisterContent() {
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.08)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 950, color: '#000', marginBottom: '0.8rem', letterSpacing: '-0.03em' }}>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2rem)', fontWeight: 950, color: '#000', marginBottom: '0.8rem', letterSpacing: '-0.03em' }}>
             {isBusiness ? "The Master's Journey" : "Join the Community"}
           </h1>
-          <p style={{ fontSize: '1rem', color: '#475569', fontWeight: 600, opacity: 0.8 }}>
+          <p style={{ fontSize: 'clamp(0.85rem, 4vw, 1rem)', color: '#475569', fontWeight: 600, opacity: 0.8 }}>
             {isBusiness ? "Empower your craft with world-class tools." : "Enter a marketplace designed for elite grooming."}
           </p>
         </div>
@@ -200,7 +200,11 @@ function RegisterContent() {
                   <input name="street" type="text" placeholder="e.g. 123 Luxury Way" required style={{ padding: '1rem', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: '#fff', fontSize: '1rem', fontWeight: 600 }} />
                 </div>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                  gap: '1rem' 
+                }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', position: 'relative' }}>
                     <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 800, textTransform: 'uppercase' }}>Suburb</label>
                     <input 

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getAvailableSlots } from "@/lib/slotEngine";
+import { getEffectivePlatformFee } from "@/lib/platform";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
@@ -156,6 +157,9 @@ export async function createBookingTransaction(
     const [h, m] = targetTimeStr.split(':').map(Number);
     const baseStartTimeUTC = getSydneyUTC(targetDateStr, targetTimeStr);
 
+    // Snapshot current fee for the appointment date
+    const feeScale = await getEffectivePlatformFee(new Date(targetDateStr));
+
     // 2. Fetch appointments for conflict checking
     const windowStart = new Date(baseStartTimeUTC.getTime() - 6*60*60*1000);
     const windowEnd = new Date(baseStartTimeUTC.getTime() + 12*60*60*1000);
@@ -228,12 +232,14 @@ export async function createBookingTransaction(
             "id", "startTime", "endTime", "status", "customerId", 
             "barberId", "serviceId", "tenantId", "paymentMethod", "paymentStatus", 
             "stripePaymentIntentId", "bookingGroupId", "amountPaidStripe", "amountPaidGift", 
-            "giftCardId", "emailSent", "cancellationFee", "updatedAt", "createdAt"
+            "giftCardId", "emailSent", "cancellationFee", "updatedAt", "createdAt",
+            "platformFeeRate", "platformFeeFlat"
           ) VALUES (
             ${aptId}, ${rollingStart}, ${currentEnd}, 'CONFIRMED', ${userId}, 
             ${assignedBarber.id}, ${serviceId}, ${tenant.id}, ${paymentMethod}, ${paymentStatus}, 
             ${stripePaymentIntentId || null}, ${bookingGroupId}, ${stripeAmt}, ${giftPerApp}, 
-            ${giftCardId || null}, false, 0, NOW(), NOW()
+            ${giftCardId || null}, false, 0, NOW(), NOW(),
+            ${feeScale}, 0.80
           )
         `;
 
