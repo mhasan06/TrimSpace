@@ -318,13 +318,15 @@
         display: none;
     }
     .galleryGrid {
-        height: 250px;
+        height: 200px;
+        grid-template-columns: 2fr 1fr;
+        display: grid !important;
     }
     .mainImage {
-        grid-column: span 2;
+        grid-column: span 1;
     }
     .sideGallery {
-        display: none;
+        display: grid !important;
     }
     .mobileBookBtn {
         display: block;

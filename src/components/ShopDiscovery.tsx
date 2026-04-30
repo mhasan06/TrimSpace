@@ -202,39 +202,40 @@ export default function ShopDiscovery({ initialTenants }: { initialTenants: Tena
 
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
-          gap: isMobile ? '2rem' : '2.5rem' 
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(350px, 1fr))', 
+          gap: isMobile ? '0.75rem' : '2.5rem' 
         }}>
             {filteredTenants.map((tenant) => (
                 <Link key={tenant.id} href={tenant.slug ? `/${tenant.slug}` : `/coming-soon?name=${encodeURIComponent(tenant.name)}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                     <div style={{ 
                         background: '#fff', 
-                        borderRadius: '24px', 
+                        borderRadius: isMobile ? '16px' : '24px', 
                         overflow: 'hidden', 
                         border: '1px solid #f1f5f9',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                        transition: 'transform 0.2s'
+                        transition: 'transform 0.2s',
+                        height: '100%'
                     }}>
                         <div style={{ 
-                            height: isMobile ? '200px' : '250px', 
+                            height: isMobile ? '140px' : '250px', 
                             backgroundImage: `url("${tenant.shopImage}")`, 
                             backgroundSize: 'cover', 
                             backgroundPosition: 'center',
                             position: 'relative'
                         }}>
-                             <div style={{ position: 'absolute', top: '1rem', left: '1rem', background: '#fff', color: '#000', padding: '0.3rem 0.8rem', borderRadius: '40px', fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase' }}>
+                             <div style={{ position: 'absolute', top: isMobile ? '0.5rem' : '1rem', left: isMobile ? '0.5rem' : '1rem', background: '#fff', color: '#000', padding: isMobile ? '0.2rem 0.4rem' : '0.3rem 0.8rem', borderRadius: '40px', fontSize: isMobile ? '0.55rem' : '0.7rem', fontWeight: 900, textTransform: 'uppercase' }}>
                                 {tenant.category || "PREMIUM"}
                              </div>
-                             <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#000', color: '#fff', padding: '0.4rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 900 }}>
+                             <div style={{ position: 'absolute', top: isMobile ? '0.5rem' : '1rem', right: isMobile ? '0.5rem' : '1rem', background: '#000', color: '#fff', padding: isMobile ? '0.2rem 0.4rem' : '0.4rem 0.6rem', borderRadius: isMobile ? '8px' : '12px', fontSize: isMobile ? '0.65rem' : '0.75rem', fontWeight: 900 }}>
                                 ⭐ {tenant.rating}
                              </div>
                         </div>
-                        <div style={{ padding: '1.5rem' }}>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#000', marginBottom: '0.4rem' }}>{tenant.name}</h3>
-                            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.2rem', lineHeight: 1.4 }}>{tenant.address}</p>
-                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.7rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b' }}>{tenant.isLive ? 'Available Today' : 'Onboarding'}</span>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>2:00 PM</span>
+                        <div style={{ padding: isMobile ? '0.8rem' : '1.5rem' }}>
+                            <h3 style={{ fontSize: isMobile ? '0.95rem' : '1.25rem', fontWeight: 800, color: '#000', marginBottom: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tenant.name}</h3>
+                            <p style={{ color: '#64748b', fontSize: isMobile ? '0.75rem' : '0.9rem', marginBottom: isMobile ? '0.8rem' : '1.2rem', lineHeight: 1.3, height: isMobile ? '2.6rem' : 'auto', overflow: 'hidden' }}>{tenant.address}</p>
+                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: isMobile ? '0.6rem' : '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: isMobile ? '0.55rem' : '0.7rem', fontWeight: 900, textTransform: 'uppercase', color: '#64748b' }}>{tenant.isLive ? 'Live' : 'Soon'}</span>
+                                <span style={{ fontSize: isMobile ? '0.65rem' : '0.85rem', fontWeight: 700 }}>2:00 PM</span>
                             </div>
                         </div>
                     </div>
