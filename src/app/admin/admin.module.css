@@ -46,35 +46,36 @@
   margin-bottom: 1rem;
   font-size: 0.75rem;
   font-weight: 900;
-  color: #94a3b8;
+  color: #1e293b; /* Darker Slate for Section Labels */
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .navLink {
   display: flex;
   align-items: center;
-  padding: 0.85rem 1.25rem;
-  color: #0f172a; 
+  padding: 0.9rem 1.25rem;
+  color: #000000; /* Absolute Black for 100% Visibility */
   text-decoration: none;
   border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 800; /* Ultra Bold */
   transition: all 0.2s ease;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5rem;
   border: 1px solid transparent;
 }
 
 .navLink:hover {
-  background: #f8fafc;
-  color: var(--accent-color);
-  border-color: #f1f5f9;
+  background: #f1f5f9;
+  color: #4f46e5;
+  border-color: #e2e8f0;
 }
 
 .activeNavLink {
-  background: #eff6ff !important;
-  color: #4f46e5 !important;
-  border: 1px solid #dbeafe !important;
+  background: #000000 !important; /* Invert for extreme clarity on active */
+  color: #ffffff !important;
+  border: 1px solid #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Main Canvas: AGGRESSIVE WHITE FORCE */

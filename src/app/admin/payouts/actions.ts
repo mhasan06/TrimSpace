@@ -155,13 +155,8 @@ async function getEffectiveFeeForDate(targetDate: Date, settings: any) {
   );
   if (schedule?.[0]) return schedule[0].feePercentage;
 
-  // Fallback to Global Default, but only if targetDate is >= defaultFeeEffectiveFrom (if defined)
-  if (settings.defaultFeeEffectiveFrom) {
-    const start = new Date(settings.defaultFeeEffectiveFrom);
-    if (targetDate < start) return 0; // Or some older default? User said "from that date onward"
-  }
-  
-  return settings.defaultPlatformFee ?? 0.02;
+  // Fallback to Global Default (Standard 1.7% for all legacy data unless a schedule says otherwise)
+  return settings.defaultPlatformFee ?? 0.017;
 }
 
 /**
