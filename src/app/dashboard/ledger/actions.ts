@@ -7,7 +7,21 @@ import { authOptions } from "@/lib/auth";
 import { calculateServiceFees } from "@/lib/pricing";
 
 export async function flagDisputeAction(appointmentId: string, reason: string) {
-  try {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, error: "Unauthorized" };
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      select: { tenantId: true }
+    });
+
+    if (!appointment) return { success: false, error: "Appointment not found" };
+
+    const user = session.user as any;
+    if (user.role !== 'ADMIN' && appointment.tenantId !== user.tenantId) {
+      return { success: false, error: "Unauthorized: Ownership mismatch" };
+    }
+
     await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
@@ -62,12 +76,20 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
 }
 
 export async function addDisputeNoteAction(appointmentId: string, content: string) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session) return { success: false, error: "Unauthorized" };
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      select: { tenantId: true }
+    });
+
+    if (!appointment) return { success: false, error: "Appointment not found" };
+
+    const user = session.user as any;
+    if (user.role !== 'ADMIN' && appointment.tenantId !== user.tenantId) {
+      return { success: false, error: "Unauthorized: Ownership mismatch" };
+    }
 
     const authorName = session.user?.name || "User";
-    const authorRole = (session.user as any).role === 'ADMIN' ? 'ADMIN' : 'MERCHANT';
+    const authorRole = user.role === 'ADMIN' ? 'ADMIN' : 'MERCHANT';
 
     await prisma.disputeNote.create({
       data: {
