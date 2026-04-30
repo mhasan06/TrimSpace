@@ -168,31 +168,32 @@ export default function AdminLedgerView({ data }: { data: AdminLedgerEvent[] }) 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>Financial Command Center</h1>
-          <p style={{ color: '#64748b', fontSize: '1rem' }}>Managing {shopEntries.length} shops in this view.</p>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#0f172a', letterSpacing: '-0.05em' }}>Financial Command Center</h1>
+          <p style={{ color: '#64748b', fontSize: '1rem', marginTop: '0.5rem', fontWeight: 500 }}>Global oversight for {shopEntries.length} marketplace entities.</p>
         </div>
         {activeTab === 'payout_queue' && shopEntries.length > 0 && (
-           <div style={{ background: '#ecfdf5', padding: '1rem 2rem', borderRadius: '20px', border: '1px solid #10b981', textAlign: 'right' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 900, color: '#059669', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Total Pending Payouts</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#064e3b' }}>${totals.net.toFixed(2)}</div>
+           <div style={{ background: '#ffffff', padding: '1.2rem 2.5rem', borderRadius: '20px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9', textAlign: 'right' }}>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.4rem' }}>Net Payout Pending</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#4f46e5' }}>${totals.net.toFixed(2)}</div>
            </div>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-        <div className="card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #6366f1', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', marginBottom: '0.5rem' }}>Total Customer Paid</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#0f172a' }}>${totals.gross.toFixed(2)}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}>
+        <div className="card" style={{ borderLeft: '6px solid #6366f1' }}>
+          <h4 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '1rem' }}>Gross Marketplace Volume</h4>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#0f172a' }}>${totals.gross.toFixed(2)}</div>
         </div>
-        <div className="card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #ef4444', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', marginBottom: '0.5rem' }}>Secure Processing & Platform Fees</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#991b1b' }}>-${(totals.platform + totals.stripe).toFixed(2)}</div>
+        <div className="card" style={{ borderLeft: '6px solid #ef4444' }}>
+          <h4 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '1rem' }}>Processing & Platform Fees</h4>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#ef4444' }}>-${(totals.platform + totals.stripe).toFixed(2)}</div>
         </div>
-        <div className="card" style={{ background: '#fff', padding: '1.5rem', borderRadius: '20px', borderLeft: '4px solid #10b981', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-          <h4 style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#64748b', marginBottom: '0.5rem' }}>Net Total Payout</h4>
-          <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#064e3b' }}>${totals.net.toFixed(2)}</div>
+        <div className="card" style={{ borderLeft: '6px solid #10b981' }}>
+          <h4 style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '1rem' }}>Merchant Net Payouts</h4>
+          <div style={{ fontSize: '2rem', fontWeight: 900, color: '#059669' }}>${totals.net.toFixed(2)}</div>
         </div>
       </div>
 
