@@ -91,11 +91,11 @@ export default async function ShopSettings() {
                <div style={{ background: 'var(--background)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                      <span style={{ opacity: 0.7 }}>Current Plan</span>
-                     <span style={{ fontWeight: 600 }}>Team Shop (Beta)</span>
+                     <span style={{ fontWeight: 600 }}>Founder Tier (Complimentary)</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                      <span style={{ opacity: 0.7 }}>Monthly Billing</span>
-                     <span style={{ fontWeight: 600, color: 'var(--primary)' }}>$29.95 / mo</span>
+                     <span style={{ fontWeight: 600, color: 'var(--primary)' }}>$0.00 / mo</span>
                   </div>
                </div>
 
