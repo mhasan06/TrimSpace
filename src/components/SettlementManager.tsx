@@ -224,45 +224,62 @@ export default function SettlementManager({
          </div>
       </section>
 
-      {/* 2. Commission Scheduling */}
-      <section className="glass" style={{ padding: '2rem', marginBottom: '2.5rem', border: '1px solid var(--secondary)' }}>
-         <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', color: '#4f46e5', textTransform: 'uppercase' }}>Commission Management</h2>
+      {/* 2. Commission Management & Scheduling */}
+      <section className="glass" style={{ padding: '2.5rem', marginBottom: '3rem', border: '2px solid #000', background: '#fcfcfc', borderRadius: '32px' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#000', textTransform: 'uppercase' }}>⚙️ Commission Engine & Date Rules</h2>
+            <div style={{ background: '#000', color: '#fff', padding: '0.4rem 1rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>
+               DYNAMIC ENGINE ACTIVE
+            </div>
+         </div>
          
-         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
-            {/* Left: Current Fee */}
-            <div style={{ paddingRight: '2rem', borderRight: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3 style={{ fontSize: '0.9rem', opacity: 0.8 }}>CURRENT DEFAULT RATE</h3>
+         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem' }}>
+            {/* Left: Current Fee & Cutover */}
+            <div style={{ paddingRight: '2rem', borderRight: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b' }}>GLOBAL DEFAULT FEE</h3>
                     {isOverridden && (
-                        <div style={{ fontSize: '0.65rem', background: '#eab308', color: 'black', padding: '2px 8px', borderRadius: '4px', fontWeight: 900 }}>
-                           ⚠️ SCHEDULE OVERRIDE ACTIVE ({(effectiveFee * 100).toFixed(1)}%)
+                        <div style={{ fontSize: '0.7rem', background: '#ef4444', color: 'white', padding: '4px 12px', borderRadius: '6px', fontWeight: 900, animation: 'pulse 2s infinite' }}>
+                           ⚠️ OVERRIDE ACTIVE ({(effectiveFee * 100).toFixed(1)}%)
                         </div>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div style={{ position: 'relative', flex: 1 }}>
-                        <input 
-                            type="number" 
-                            value={feeInput} 
-                            onChange={(e) => setFeeInput(e.target.value)}
-                            style={{ width: '100%', padding: '0.8rem 2.5rem 0.8rem 1rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px', fontWeight: 900, fontSize: '1.2rem' }} 
-                        />
-                        <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#64748b' }}>%</span>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ position: 'relative', flex: 1 }}>
+                            <label style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', display: 'block', marginBottom: '0.5rem' }}>FEE PERCENTAGE</label>
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type="number" 
+                                    value={feeInput} 
+                                    onChange={(e) => setFeeInput(e.target.value)}
+                                    style={{ width: '100%', padding: '1rem 2.5rem 1rem 1rem', background: '#fff', color: '#000', border: '2px solid #000', borderRadius: '12px', fontWeight: 900, fontSize: '1.5rem' }} 
+                                />
+                                <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 900, color: '#000', fontSize: '1.2rem' }}>%</span>
+                            </div>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ fontSize: '0.7rem', fontWeight: 900, color: '#94a3b8', display: 'block', marginBottom: '0.5rem' }}>EFFECTIVE FROM (CUTOVER)</label>
+                            <input 
+                                type="date" 
+                                value={defaultFeeEffectiveDate}
+                                onChange={(e) => setDefaultFeeEffectiveDate(e.target.value)}
+                                style={{ width: '100%', padding: '1.15rem 1rem', background: '#fff', color: '#000', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 700 }} 
+                            />
+                        </div>
                     </div>
-                    <input 
-                        type="date" 
-                        value={defaultFeeEffectiveDate}
-                        onChange={(e) => setDefaultFeeEffectiveDate(e.target.value)}
-                        style={{ width: '100%', padding: '0.8rem', background: '#fff', color: '#1e293b', border: '1px solid var(--border)', borderRadius: '8px' }} 
-                    />
+                    
                     <button 
                         onClick={handleUpdateCurrentFee}
                         disabled={isUpdating}
-                        style={{ padding: '0.8rem 1.5rem', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 900, cursor: 'pointer' }}>
-                        UPDATE NOW
+                        style={{ width: '100%', padding: '1.2rem', background: '#000', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '1rem', letterSpacing: '1px' }}>
+                        {isUpdating ? 'SYNCING...' : 'LOCK IN NEW GLOBAL RULES'}
                     </button>
                 </div>
-                <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: '#64748b' }}>This rate applies to all weekly runs for bookings occurring <b>on or after</b> the selected date. Leave date blank to apply to all history.</p>
+                <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: '#64748b', fontWeight: 600, lineHeight: 1.5 }}>
+                    <span style={{ color: '#000', fontWeight: 900 }}>Note:</span> All bookings occurring <b>before</b> this date will remain locked to legacy rules. All bookings <b>on or after</b> this date will use the new fee.
+                </p>
             </div>
 
             {/* Right: Schedule New Fee */}
