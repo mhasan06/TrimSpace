@@ -68,12 +68,29 @@ export async function runEndToEndValidationAction() {
           slug: "validation-test",
           address: "123 Test St, Sydney",
           phone: "0400000000",
-          email: "test@trimspace.com.au"
+          website: "https://trimspace.com.au"
         }
       });
     }
 
-    // 3. Find or Create a Test Service
+    // 3. Find or Create a Test Barber for this shop
+    let testBarber = await prisma.user.findFirst({
+      where: { tenantId: testShop.id, role: "BARBER" }
+    });
+
+    if (!testBarber) {
+      testBarber = await prisma.user.create({
+        data: {
+          email: `test_barber_${Date.now()}@trimspace.com.au`,
+          name: "Validation Barber",
+          role: "BARBER",
+          tenantId: testShop.id,
+          isActive: true
+        }
+      });
+    }
+
+    // 4. Find or Create a Test Service
     let testService = await prisma.service.findFirst({
       where: { tenantId: testShop.id }
     });
@@ -85,19 +102,19 @@ export async function runEndToEndValidationAction() {
           name: "Validation Cut",
           description: "Test service for financial verification",
           price: 100.00,
-          duration: 30
+          durationMinutes: 30
         }
       });
     }
 
-    // 4. Find a Test Customer
+    // 5. Find a Test Customer
     const testCustomer = await prisma.user.findFirst({
         where: { role: "CUSTOMER" }
     });
 
     if (!testCustomer) throw new Error("No customer found in DB to run test.");
 
-    // 5. Create Mock Bookings (Historical so they are eligible for settlement)
+    // 6. Create Mock Bookings (Historical so they are eligible for settlement)
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     yesterday.setHours(10, 0, 0, 0);
@@ -108,6 +125,7 @@ export async function runEndToEndValidationAction() {
         tenantId: testShop.id,
         serviceId: testService.id,
         customerId: testCustomer.id,
+        barberId: testBarber.id,
         startTime: yesterday,
         endTime: new Date(yesterday.getTime() + 30 * 60000),
         status: "CONFIRMED",
@@ -122,6 +140,7 @@ export async function runEndToEndValidationAction() {
         tenantId: testShop.id,
         serviceId: testService.id,
         customerId: testCustomer.id,
+        barberId: testBarber.id,
         startTime: new Date(yesterday.getTime() + 60 * 60000),
         endTime: new Date(yesterday.getTime() + 90 * 60000),
         status: "CANCELLED",
