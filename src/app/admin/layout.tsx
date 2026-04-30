@@ -51,6 +51,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
 
           <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+            <Link href="/admin/developer" className={styles.navLink} style={{ color: '#6366f1' }}>🛠️ System Diagnostics</Link>
             <Link href="/admin/alerts" className={styles.navLink} style={{ color: '#f87171' }}>🚨 System Alerts</Link>
           </div>
         </nav>
