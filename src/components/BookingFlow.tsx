@@ -477,17 +477,29 @@ export default function BookingFlow({
         {stage === "START" && (<><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '2rem 1.5rem' : '6rem 2rem', background: '#fff', borderRadius: '48px', border: '1px solid #f1f5f9', boxShadow: '0 20px 60px rgba(0,0,0,0.02)', textAlign: 'center', marginBottom: '4rem' }}><h1 style={{ fontSize: isMobile ? '2rem' : '3rem', fontWeight: 950, marginBottom: '0.8rem', color: '#0f172a' }}>Start Your Booking</h1><p style={{ fontSize: isMobile ? '1rem' : '1.2rem', color: '#64748b', fontWeight: 600, marginBottom: isMobile ? '2rem' : '3rem' }}>How many people are joining us?</p><div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', marginBottom: isMobile ? '2.5rem' : '4rem', flexWrap: 'wrap', justifyContent: 'center' }}>{[1, 2, 3, 4, 5].map(num => (<button key={num} onClick={() => setNumberOfPeople(num)} style={{ width: isMobile ? '56px' : '72px', height: isMobile ? '56px' : '72px', borderRadius: isMobile ? '16px' : '20px', border: numberOfPeople === num ? '2px solid #000' : '1px solid #e2e8f0', background: numberOfPeople === num ? '#f8fafc' : '#fff', color: '#000', fontWeight: 900, fontSize: isMobile ? '1.2rem' : '1.5rem', cursor: 'pointer' }}>{num}</button>))}</div><button onClick={() => setStage("SERVICES")} style={{ padding: isMobile ? '1rem 3rem' : '1.2rem 4rem', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 900, fontSize: isMobile ? '1rem' : '1.1rem', cursor: 'pointer' }}>Continue</button></div>{children}</>)}
         {stage === "SERVICES" && (
           <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
-            <button onClick={() => setStage("START")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 900, marginBottom: '2rem' }}>Select {terminology.serviceLabelPlural}</h2>
-            {numberOfPeople > 1 && (
-              <div style={{ display: 'flex', gap: '10px', marginBottom: '2.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>
-                {Array.from({ length: numberOfPeople }).map((_, i) => (
-                  <button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>
-                    Person {i + 1}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div style={{ 
+              position: 'sticky', 
+              top: '-2rem', 
+              background: '#fff', 
+              zIndex: 10, 
+              paddingTop: '2rem',
+              marginTop: '-2rem',
+              marginBottom: '2rem',
+              paddingBottom: '1rem',
+              borderBottom: '1px solid #f1f5f9'
+            }}>
+              <button onClick={() => setStage("START")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
+              <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: 900, marginBottom: '1rem', margin: 0 }}>Select {terminology.serviceLabelPlural}</h2>
+              {numberOfPeople > 1 && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>
+                  {Array.from({ length: numberOfPeople }).map((_, i) => (
+                    <button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>
+                      Person {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {initialServices.map(service => {
                 const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id);
@@ -530,47 +542,59 @@ export default function BookingFlow({
         )}
         {stage === "CALENDAR" && (
           <div style={{ padding: '2.5rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-              <button onClick={() => setStage("SERVICES")} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer', fontSize: '1rem' }}>← Back</button>
-              <input type="date" value={targetDate} onChange={(e) => handleFetchSlots(e.target.value)} style={{ padding: '10px 14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none' }} />
-            </div>
-            
-            <h2 style={{ fontSize: '2.2rem', fontWeight: 950, marginBottom: '2rem', letterSpacing: '-1px' }}>Select Date & Time</h2>
-            
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '2.5rem', paddingBottom: '12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              <style>{`div::-webkit-scrollbar { display: none; }`}</style>
-              {(() => {
-                const now = new Date();
-                const sydneyNow = new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
-                const startOffset = sydneyNow.getHours() >= 15 ? 1 : 0;
-                
-                return [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => {
-                  const date = new Date(sydneyNow);
-                  date.setDate(date.getDate() + i + startOffset);
-                  const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
-                  const isSelected = targetDate === dStr;
-                  return (
-                    <button 
-                      key={i} 
-                      onClick={() => handleFetchSlots(dStr)} 
-                      style={{ 
-                        padding: '1rem', 
-                        minWidth: '85px', 
-                        borderRadius: '18px', 
-                        border: isSelected ? '2px solid #000' : '1px solid #f1f5f9', 
-                        background: isSelected ? '#000' : '#fff', 
-                        color: isSelected ? '#fff' : '#0f172a',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        flexShrink: 0
-                      }}
-                    >
-                      <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, opacity: isSelected ? 0.8 : 0.6 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '1.4rem', fontWeight: 950 }}>{date.getDate()}</p>
-                    </button>
-                  );
-                });
-              })()}
+            <div style={{ 
+              position: 'sticky', 
+              top: '-2.5rem', 
+              background: '#fff', 
+              zIndex: 10, 
+              paddingTop: '2.5rem',
+              marginTop: '-2.5rem',
+              marginBottom: '2.5rem',
+              paddingBottom: '1.5rem',
+              borderBottom: '1px solid #f1f5f9'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                <button onClick={() => setStage("SERVICES")} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer', fontSize: '1rem' }}>← Back</button>
+                <input type="date" value={targetDate} onChange={(e) => handleFetchSlots(e.target.value)} style={{ padding: '10px 14px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none' }} />
+              </div>
+              
+              <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: 950, marginBottom: '2rem', letterSpacing: '-1px', margin: 0 }}>Select Date & Time</h2>
+              
+              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginTop: '1.5rem', paddingBottom: '12px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+                {(() => {
+                  const now = new Date();
+                  const sydneyNow = new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }));
+                  const startOffset = sydneyNow.getHours() >= 15 ? 1 : 0;
+                  
+                  return [0,1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => {
+                    const date = new Date(sydneyNow);
+                    date.setDate(date.getDate() + i + startOffset);
+                    const dStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Australia/Sydney', year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
+                    const isSelected = targetDate === dStr;
+                    return (
+                      <button 
+                        key={i} 
+                        onClick={() => handleFetchSlots(dStr)} 
+                        style={{ 
+                          padding: '1rem', 
+                          minWidth: '85px', 
+                          borderRadius: '18px', 
+                          border: isSelected ? '2px solid #000' : '1px solid #f1f5f9', 
+                          background: isSelected ? '#000' : '#fff', 
+                          color: isSelected ? '#fff' : '#0f172a',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          flexShrink: 0
+                        }}
+                      >
+                        <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 800, opacity: isSelected ? 0.8 : 0.6 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</p>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '1.4rem', fontWeight: 950 }}>{date.getDate()}</p>
+                      </button>
+                    );
+                  });
+                })()}
+              </div>
             </div>
 
             {/* Time Grid */}
@@ -608,15 +632,29 @@ export default function BookingFlow({
         )}
         {stage === "BARBERS" && (
           <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
-            <button onClick={() => setStage("CALENDAR")} style={{ marginBottom: '2rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
-            <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '0.5rem' }}>Choose Professional</h2>
+            <div style={{ 
+              position: 'sticky', 
+              top: '-2rem', 
+              background: '#fff', 
+              zIndex: 10, 
+              paddingTop: '2rem',
+              marginTop: '-2rem',
+              marginBottom: '2rem',
+              paddingBottom: '1rem',
+              borderBottom: '1px solid #f1f5f9'
+            }}>
+              <button onClick={() => setStage("CALENDAR")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
+              <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: 900, marginBottom: '0.5rem', margin: 0 }}>Choose Professional</h2>
+              {numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}
+            </div>
+            
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#fff9f0', padding: '12px 16px', borderRadius: '12px', border: '1px solid #ffedd5', marginBottom: '2rem' }}>
               <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
               <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a3412', fontWeight: 600, lineHeight: '1.4' }}>
                 Note: Your preferred professional may not be available due to unexpected circumstances.
               </p>
             </div>
-            {numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}
+            
             <div style={{ display: 'grid', gap: '15px' }}>
               <div onClick={() => handleBarberSelect(null)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === null ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👥</div>
