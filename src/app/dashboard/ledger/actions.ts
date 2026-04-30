@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { calculateServiceFees } from "@/lib/pricing";
 
 export async function flagDisputeAction(appointmentId: string, reason: string) {
+  try {
     const session = await getServerSession(authOptions);
     if (!session) return { success: false, error: "Unauthorized" };
 
@@ -76,6 +77,10 @@ export async function resolveDisputeAction(appointmentId: string, resolution: 'P
 }
 
 export async function addDisputeNoteAction(appointmentId: string, content: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) return { success: false, error: "Unauthorized" };
+
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       select: { tenantId: true }
