@@ -12,7 +12,7 @@ export default async function ServicesDashboard() {
     return <div style={{ color: 'white' }}>Please log in to manage your shop.</div>;
   }
 
-  const [services, barbers] = await Promise.all([
+  const [services, barbers, platformSettings] = await Promise.all([
     prisma.service.findMany({
       where: { tenantId },
       include: { barbers: true }, // Include current assignments
@@ -21,8 +21,13 @@ export default async function ServicesDashboard() {
     prisma.user.findMany({
       where: { tenantId, role: "BARBER", isActive: true },
       select: { id: true, name: true, avatarUrl: true }
+    }),
+    prisma.platformSettings.findUnique({
+      where: { id: 'platform_global' }
     })
   ]);
+
+  const activeFeePercent = ((platformSettings?.defaultPlatformFee || 0.017) * 100).toFixed(1);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
