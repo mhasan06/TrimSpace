@@ -5,14 +5,28 @@
   color: #1e293b;
   font-family: 'Inter', system-ui, sans-serif;
   
-  /* Modern Enterprise Variables */
-  --sidebar-bg: #0f172a; /* Slate 900 */
-  --accent-color: #6366f1; /* Indigo 500 */
-  --danger-color: #ef4444; /* Red 500 */
-  --card-bg: #ffffff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-light: #e2e8f0;
+  /* Global Theme Mapping for Children */
+  --background: 240 10% 3.9%; /* This is used by some Shadcn-like components, but let's use HEX for ours */
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #4f46e5;
+  
+  /* Modern Enterprise Sidebar Variables */
+  --sidebar-bg: #0f172a; 
+  --danger-color: #ef4444;
 }
 
 /* Sidebar Reset: Dark & Authoritative */

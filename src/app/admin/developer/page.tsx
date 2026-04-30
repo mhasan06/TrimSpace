@@ -112,41 +112,41 @@ export default function DeveloperToolsPage() {
       </div>
 
       {status && (
-        <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+        <div style={{ marginTop: '2rem', padding: '1rem', background: '#e0e7ff', color: '#4338ca', borderRadius: '12px', textAlign: 'center', fontWeight: 800, fontSize: '0.85rem', border: '1px solid #c7d2fe' }}>
             STATUS: {status}
         </div>
       )}
 
       {report && (
-        <div style={{ marginTop: '2rem', background: '#0f172a', color: '#f8fafc', padding: '2rem', borderRadius: '24px', border: '1px solid #1e293b' }}>
+        <div style={{ marginTop: '2rem', background: '#0f172a', color: '#f8fafc', padding: '2rem', borderRadius: '24px', border: '1px solid #1e293b', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#10b981', marginBottom: '1.5rem' }}>✅ {report.summary}</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.5, marginBottom: '0.5rem' }}>GROSS VOLUME (AUD)</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: report.match.gross ? '#10b981' : '#ef4444' }}>
+                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>GROSS VOLUME (AUD)</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: report.match.gross ? '#10b981' : '#ef4444' }}>
                         ${report.metrics.actualGross}
-                        <span style={{ fontSize: '0.8rem', opacity: 0.5, marginLeft: '5px' }}>/ Exp: ${report.metrics.expectedGross}</span>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Exp: ${report.metrics.expectedGross}</div>
                     </div>
                 </div>
-                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.5, marginBottom: '0.5rem' }}>NET PAYOUTS (AUD)</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: report.match.net ? '#10b981' : '#ef4444' }}>
+                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>NET PAYOUTS (AUD)</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: report.match.net ? '#10b981' : '#ef4444' }}>
                         ${report.metrics.actualNet}
-                        <span style={{ fontSize: '0.8rem', opacity: 0.5, marginLeft: '5px' }}>/ Exp: ${report.metrics.expectedNet}</span>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Exp: ${report.metrics.expectedNet}</div>
                     </div>
                 </div>
-                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px' }}>
-                    <div style={{ fontSize: '0.7rem', opacity: 0.5, marginBottom: '0.5rem' }}>PLATFORM FEES (AUD)</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 900, color: report.match.fees ? '#10b981' : '#ef4444' }}>
+                <div style={{ padding: '1rem', background: '#1e293b', borderRadius: '12px', border: '1px solid #334155' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>PLATFORM FEES (AUD)</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: report.match.fees ? '#10b981' : '#ef4444' }}>
                         ${report.metrics.actualFees}
-                        <span style={{ fontSize: '0.8rem', opacity: 0.5, marginLeft: '5px' }}>/ Exp: ${report.metrics.expectedFees}</span>
+                        <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Exp: ${report.metrics.expectedFees}</div>
                     </div>
                 </div>
             </div>
 
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                <strong>Test Notes:</strong> Generated mock data for "{report.testShop}". 
+            <div style={{ fontSize: '0.8rem', color: '#94a3b8', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                <strong style={{ color: '#fff' }}>Test Notes:</strong> Generated mock data for "{report.testShop}". 
                 Verified standard booking ($100.00) and cancellation fee ($30.00) against the 1.7% + 30c + 50c model with 10c rounding.
             </div>
         </div>
