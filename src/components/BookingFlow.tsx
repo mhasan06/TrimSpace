@@ -1,4 +1,5 @@
 "use client";
+// Force recompile - snapshot model integrated
 
 import { useState, useTransition, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
