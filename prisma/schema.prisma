@@ -264,6 +264,14 @@ model PlatformSettings {
   platformEmail      String?
   cancellationPolicy String?  @default("All cancellations must be made at least 24 hours in advance to avoid a cancellation fee.") @db.Text
   bookingPolicy      String?  @default("A valid credit card is required to secure your booking. Priority fees may apply for peak times.") @db.Text
+  
+  // Dynamic Cancellation Tiers
+  penaltyLongThreshold  Int    @default(48) // Hours
+  penaltyShortThreshold Int    @default(24) // Hours
+  penaltyLongRate       Float  @default(0.0)  // 0%
+  penaltyMidRate        Float  @default(0.2)  // 20%
+  penaltyShortRate      Float  @default(1.0)  // 100%
+
   updatedAt          DateTime @updatedAt
 }
 
