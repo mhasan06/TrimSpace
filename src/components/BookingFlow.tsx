@@ -479,14 +479,15 @@ export default function BookingFlow({
           <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
             <div style={{ 
               position: 'sticky', 
-              top: '-2rem', 
+              top: 0, 
               background: '#fff', 
-              zIndex: 10, 
+              zIndex: 100, 
               paddingTop: '2rem',
               marginTop: '-2rem',
               marginBottom: '2rem',
-              paddingBottom: '1rem',
-              borderBottom: '1px solid #f1f5f9'
+              paddingBottom: '1.2rem',
+              borderBottom: '2px solid #f1f5f9',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
             }}>
               <button onClick={() => setStage("START")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
               <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: 900, marginBottom: '1rem', margin: 0 }}>Select {terminology.serviceLabelPlural}</h2>
@@ -544,14 +545,15 @@ export default function BookingFlow({
           <div style={{ padding: '2.5rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
             <div style={{ 
               position: 'sticky', 
-              top: '-2.5rem', 
+              top: 0, 
               background: '#fff', 
-              zIndex: 10, 
+              zIndex: 100, 
               paddingTop: '2.5rem',
               marginTop: '-2.5rem',
               marginBottom: '2.5rem',
               paddingBottom: '1.5rem',
-              borderBottom: '1px solid #f1f5f9'
+              borderBottom: '2px solid #f1f5f9',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                 <button onClick={() => setStage("SERVICES")} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer', fontSize: '1rem' }}>← Back</button>
@@ -634,14 +636,15 @@ export default function BookingFlow({
           <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
             <div style={{ 
               position: 'sticky', 
-              top: '-2rem', 
+              top: 0, 
               background: '#fff', 
-              zIndex: 10, 
+              zIndex: 100, 
               paddingTop: '2rem',
               marginTop: '-2rem',
               marginBottom: '2rem',
-              paddingBottom: '1rem',
-              borderBottom: '1px solid #f1f5f9'
+              paddingBottom: '1.2rem',
+              borderBottom: '2px solid #f1f5f9',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
             }}>
               <button onClick={() => setStage("CALENDAR")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
               <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: 900, marginBottom: '0.5rem', margin: 0 }}>Choose Professional</h2>
