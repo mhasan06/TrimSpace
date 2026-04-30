@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { calculateServiceFees } from "@/lib/pricing";
+import { getEffectivePlatformFee } from "@/lib/platform";
 import crypto from "crypto";
 
 // Security Helper
@@ -144,22 +145,6 @@ export async function updatePlatformSettingsAction(data: {
 }
 
 /**
- * Helper: Find effective fee for a specific date
- */
-async function getEffectiveFeeForDate(targetDate: Date, settings: any) {
-  const schedule = await prisma.$queryRawUnsafe<any[]>(
-    `SELECT "feePercentage" FROM "PlatformFeeSchedule" 
-     WHERE "effectiveFrom" <= $1 
-     ORDER BY "effectiveFrom" DESC LIMIT 1`,
-    targetDate
-  );
-  if (schedule?.[0]) return schedule[0].feePercentage;
-
-  // Fallback to Global Default (Standard 1.7% for all legacy data unless a schedule says otherwise)
-  return settings.defaultPlatformFee ?? 0.017;
-}
-
-/**
  * Master Batcher: Creates Weekly Settlements with Date-Aware Fees
  */
 export async function triggerWeeklyRunAction() {
@@ -227,8 +212,8 @@ export async function triggerWeeklyRunAction() {
     for (const key in batches) {
       const batch = batches[key];
       
-      // LOOKUP DATE-AWARE FEE
-      const feeScale = await getEffectiveFeeForDate(batch.startDate, settings);
+      // LOOKUP DATE-AWARE FEE (Centralized)
+      const feeScale = await getEffectivePlatformFee(batch.startDate);
       
       let totalGross = 0;
       let totalFees = 0;
@@ -305,20 +290,19 @@ export async function getSettlementDetailedReportAction(settlementId: string) {
       settlementId
     );
     
-    const settingsRows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PlatformSettings" WHERE id = 'platform_global' LIMIT 1`);
-    const settings = settingsRows?.[0] || { defaultPlatformFee: 0.017 };
-    
-    const appsWithFees = appointments.map(a => {
+    const appsWithFees = [];
+    for (const a of appointments) {
       const actualBaseRev = a.status === 'CANCELLED' ? Number(a.cancellationFee || (a.servicePrice * 0.5)) : Number(a.servicePrice);
-      const fees = calculateServiceFees(actualBaseRev, settings.defaultPlatformFee);
+      const feeScale = await getEffectivePlatformFee(new Date(a.startTime));
+      const fees = calculateServiceFees(actualBaseRev, feeScale);
       
-      return {
+      appsWithFees.push({
         ...a,
         actualServicePrice: fees.basePrice,
         totalWithFee: fees.totalCustomerPrice,
         platformDeduction: fees.totalCustomerPrice - fees.basePrice
-      };
-    });
+      });
+    }
 
     const settlementRows = await prisma.$queryRawUnsafe<any[]>(`SELECT s.*, t.name as "shopName", t.address as "shopAddress" FROM "Settlement" s JOIN "Tenant" t ON s."tenantId" = t.id WHERE s.id = $1 LIMIT 1`, settlementId);
     const platformRows = await prisma.$queryRawUnsafe<any[]>(`SELECT * FROM "PlatformSettings" WHERE id = 'platform_global' LIMIT 1`);
