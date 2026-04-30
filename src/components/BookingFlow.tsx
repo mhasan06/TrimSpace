@@ -478,7 +478,7 @@ export default function BookingFlow({
         {stage === "SERVICES" && (
           <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
-              position: '-webkit-sticky',
+              WebkitPosition: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
@@ -546,7 +546,7 @@ export default function BookingFlow({
         {stage === "CALENDAR" && (
           <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
-              position: '-webkit-sticky',
+              WebkitPosition: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
@@ -638,7 +638,7 @@ export default function BookingFlow({
         {stage === "BARBERS" && (
           <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
-              position: '-webkit-sticky',
+              WebkitPosition: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
