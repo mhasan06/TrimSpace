@@ -20,7 +20,13 @@ export async function handleRefundAndCancel(id: string) {
 
     const isGroup = id.startsWith("grp_");
     
-    // 1. Fetch appointments (either one or the whole group)
+    // 1. Fetch appointments and Platform Settings
+    const settings = await prisma.platformSettings.findUnique({
+      where: { id: 'platform_global' }
+    });
+
+    if (!settings) throw new Error("Platform configuration not found.");
+
     const appointments: any[] = isGroup 
       ? await prisma.$queryRawUnsafe<any[]>(`
           SELECT a.*, s.price as "servicePrice" 
@@ -39,6 +45,8 @@ export async function handleRefundAndCancel(id: string) {
     if (appointments.some(a => a.customerId !== userId)) throw new Error("Unauthorized.");
     if (appointments.every(a => a.status === "CANCELLED")) throw new Error("Booking is already cancelled.");
 
+    const { calculateCancellationPenalty } = require("@/lib/pricing");
+
     let totalStripeRefund = 0;
     let totalGiftRefund = 0;
 
@@ -47,10 +55,37 @@ export async function handleRefundAndCancel(id: string) {
       if (app.status === "CANCELLED") continue;
 
       if (app.paymentStatus === "PAID") {
-        const stripeRefundAmount = (Number(app.amountPaidStripe) > Number(app.servicePrice) ? (Number(app.amountPaidStripe) - 0.50) : Number(app.amountPaidStripe)) * 0.5;
-        const giftRefundAmount   = Number(app.amountPaidGift)   * 0.5;
+        // Calculate dynamic penalty based on tiered policy
+        const penalty = calculateCancellationPenalty(
+            Number(app.servicePrice), 
+            new Date(app.startTime),
+            settings
+        );
 
-        // Stripe Refund
+        // Refund Pool: We only refund from the Base Price. 
+        // Original Fees are non-refundable.
+        let totalRefundPool = Math.max(0, Number(app.servicePrice) - penalty);
+        
+        let stripeRefundAmount = 0;
+        let giftRefundAmount = 0;
+
+        // Priority 1: Refund Stripe
+        if (totalRefundPool > 0 && Number(app.amountPaidStripe) > 0) {
+            // We can't refund more than they paid via Stripe minus the original fees
+            // Wait, simpler: Refund up to 'totalRefundPool' via Stripe first
+            stripeRefundAmount = Math.min(totalRefundPool, Number(app.amountPaidStripe));
+            totalRefundPool -= stripeRefundAmount;
+        }
+
+        // Priority 2: Refund Gift Card
+        if (totalRefundPool > 0 && Number(app.amountPaidGift) > 0) {
+            giftRefundAmount = Math.min(totalRefundPool, Number(app.amountPaidGift));
+            totalRefundPool -= giftRefundAmount;
+        }
+
+        const totalPenaltyRecorded = Number(app.servicePrice) - (stripeRefundAmount + giftRefundAmount);
+
+        // Execute Stripe Refund
         if (stripeRefundAmount > 0 && app.stripePaymentIntentId) {
           try {
             await stripe.refunds.create({
@@ -64,7 +99,7 @@ export async function handleRefundAndCancel(id: string) {
           }
         }
 
-        // Gift Refund
+        // Execute Gift Restoration
         if (giftRefundAmount > 0 && app.giftCardId) {
           try {
             await prisma.$executeRawUnsafe(`UPDATE "GiftCard" SET "balance" = "balance" + $1 WHERE id = $2`, giftRefundAmount, app.giftCardId);
@@ -75,12 +110,14 @@ export async function handleRefundAndCancel(id: string) {
         }
 
         // Update Appointment Status
+        const newPaymentStatus = (stripeRefundAmount + giftRefundAmount) > 0 ? 'PARTIAL_REFUNDED' : 'REFUNDED';
+        
         await prisma.$executeRawUnsafe(
-          `UPDATE "Appointment" SET status = 'CANCELLED', "paymentStatus" = 'PARTIAL_REFUNDED', 
-           "amountPaidStripe" = "amountPaidStripe" - $1, "amountPaidGift" = "amountPaidGift" - $2, 
-           "cancellationFee" = $1 + $2, "updatedAt" = NOW()
-           WHERE id = $3`,
-          stripeRefundAmount, giftRefundAmount, app.id
+          `UPDATE "Appointment" SET status = 'CANCELLED', "paymentStatus" = $1, 
+           "amountPaidStripe" = "amountPaidStripe" - $2, "amountPaidGift" = "amountPaidGift" - $3, 
+           "cancellationFee" = $4, "updatedAt" = NOW()
+           WHERE id = $5`,
+          newPaymentStatus, stripeRefundAmount, giftRefundAmount, totalPenaltyRecorded, app.id
         );
       } else {
         // Not paid, just cancel
@@ -90,10 +127,11 @@ export async function handleRefundAndCancel(id: string) {
       // Notify and Alert
       try {
         await sendNotificationEmail(app.id, "CANCELLED");
+        const penaltyDesc = totalStripeRefund + totalGiftRefund === 0 ? "100% Penalty" : "Tiered Refund";
         await createMerchantAlert(
           app.tenantId,
           "BOOKING_CANCELLED",
-          `Booking ${isGroup ? '(Group)' : ''} cancelled — Refunded 50%`,
+          `Booking cancelled — ${penaltyDesc}`,
           { date: new Date(app.startTime).toISOString().split('T')[0], appointmentId: app.id }
         );
       } catch (e) {}

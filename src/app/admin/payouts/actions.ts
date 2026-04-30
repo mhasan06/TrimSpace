@@ -38,11 +38,20 @@ export async function getPlatformSettingsAction() {
 
     if (rows.length === 0) {
       await prisma.$executeRawUnsafe(
-        `INSERT INTO "PlatformSettings" ("id", "defaultPlatformFee", "updatedAt") 
-         VALUES ('platform_global', 0.017, NOW()) 
+        `INSERT INTO "PlatformSettings" ("id", "defaultPlatformFee", "penaltyLongThreshold", "penaltyShortThreshold", "penaltyLongRate", "penaltyMidRate", "penaltyShortRate", "updatedAt") 
+         VALUES ('platform_global', 0.017, 48, 24, 0.0, 0.2, 1.0, NOW()) 
          ON CONFLICT ("id") DO NOTHING`
       );
-      return { id: "platform_global", defaultPlatformFee: 0.017, schedules: [] };
+      return { 
+        id: "platform_global", 
+        defaultPlatformFee: 0.017, 
+        penaltyLongThreshold: 48,
+        penaltyShortThreshold: 24,
+        penaltyLongRate: 0.0,
+        penaltyMidRate: 0.2,
+        penaltyShortRate: 1.0,
+        schedules: [] 
+      };
     }
     
     return { ...rows[0], schedules };
@@ -93,6 +102,21 @@ export async function updatePlatformSettingsAction(data: {
     // Standard Identity Fields
     if (data.name !== undefined) {
       await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformName" = $1 WHERE "id" = 'platform_global'`, data.name);
+    }
+    if (data.penaltyLongThreshold !== undefined) {
+      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyLongThreshold" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyLongThreshold));
+    }
+    if (data.penaltyShortThreshold !== undefined) {
+      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyShortThreshold" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyShortThreshold));
+    }
+    if (data.penaltyLongRate !== undefined) {
+      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyLongRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyLongRate));
+    }
+    if (data.penaltyMidRate !== undefined) {
+      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyMidRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyMidRate));
+    }
+    if (data.penaltyShortRate !== undefined) {
+      await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "penaltyShortRate" = $1 WHERE "id" = 'platform_global'`, Number(data.penaltyShortRate));
     }
     if (data.abl !== undefined) {
       await prisma.$executeRawUnsafe(`UPDATE "PlatformSettings" SET "platformAbl" = $1 WHERE "id" = 'platform_global'`, data.abl);

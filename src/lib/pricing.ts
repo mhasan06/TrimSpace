@@ -33,6 +33,34 @@ export function calculateServiceFees(basePrice: number, customCommissionPercent?
   };
 }
 
+/**
+ * Calculates the cancellation penalty based on dynamic platform settings.
+ */
+export function calculateCancellationPenalty(
+  basePrice: number, 
+  startTime: Date, 
+  settings: {
+    penaltyLongThreshold: number;
+    penaltyShortThreshold: number;
+    penaltyLongRate: number;
+    penaltyMidRate: number;
+    penaltyShortRate: number;
+  }
+) {
+  const now = new Date();
+  const diffInHours = (startTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+  let penaltyRate = settings.penaltyShortRate; // Default to max penalty (under 24h)
+
+  if (diffInHours > settings.penaltyLongThreshold) {
+    penaltyRate = settings.penaltyLongRate; // Over 48h
+  } else if (diffInHours > settings.penaltyShortThreshold) {
+    penaltyRate = settings.penaltyMidRate; // Between 24h and 48h
+  }
+
+  return basePrice * penaltyRate;
+}
+
 export function formatPrice(amount: number) {
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
