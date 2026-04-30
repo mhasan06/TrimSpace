@@ -17,6 +17,7 @@ export default function AdminSidebarContent({ openTicketsCount, styles }: { open
         <>
             <div className={styles.navSectionLabel}>Marketplace Intelligence</div>
             <Link href="/admin" className={linkClass("/admin")}>🌍 Global Metrics</Link>
+            <Link href="/admin/insights" className={linkClass("/admin/insights")}>🤖 AI Insight Center</Link>
             <Link href="/admin/reports" className={linkClass("/admin/reports")}>📊 Marketplace Analytics</Link>
             
             <div className={styles.navSectionLabel}>Entity Management</div>
