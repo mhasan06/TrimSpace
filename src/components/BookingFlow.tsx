@@ -110,6 +110,14 @@ export default function BookingFlow({
   const [barbers, setBarbers] = useState<any[]>([]);
   const [availableBarbersAtTime, setAvailableBarbersAtTime] = useState<string[]>([]);
   const [slots, setSlots] = useState<any[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // ─── LOCAL STORAGE PERSISTENCE ───
   useEffect(() => {
