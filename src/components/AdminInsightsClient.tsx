@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { getAIInsightAction } from "./actions";
+import { getAIInsightAction } from "@/app/admin/insights/actions";
 
 export default function AdminInsightsClient() {
   const [query, setQuery] = useState("");
