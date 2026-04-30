@@ -40,7 +40,6 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
   }
 
   if (!tenant) notFound();
-
   const isFavorited = await getIsFavorited(tenant.id);
   const terminology = getTerminology(tenant.category);
   const gallery = tenant.galleryImages || [];
@@ -48,6 +47,12 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
   const averageRating = tenantReviews.length > 0 
     ? (tenantReviews.reduce((a:any, b:any) => a + b.rating, 0) / tenantReviews.length).toFixed(1) 
     : "5.0";
+
+  const feeSchedules = await prisma.platformFeeSchedule.findMany({
+    orderBy: { effectiveFrom: 'asc' }
+  });
+
+  if (!tenant) notFound();
 
   return (
     <div className={styles.pageWrapper}>
@@ -61,6 +66,8 @@ export default async function TenantPage({ params }: { params: Promise<{ slug: s
           category={tenant.category} 
           cancellationPolicy={platformSettings?.cancellationPolicy}
           bookingPolicy={platformSettings?.bookingPolicy}
+          platformSettings={platformSettings}
+          feeSchedules={feeSchedules}
           businessHours={tenant.businessHours}
           address={tenant.address}
           tenantName={tenant.name}

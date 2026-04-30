@@ -25,11 +25,30 @@ export type Service = {
 
 const STORAGE_KEY = "barber_booking_state";
 
+interface BookingFlowProps {
+  initialServices: Service[];
+  tenantSlug: string;
+  category?: string;
+  cancellationPolicy?: string | null;
+  bookingPolicy?: string | null;
+  businessHours: any[];
+  platformSettings?: any;
+  feeSchedules?: any[];
+  address: string;
+  tenantName: string;
+  shopImage?: string | null;
+  rating?: string;
+  reviewCount?: string;
+  children?: React.ReactNode;
+}
+
 export default function BookingFlow({ 
   initialServices, 
   tenantSlug,
   category = 'BARBER',
   businessHours,
+  platformSettings,
+  feeSchedules,
   address,
   tenantName,
   shopImage,
@@ -38,22 +57,25 @@ export default function BookingFlow({
   cancellationPolicy,
   bookingPolicy,
   children
-}: { 
-  initialServices: Service[], 
-  tenantSlug: string,
-  category?: string,
-  cancellationPolicy?: string | null,
-  bookingPolicy?: string | null,
-  businessHours: any[],
-  address: string,
-  tenantName: string,
-  shopImage?: string | null,
-  rating?: string,
-  reviewCount?: string,
-  children: React.ReactNode
-}) {
+}: BookingFlowProps) {
   const { data: session } = useSession();
   const terminology = getTerminology(category);
+
+  // Helper to resolve fee for a specific date in the UI
+  const getDynamicFeeForDate = useCallback((dateStr: string) => {
+    const date = new Date(dateStr);
+    // 1. Check Schedules
+    if (feeSchedules && feeSchedules.length > 0) {
+      const activeSchedule = [...feeSchedules].reverse().find(s => new Date(s.effectiveFrom) <= date);
+      if (activeSchedule) return Number(activeSchedule.feePercentage);
+    }
+    // 2. Check Cutover from DB
+    if (platformSettings?.defaultFeeEffectiveFrom && date < new Date(platformSettings.defaultFeeEffectiveFrom)) {
+      return 0.017; // Legacy Fallback
+    }
+    // 3. Global Default from DB
+    return platformSettings?.defaultPlatformFee ?? 0.017;
+  }, [feeSchedules, platformSettings]);
   
   const [stage, setStage] = useState<"START" | "SERVICES" | "CALENDAR" | "BARBERS" | "PAYMENT">("START");
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -108,7 +130,8 @@ export default function BookingFlow({
 
   const allCartItems = useMemo(() => Object.entries(multiCart).flatMap(([pIdx, items]) => items.map(i => ({ ...i, p: Number(pIdx) }))), [multiCart]);
   const totalPrice = allCartItems.reduce((acc, i) => {
-    const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price));
+    const feeScale = getDynamicFeeForDate(targetDate);
+    const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price), feeScale);
     return acc + (totalCustomerPrice * i.quantity);
   }, 0);
 
@@ -447,7 +470,8 @@ export default function BookingFlow({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {initialServices.map(service => {
                 const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id);
-                const { totalCustomerPrice } = calculateServiceFees(Number(service.price));
+                const feeScale = getDynamicFeeForDate(targetDate);
+                const { totalCustomerPrice } = calculateServiceFees(Number(service.price), feeScale);
                 return (
                   <div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ flex: 1 }}>
@@ -700,7 +724,7 @@ export default function BookingFlow({
                       {items.map((item, idx) => (
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{item.service.name}</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>{formatPrice(calculateServiceFees(Number(item.service.price)).totalCustomerPrice)}</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 800 }}>{formatPrice(calculateServiceFees(Number(item.service.price), getDynamicFeeForDate(targetDate)).totalCustomerPrice)}</span>
                         </div>
                       ))}
                       {selectedBarberIds[Number(pIdx)] && (

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calculateServiceFees } from "@/lib/pricing";
+import { getEffectivePlatformFee } from "@/lib/platform";
 
 const stripeKey = process.env.STRIPE_SECRET_KEY || '';
 const stripe = stripeKey 
@@ -46,9 +47,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // Calculate all-inclusive total using the utility
+    // Fetch the platform fee active for this specific booking date
+    const feeScale = await getEffectivePlatformFee(new Date(targetDate));
+
+    // Calculate all-inclusive total using the utility and dynamic fee
     const allInclusiveTotal = cart.reduce((acc: number, i: any) => {
-        const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price));
+        const { totalCustomerPrice } = calculateServiceFees(Number(i.service.price), feeScale);
         return acc + (totalCustomerPrice * i.quantity);
     }, 0);
 
