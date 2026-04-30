@@ -476,18 +476,17 @@ export default function BookingFlow({
         )}
         {stage === "START" && (<><div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '2rem 1.5rem' : '6rem 2rem', background: '#fff', borderRadius: '48px', border: '1px solid #f1f5f9', boxShadow: '0 20px 60px rgba(0,0,0,0.02)', textAlign: 'center', marginBottom: '4rem' }}><h1 style={{ fontSize: isMobile ? '2rem' : '3rem', fontWeight: 950, marginBottom: '0.8rem', color: '#0f172a' }}>Start Your Booking</h1><p style={{ fontSize: isMobile ? '1rem' : '1.2rem', color: '#64748b', fontWeight: 600, marginBottom: isMobile ? '2rem' : '3rem' }}>How many people are joining us?</p><div style={{ display: 'flex', gap: isMobile ? '10px' : '16px', marginBottom: isMobile ? '2.5rem' : '4rem', flexWrap: 'wrap', justifyContent: 'center' }}>{[1, 2, 3, 4, 5].map(num => (<button key={num} onClick={() => setNumberOfPeople(num)} style={{ width: isMobile ? '56px' : '72px', height: isMobile ? '56px' : '72px', borderRadius: isMobile ? '16px' : '20px', border: numberOfPeople === num ? '2px solid #000' : '1px solid #e2e8f0', background: numberOfPeople === num ? '#f8fafc' : '#fff', color: '#000', fontWeight: 900, fontSize: isMobile ? '1.2rem' : '1.5rem', cursor: 'pointer' }}>{num}</button>))}</div><button onClick={() => setStage("SERVICES")} style={{ padding: isMobile ? '1rem 3rem' : '1.2rem 4rem', borderRadius: '50px', background: '#000', color: '#fff', fontWeight: 900, fontSize: isMobile ? '1rem' : '1.1rem', cursor: 'pointer' }}>Continue</button></div>{children}</>)}
         {stage === "SERVICES" && (
-          <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+          <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
+              position: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
-              zIndex: 100, 
-              paddingTop: '2rem',
-              marginTop: '-2rem',
-              marginBottom: '2rem',
-              paddingBottom: '1.2rem',
+              zIndex: 1100, 
+              padding: '2rem 2rem 1.2rem 2rem',
               borderBottom: '2px solid #f1f5f9',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              borderRadius: '32px 32px 0 0'
             }}>
               <button onClick={() => setStage("START")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
               <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: 900, marginBottom: '1rem', margin: 0 }}>Select {terminology.serviceLabelPlural}</h2>
@@ -501,59 +500,61 @@ export default function BookingFlow({
                 </div>
               )}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {initialServices.map(service => {
-                const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id);
-                const feeScale = getDynamicFeeForDate(targetDate);
-                const { totalCustomerPrice } = calculateServiceFees(Number(service.price), feeScale);
-                return (
-                  <div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', fontWeight: 800 }}>{service.name}</h3>
-                      <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>{service.durationMinutes} mins</p>
-                      <p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{formatPrice(totalCustomerPrice)}</p>
+            
+            <div style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {initialServices.map(service => {
+                  const isSelected = (multiCart[currentPersonIndex] || []).some(i => i.service.id === service.id);
+                  const feeScale = getDynamicFeeForDate(targetDate);
+                  const { totalCustomerPrice } = calculateServiceFees(Number(service.price), feeScale);
+                  return (
+                    <div key={service.id} onClick={() => addToCart(service)} style={{ padding: '24px', background: '#fff', borderRadius: '18px', border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', fontWeight: 800 }}>{service.name}</h3>
+                        <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>{service.durationMinutes} mins</p>
+                        <p style={{ margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{formatPrice(totalCustomerPrice)}</p>
+                      </div>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSelected ? '#6366f1' : '#fff', border: isSelected ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                        {isSelected ? '✓' : '+'}
+                      </div>
                     </div>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isSelected ? '#6366f1' : '#fff', border: isSelected ? 'none' : '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      {isSelected ? '✓' : '+'}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '8px', 
-              marginTop: '32px', 
-              padding: '16px', 
-              background: '#f8fafc', 
-              borderRadius: '16px',
-              border: '1px solid #f1f5f9'
-            }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem', fontWeight: 700 }}>
-                Prices include secure payment processing and platform service fees.
-              </p>
+                  );
+                })}
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px', 
+                marginTop: '32px', 
+                padding: '16px', 
+                background: '#f8fafc', 
+                borderRadius: '16px',
+                border: '1px solid #f1f5f9'
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem', fontWeight: 700 }}>
+                  Prices include secure payment processing and platform service fees.
+                </p>
+              </div>
             </div>
           </div>
         )}
         {stage === "CALENDAR" && (
-          <div style={{ padding: '2.5rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+          <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
+              position: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
-              zIndex: 100, 
-              paddingTop: '2.5rem',
-              marginTop: '-2.5rem',
-              marginBottom: '2.5rem',
-              paddingBottom: '1.5rem',
+              zIndex: 1100, 
+              padding: '2.5rem 2.5rem 1.5rem 2.5rem',
               borderBottom: '2px solid #f1f5f9',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              borderRadius: '32px 32px 0 0'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
                 <button onClick={() => setStage("SERVICES")} style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer', fontSize: '1rem' }}>← Back</button>
@@ -599,76 +600,79 @@ export default function BookingFlow({
               </div>
             </div>
 
-            {/* Time Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
-              {slots.length > 0 ? slots.map(slot => (
-                <button 
-                  key={slot.time} 
-                  onClick={() => { setSelectedTime(slot.time); setAvailableBarbersAtTime(slot.availableBarberIds || []); setStage("BARBERS"); setCurrentPersonIndex(0); }} 
-                  style={{ 
-                    padding: '16px 8px', 
-                    borderRadius: '14px', 
-                    border: '1px solid #f1f5f9', 
-                    background: '#fff', 
-                    color: '#0f172a', 
-                    fontWeight: 800, 
-                    fontSize: '1.1rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.transform = 'translateY(0)'; }}
-                >
-                  {slot.time}
-                </button>
-              )) : (
-                <div style={{ gridColumn: '1 / -1', padding: '4rem 2rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📅</div>
-                  <p style={{ color: '#64748b', fontWeight: 700, margin: 0 }}>No slots available for this date.</p>
-                  <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '4px' }}>Try selecting another day or checking back later.</p>
-                </div>
-              )}
+            <div style={{ padding: '2.5rem' }}>
+              {/* Time Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px' }}>
+                {slots.length > 0 ? slots.map(slot => (
+                  <button 
+                    key={slot.time} 
+                    onClick={() => { setSelectedTime(slot.time); setAvailableBarbersAtTime(slot.availableBarberIds || []); setStage("BARBERS"); setCurrentPersonIndex(0); }} 
+                    style={{ 
+                      padding: '16px 8px', 
+                      borderRadius: '14px', 
+                      border: '1px solid #f1f5f9', 
+                      background: '#fff', 
+                      color: '#0f172a', 
+                      fontWeight: 800, 
+                      fontSize: '1.1rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#f1f5f9'; e.currentTarget.style.transform = 'translateY(0)'; }}
+                  >
+                    {slot.time}
+                  </button>
+                )) : (
+                  <div style={{ gridColumn: '1 / -1', padding: '4rem 2rem', textAlign: 'center', background: '#f8fafc', borderRadius: '24px' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📅</div>
+                    <p style={{ color: '#64748b', fontWeight: 700, margin: 0 }}>No slots available for this date.</p>
+                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '4px' }}>Try selecting another day or checking back later.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
         {stage === "BARBERS" && (
-          <div style={{ padding: '2rem', background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9' }}>
+          <div style={{ background: '#fff', borderRadius: '32px', border: '1px solid #f1f5f9', overflow: 'visible' }}>
             <div style={{ 
+              position: '-webkit-sticky',
               position: 'sticky', 
               top: 0, 
               background: '#fff', 
-              zIndex: 100, 
-              paddingTop: '2rem',
-              marginTop: '-2rem',
-              marginBottom: '2rem',
-              paddingBottom: '1.2rem',
+              zIndex: 1100, 
+              padding: '2rem 2rem 1.2rem 2rem',
               borderBottom: '2px solid #f1f5f9',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.02)'
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              borderRadius: '32px 32px 0 0'
             }}>
               <button onClick={() => setStage("CALENDAR")} style={{ marginBottom: '1.5rem', background: 'none', border: 'none', color: '#6366f1', fontWeight: 800, cursor: 'pointer' }}>← Back</button>
               <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: 900, marginBottom: '0.5rem', margin: 0 }}>Choose Professional</h2>
               {numberOfPeople > 1 && (<div style={{ display: 'flex', gap: '10px', marginTop: '1.5rem', background: '#f8fafc', padding: '6px', borderRadius: '14px' }}>{Array.from({ length: numberOfPeople }).map((_, i) => (<button key={i} onClick={() => setCurrentPersonIndex(i)} style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: currentPersonIndex === i ? '#fff' : 'transparent', fontWeight: 800, color: currentPersonIndex === i ? '#000' : '#64748b', cursor: 'pointer' }}>Person {i + 1}</button>))}</div>)}
             </div>
             
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#fff9f0', padding: '12px 16px', borderRadius: '12px', border: '1px solid #ffedd5', marginBottom: '2rem' }}>
-              <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a3412', fontWeight: 600, lineHeight: '1.4' }}>
-                Note: Your preferred professional may not be available due to unexpected circumstances.
-              </p>
-            </div>
-            
-            <div style={{ display: 'grid', gap: '15px' }}>
-              <div onClick={() => handleBarberSelect(null)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === null ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👥</div>
-                <p style={{ fontWeight: 800, margin: 0 }}>Any Professional</p>
+            <div style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', background: '#fff9f0', padding: '12px 16px', borderRadius: '12px', border: '1px solid #ffedd5', marginBottom: '2rem' }}>
+                <span style={{ fontSize: '1.2rem' }}>ℹ️</span>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#9a3412', fontWeight: 600, lineHeight: '1.4' }}>
+                  Note: Your preferred professional may not be available due to unexpected circumstances.
+                </p>
               </div>
-              {barbers.filter(b => availableBarbersAtTime.includes(b.id)).map(barber => (
-                <div key={barber.id} onClick={() => handleBarberSelect(barber.id)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === barber.id ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: `url(${barber.avatarUrl || 'https://ui-avatars.com/api/?name='+barber.name})`, backgroundSize: 'cover' }}></div>
-                  <p style={{ fontWeight: 800, margin: 0 }}>{barber.name}</p>
+              
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <div onClick={() => handleBarberSelect(null)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === null ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>👥</div>
+                  <p style={{ fontWeight: 800, margin: 0 }}>Any Professional</p>
                 </div>
-              ))}
+                {barbers.filter(b => availableBarbersAtTime.includes(b.id)).map(barber => (
+                  <div key={barber.id} onClick={() => handleBarberSelect(barber.id)} style={{ padding: '20px', border: selectedBarberIds[currentPersonIndex] === barber.id ? '2px solid #000' : '1px solid #e2e8f0', borderRadius: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: `url(${barber.avatarUrl || 'https://ui-avatars.com/api/?name='+barber.name})`, backgroundSize: 'cover' }}></div>
+                    <p style={{ fontWeight: 800, margin: 0 }}>{barber.name}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
